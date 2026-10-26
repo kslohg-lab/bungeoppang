@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>기록 검증 (운영자용)</title>
+<style>
+body{font-family:"Noto Sans KR","Malgun Gothic",sans-serif;margin:0;padding:16px;background:#fff8ec;color:#4a2f1c;line-height:1.5}
+h1{font-size:22px;margin:0 0 8px}table{border-collapse:collapse;width:100%;max-width:760px;font-size:15px}
+td,th{border-bottom:1px solid #ecd9b8;padding:6px 8px;text-align:left}.ok{color:#1a8a3a}.bad{color:#d03030;font-weight:700}.na{color:#a08060}
+button{font:inherit;padding:8px 14px;border-radius:10px;border:0;background:#ffc94a;margin:4px 6px 4px 0}code{background:#f5e6c8;padding:1px 5px;border-radius:5px;font-size:13px}
+</style></head><body>
+<h1>🔍 순위표 기록 검증</h1>
+<p>위쪽 30명의 플레이 기록을 이 브라우저에서 처음부터 다시 돌려 점수가 맞는지 확인해요. (운영자용 · 서버 비용 거의 없음)</p>
+<div><button id="b0">이번 주</button><button id="b1">지난 주</button></div>
+<p id="st"></p><table id="tb"></table>
+<script src="sim.js?v=1"></script>
+<script type="module">
+import {CFG} from './firebase-config.js';
+const $=id=>document.getElementById(id),V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
+if(!CFG.apiKey){$('st').textContent='firebase-config.js 가 비어 있어요.'}
+else{
+ const [{initializeApp},{getFirestore,doc,getDoc,collection,query,orderBy,limit,getDocs}]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-firestore.js')]);
+ const db=getFirestore(initializeApp(CFG));
+ async function unpack(p){if(p.startsWith('j:'))return JSON.parse(p.slice(2));
+  const bin=Uint8Array.from(atob(p.slice(2)),c=>c.charCodeAt(0));
+  const t=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text();return JSON.parse(t)}
+ async function go(off){const w=BP2.weekId(Date.now())-off;$('st').textContent='불러오는 중… (주 #'+w+')';$('tb').innerHTML='';
+  const snap=await getDocs(query(collection(db,'weeks',String(w),'scores'),orderBy('sc','desc'),limit(30)));
+  let h='<tr><th>#</th><th>닉네임</th><th>단계</th><th>번 돈</th><th>검증</th><th>문서 ID</th></tr>';let n=0,okc=0,bad=0;
+  for(const d of snap.docs){n++;const x=d.data();let res='<span class="na">기록 없음</span>';
+   try{const pr=await getDoc(doc(db,'weeks',String(w),'proofs',d.id));
+    if(pr.exists()){const p=pr.data();
+     if(p.v!==BP2.SIMV)res='<span class="na">옛 규칙 버전</span>';
+     else if(p.st!==x.st)res='<span class="na">기록이 점수보다 짧음 (진행 중?)</span>';
+     else{const run=BP2.replay(BP2.weekSeed(w),await unpack(p.p));
+      if(run.stage===x.st&&run.tot===x.net){res='<span class="ok">✅ 일치</span>';okc++}else{res='<span class="bad">❌ 불일치 (재생: '+run.stage+'단계 / '+run.tot+'원)</span>';bad++}}}
+   }catch(e){res='<span class="bad">⚠️ 오류 '+String(e.message||e).replace(/[<>&]/g,'')+'</span>'}
+   const nm=document.createElement('span');nm.textContent=x.n;
+   h+='<tr><td>'+n+'</td><td>'+nm.innerHTML+'</td><td>'+x.st+'</td><td>'+x.net.toLocaleString('ko-KR')+'</td><td>'+res+'</td><td><code>'+d.id.slice(0,8)+'…</code></td></tr>'}
+  $('tb').innerHTML=h;$('st').textContent='주 #'+w+' · '+n+'명 확인 · 일치 '+okc+' · 불일치 '+bad+(bad?' → 불일치는 Firebase 콘솔의 weeks/'+w+'/scores 에서 해당 문서를 지우세요 (문서 ID 앞 8자리로 찾기).':'')}
+ $('b0').onclick=()=>go(0);$('b1').onclick=()=>go(1);go(0)}
+</script></body></html>
