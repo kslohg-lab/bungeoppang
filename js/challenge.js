@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.1';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.2';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -140,10 +140,9 @@ function drain(){A.drainFx()}
 /* ---------- 그리기 (가게와 같은 그림 도구, 배경만 챌린지 노점) ---------- */
 function awning(t){const n=15,w=W/n;for(let i=0;i<n;i++){const c=i%2?'#fff6ec':'#e8584a';cx.fillStyle=c;cx.fillRect(i*w,60,w,16);cx.beginPath();cx.arc(i*w+w/2,76,w/2,0,Math.PI);cx.fill()}
  cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(0,60,W,3)}
-function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({sub:s.wea.n+' · 컷트라인 '+fmt(s.cut)+'원',
- bg:t=>{cx.fillStyle='#ffe0b5';cx.fillRect(0,0,W,H);const g=cx.createLinearGradient(0,64,0,322);g.addColorStop(0,lite(lc.wall,.3));g.addColorStop(1,dark(lc.wall,.06));cx.fillStyle=g;cx.fillRect(0,64,W,258);
-  cx.fillStyle='rgba(255,255,255,.18)';for(let i=0;i<6;i++)cx.fillRect(i*80+10,90,2,220);
-  awning(t);cx.fillStyle='#c9935f';cx.fillRect(0,322,W,78);cx.fillStyle='#d9a873';cx.fillRect(0,322,W,6);cx.fillStyle='rgba(0,0,0,.14)';cx.fillRect(0,328,W,4);cx.fillStyle='#6b5344';cx.fillRect(0,394,W,310)},
+function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.wea.n+' · 컷트라인 '+fmt(s.cut)+'원',
+ bg:t=>{cx.fillStyle='#ffe0b5';cx.fillRect(0,0,W,H);cx.fillStyle='#c9935f';cx.fillRect(0,322,W,78);cx.fillStyle='#d9a873';cx.fillRect(0,322,W,6);cx.fillStyle='rgba(0,0,0,.14)';cx.fillRect(0,328,W,4);cx.fillStyle='#6b5344';cx.fillRect(0,394,W,310)},
+ front:t=>{awning(t);/* 카운터 앞판 */const g=cx.createLinearGradient(0,318,0,330);g.addColorStop(0,'#b97d4a');g.addColorStop(1,'#a06a3a');cx.fillStyle=g;cx.fillRect(0,318,W,8)},
  head:t=>{rr(0,0,W,58,0,'#8a5a3a');tx(s.d+'일차 '+s.wea.e,50,20,22,'#fff','left');
   const dc=['','🏮','🏮⛱️','🏮⛱️✨'][run.up.deco|0];tx(lc.e+(dc||''),160,20,16,'#fff','left');
   tx('🪙 '+fmt(run.coins+s.net),385,20,ui.hud>0?26:22,ui.hud>0?'#fff6c0':'#ffe9a0','right');

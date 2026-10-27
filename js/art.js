@@ -142,7 +142,7 @@ const QC={p:'#f0b850',o:'#ecae4a',g:'#e8aa46'};
 function hit(x,y){if(y>=64&&y<330)return{k:'c',i:Math.max(0,Math.min(2,Math.floor(x/150)))};
  if(y>=400&&y<686){const rw=Math.floor((y-400)/72),i=rw*2+(x<225?0:1);if(rw<4&&y-400-rw*72<MH+4)return{k:'m',i};return null}
  if(y>=698){const n=run.nf;return{k:'f',i:Math.max(0,Math.min(n-1,Math.floor(x/(450/n))))}}return null}
-function at(f){return f.a==='m'?{x:mpos(f.i).x+64,y:mpos(f.i).y+4}:{x:f.i*150+75,y:156-(f.dy||0)}}
+function at(f){return f.a==='m'?{x:mpos(f.i).x+64,y:mpos(f.i).y+4}:{x:f.i*150+75,y:(STM?286:156)-(f.dy||0)}}
 function mold(i){const X=mpos(i).x,Y=mpos(i).y;
  if(i>=BP2.nMold(run)){rr(X,Y,MW,MH,16,'rgba(60,40,30,.35)');em('🔒',X+MW/2,Y+MH/2,28,.8);return}
  const m=s.mold[i];let A=ui.ma[i];if(!A||A.s!==m.s){A=ui.ma[i]={s:m.s,t0:s.t}}const a=s.t-A.t0,tp=Math.max(0,1-(s.t-(ui.tp[i]===undefined?-9:ui.tp[i]))/.18);
@@ -193,6 +193,61 @@ function custDraw(c,i){const x0=i*150;rr(x0+8,76,134,244,18,'rgba(255,255,255,.3
  else if(r<.3){bub(X,by,c.ty==='hurry'?'빨리요!! 😫':'아직이에요? 😥','#ffefd6');em('💦',X+30,Y-20+Math.sin(s.t*8)*3,18)}
  else if(r<.5&&c.ty==='hurry')em('💦',X+30,Y-20+Math.sin(s.t*8)*3,16);
  if(c.leave<=0){rr(x0+20,303,110,9,4,'rgba(0,0,0,.25)');rr(x0+20,303,110*Math.max(0,r),9,4,r>.5?'#7ed88a':r>.25?'#ffd23a':'#ff6a5a')}cx.globalAlpha=1}
+/* ---------- 가게 앞 거리 (원근감): 손님이 멀리서 걸어와 카운터 앞에 서요 ---------- */
+const HZ=112,NEAR=240,SLX=[75,225,375],WALK=1.1;
+const dep=d=>({y:HZ+18+(NEAR-HZ-18)*d,k:.34+.66*d});
+const SHIRT=c=>({vip:'#b48aff',reg:'#7ed88a',hurry:'#ff9a6a',group:'#ffd23a',critic:'#3a3a4a'}[c.ty]||['#7ec8ff','#ff9ab0','#9ad870'][(c.an.codePointAt(0))%3]);
+function streetBg(o){const t=s.t,lc=BP2.L(run),wea=s.wea.e;
+ const sky=cx.createLinearGradient(0,64,0,HZ+20);const sc=wea==='🌧️'?['#9fb0c8','#d6dde8']:wea==='❄️'?['#c8d6e8','#f2f6fb']:['#8fd0ff','#e6f6ff'];sky.addColorStop(0,sc[0]);sky.addColorStop(1,sc[1]);cx.fillStyle=sky;cx.fillRect(0,64,450,HZ-44);
+ if(wea==='☀️'){cx.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<3;i++){const x=m2(t*6+i*170,560)-60,y=82+i*9;cx.beginPath();cx.ellipse(x,y,26,8,0,0,7);cx.ellipse(x+16,y-5,16,7,0,0,7);cx.fill()}}
+ /* 건물 줄 (지평선) */
+ const BC=[lite(lc.wall,.1),dark(lc.wall,.12),'#e9d7c0','#d9c7e8','#cfe3d2','#f2d0c0'];
+ for(let i=0;i<9;i++){const w=46+(i*37)%30,h=26+(i*53)%34,x=-10+i*54;cx.fillStyle=BC[i%BC.length];cx.fillRect(x,HZ+20-h,w,h);cx.fillStyle='rgba(255,255,255,.55)';for(let r=0;r<2;r++)for(let q=0;q<3;q++)if((i+r+q)%3)cx.fillRect(x+6+q*13,HZ+24-h+r*12,7,7);cx.fillStyle='rgba(0,0,0,.08)';cx.fillRect(x,HZ+20-h,w,3)}
+ /* 인도 + 길 */
+ const g=cx.createLinearGradient(0,HZ+18,0,330);g.addColorStop(0,'#cbbfae');g.addColorStop(1,'#e8dccb');cx.fillStyle=g;cx.fillRect(0,HZ+18,450,330-HZ-18);
+ cx.fillStyle='#9a9590';cx.beginPath();cx.moveTo(196,HZ+18);cx.lineTo(254,HZ+18);cx.lineTo(450,HZ+64);cx.lineTo(0,HZ+64);cx.closePath();cx.fill();
+ cx.strokeStyle='rgba(255,255,255,.7)';cx.lineWidth=2;cx.setLineDash([10,9]);cx.lineDashOffset=0;cx.beginPath();cx.moveTo(225,HZ+20);cx.lineTo(225,HZ+62);cx.stroke();cx.setLineDash([]);
+ cx.strokeStyle='rgba(120,100,80,.18)';cx.lineWidth=1.5;for(let i=-6;i<=6;i++){cx.beginPath();cx.moveTo(225+i*16,HZ+64);cx.lineTo(225+i*80,330);cx.stroke()}
+ for(let r=0;r<5;r++){const y=HZ+64+(r*r+r)*6;cx.beginPath();cx.moveTo(0,y);cx.lineTo(450,y);cx.stroke()}
+ /* 가로등 */
+ for(const sx of[-1,1]){const x=225+sx*150;cx.fillStyle='#5a5048';cx.fillRect(x-2,HZ-18,4,58);cx.fillStyle=wea==='❄️'||wea==='🌧️'?'#ffe9a0':'#fff6d0';cx.beginPath();cx.arc(x,HZ-20,6,0,7);cx.fill()}
+ /* 지나가는 사람들 (꾸밈) */
+ for(let i=0;i<3;i++){const sp=18+i*7,dir=i%2?-1:1,u=m2(t*sp+i*190,560)-55,x=dir>0?u:450-u,y=HZ+40+i*7;const an=BP2.R.an[(i*5+3)%12];
+  cx.globalAlpha=.8;animal(an,x,y-Math.abs(Math.sin(t*8+i))*2,20+i*3,{t,ph:i,mood:'n',shirt:['#c8b0e0','#b0d8c0','#f0c0a0'][i]});cx.globalAlpha=1}
+ /* 줄 서서 기다리는 손님: 세 자리가 다 찼을 때 */
+ const full=s.cust.every(c=>c&&c.leave<=0);if(full){const n=1+Math.floor(m2(s.t*.15,1)*2);for(let k=0;k<n;k++){const d=.22-k*.08,p=dep(d),x=225+(k?-22:18);animal(BP2.R.an[(s.d*3+k*7)%12],x,p.y+Math.sin(t*3+k)*1.5,62*p.k,{t,ph:k*2,mood:'n',shirt:['#e8c0a0','#b8d0f0'][k]})}
+  bub(225,dep(.22).y-34,'줄 서는 중…','rgba(255,255,255,.9)','#7a5a3a')}
+}
+/* 거리 버전 손님: 걸어와서(ag) 카운터 앞에 서고, 떠날 때 걸어가요 */
+function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
+ let d=Math.min(1,ag/WALK);d=1-Math.pow(1-d,2);
+ const lv=c.leave>0?1-c.leave/.8:0,r=c.pat/c.max;let x,y,k,a=1;
+ const sx=SLX[i],fx=225+(sx-225)*.25;
+ if(c.leave>0&&c.happy){const e=lv;const p=dep(1-e*.7);k=p.k;y=p.y-Math.abs(Math.sin(e*14))*6*(1-e);x=sx+(sx===225?70:(sx-225)*.55)*e;a=1-e*e}
+ else if(c.leave>0&&c.angry){const p=dep(1-lv*.6);k=p.k;y=p.y-Math.abs(Math.sin(lv*20))*4;x=sx+(sx===225?-70:(sx-225)*.55)*lv+Math.sin(s.t*40)*2;a=1-lv*lv}
+ else{const p=dep(d);k=p.k;y=p.y-(d<1?Math.abs(Math.sin(ag*11))*5:0);x=fx+(sx-fx)*d;
+  if(c.rxT>0){const u=1.4-c.rxT;y-=Math.abs(Math.sin(u*12))*8*Math.max(0,1-u)}else if(r<.3)x+=Math.sin(s.t*30)*1.6;if(c.sh>0)x+=Math.sin(s.t*70)*3}
+ const sz=62*k,arrived=d>=1&&c.leave<=0;
+ cx.globalAlpha=a*.25;cx.fillStyle='#000';cx.beginPath();cx.ellipse(x,y+sz*.86,sz*.42,sz*.1,0,0,7);cx.fill();cx.globalAlpha=a;
+ const mood=c.angry?'a':c.happy||c.rxT>0?'h':r<.3?'w':'n';
+ if(c.an==='🧐')em('🧐',x,y+sz*.2,sz*1.05);else animal(c.an,x,y,sz,{t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:SHIRT(c),tilt:mood==='w'?Math.sin(s.t*9)*.04:c.rxT>0?Math.sin(s.t*14)*.06:0});
+ const bd={vip:'👑',reg:'⭐',hurry:'⏱️',group:'🚌',critic:'🎩'}[c.ty];if(bd)em(bd,x-sz*.72,y-sz*.58,26*k);
+ /* 주문 말풍선: 도착하면 */
+ if(c.leave<=0&&d>.75){const L=[];for(let f=0;f<6;f++)if(c.ord[f]>0)L.push(f);const hb=12+22*L.length,bx=sx-58,top=Math.max(80,y-sz*.62-hb-40);cx.globalAlpha=Math.min(1,(d-.75)*4);
+  rr(bx,top,116,hb,14,'#fff');cx.beginPath();cx.moveTo(sx-10,top+hb);cx.lineTo(sx,top+hb+10);cx.lineTo(sx+10,top+hb);cx.closePath();cx.fillStyle='#fff';cx.fill();
+  if(c.ty==='critic')tx('✨만!',bx+98,top+hb-9,12,'#c0392b','center','#fff');
+  L.slice(0,6).forEach((f,q)=>{const rm=c.ord[f]-c.got[f],yy=top+17+q*22;if(rm>0){em(R.menu[f].e,bx+30,yy,20);tx('×'+rm,bx+72,yy,20,'#6a3a1a','center','#fff')}else em('✅',bx+30,yy,18,.7)});cx.globalAlpha=a}
+ /* 리액션 말풍선 */
+ const by=y-sz*.62-16;
+ if(c.leave>0&&c.angry){bub(x,by,'흥! 안 살래요 😤','#ffdcd6','#a0281a');em('💢',x+sz*.6,y-sz*.2,22)}
+ else if(c.leave>0&&c.happy){bub(x,by,c.ty==='critic'?'🎩 별 다섯 개!':'또 올게요! 💖','#ffe9f2','#a03060');for(let q=0;q<3;q++){const ph=(s.t*1.5+q/3)%1;em('💖',x-20+q*20,y-sz*.3-ph*36,13,1-ph)}}
+ else if(arrived&&c.rxT>0){const q=c.rxQ||'g',L2=RXP[q]||RXP.g;let w=L2[(c.an.codePointAt(0)+(c.rxN|0))%L2.length];if(c.ty==='critic'&&q==='p')w='🎩 브라보!';bub(x,by,w,q==='p'?'#fff3b0':'#fff',q==='p'?'#a06000':'#5a3a22');if(q==='p'&&c.rxT>1)em('✨',x+sz*.6,y-sz*.3,18)}
+ else if(!arrived&&c.leave<=0&&d>.3){if(d<1)bub(x,by,HELLO[c.ty]||HELLO.n,'rgba(255,255,255,.92)')}
+ else if(arrived&&ag<WALK+1.2)bub(x,by,HELLO[c.ty]||HELLO.n);
+ else if(arrived&&r<.3){bub(x,by,c.ty==='hurry'?'빨리요!! 😫':'아직이에요? 😥','#ffefd6');em('💦',x+sz*.5,y-sz*.25+Math.sin(s.t*8)*3,18)}
+ else if(arrived&&r<.5&&c.ty==='hurry')em('💦',x+sz*.5,y-sz*.25+Math.sin(s.t*8)*3,16);
+ if(arrived){rr(sx-55,312,110,8,4,'rgba(0,0,0,.25)');rr(sx-55,312,110*Math.max(0,r),8,4,r>.5?'#7ed88a':r>.25?'#ffd23a':'#ff6a5a')}
+ cx.globalAlpha=1}
 /* 접시 줄: 맛마다 개수, ✨완벽·👍좋음 */
 function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),cap=B.rackCap(run);
  tx('접시',24,338,14,'#fff','center','#7a4a22');tx(lv>=2?'맛별10':s.rack.length+'/'+cap,24,358,lv>=2?11:13,s.rack.length>=cap&&lv<2?'#ff9a8a':'#ffe9a0','center','#7a4a22');
@@ -220,10 +275,11 @@ function timeBar(){const R=BP2.R,rem=Math.max(0,R.len-s.t),tr=rem/R.len,sec=Math
  rr(0,58,450,16,0,'rgba(40,24,14,.55)');rr(0,58,450*tr,16,0,hot?(bl?'#ff3a2a':'#ff8a5a'):s.rushed?'#ff9a4a':'#7ec8ff');
  tx(s.ph==='end'?'🌙 영업 종료':'⏰ 마감까지 '+sec+'초',225,66,hot?16:14,'#fff','center',hot?'#a01a10':'#3a2a1a')}
 /* 화면 전체: o.bg() 배경, o.head() 위쪽 줄, o.mid() 손님 아래 장식, o.sub 시작 배너 둘째 줄 */
-function drawPlay(o){const B=BP2,R=B.R,t=performance.now()/1000;cx.save();if(ui.shake>0){const k=ui.shake/.3*4;cx.translate((Math.random()-.5)*k,(Math.random()-.5)*k)}
+let STM=false;
+function drawPlay(o){STM=!!o.street;const B=BP2,R=B.R,t=performance.now()/1000;cx.save();if(ui.shake>0){const k=ui.shake/.3*4;cx.translate((Math.random()-.5)*k,(Math.random()-.5)*k)}
  o.bg(t);o.head(t);
- s.cust.forEach((c,i)=>custDraw(c,i));if(o.mid)o.mid(t);
- if(s.combo>=2)tx('🔥 콤보 ×'+s.combo+' (+'+Math.round(Math.min(.5,s.combo*.05)*100)+'%)',225,316,18,'#fff0a0','center','#a4401f');
+ if(o.street){streetBg(o);if(o.front)o.front(t);const ord=[0,1,2].sort((p,q)=>((s.cust[p]&&s.cust[p].ag)||9)-((s.cust[q]&&s.cust[q].ag)||9));for(const i of ord)custStreet(s.cust[i],i)}else s.cust.forEach((c,i)=>custDraw(c,i));if(o.mid)o.mid(t);
+ if(s.combo>=2)tx('🔥 콤보 ×'+s.combo+' (+'+Math.round(Math.min(.5,s.combo*.05)*100)+'%)',225,o.street?96:316,18,'#fff0a0','center','#a4401f');
  rackRow();for(let i=0;i<B.MOLDS;i++)mold(i);
  {const pg=Math.max(0,Math.min(1,(s.t/R.len-.55)/.45));if(pg>0){cx.fillStyle='rgba(255,140,50,'+(.2*pg)+')';cx.fillRect(0,64,450,640)}const vg=cx.createRadialGradient(225,380,260,225,380,520);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(40,20,10,.28)');cx.fillStyle=vg;cx.fillRect(0,64,450,640)}
  hints();menuBar();weather();if(o.fx)o.fx(t);fxDraw();
