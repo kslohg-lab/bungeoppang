@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>가게 꾸미기 시험판</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏪%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#fff1dc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#3a2a22}}
+:root[data-theme="dark"]{--bg:#3a2a22}
+html{height:100%}
+body{margin:0;height:100%;background:var(--bg);overflow:hidden;position:relative;font-family:"Jua","Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#5a3a22;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#box{position:absolute;left:0;top:0;width:450px;height:800px;transform-origin:0 0;overflow:hidden;border-radius:16px;background:#cfe8c0}
+canvas{position:absolute;inset:0;width:450px;height:800px;touch-action:none}
+button{font:inherit;color:#5a3a22;border:0;border-radius:14px;background:#fff;box-shadow:0 3px 0 #e0c4a0;cursor:pointer;touch-action:manipulation}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #e0c4a0}
+#top{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;align-items:center}
+#top a,#top button{height:40px;padding:0 12px;font-size:16px;display:flex;align-items:center;text-decoration:none;color:#5a3a22;background:#fff;border-radius:14px;box-shadow:0 3px 0 #e0c4a0}
+#tag{flex:1;text-align:center;font-size:15px;background:rgba(255,255,255,.8);border-radius:14px;padding:6px 0}
+#pn{position:absolute;left:0;right:0;bottom:0;height:226px;background:#fff8ec;border-radius:24px 24px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.18);padding:10px 10px 12px;box-sizing:border-box;transition:transform .25s}
+#pn.hide{transform:translateY(190px)}
+#tabs{display:flex;gap:6px;margin-bottom:8px}
+#tabs button{flex:1;height:38px;font-size:16px}
+#tabs button.on{background:#ffc94a;box-shadow:0 3px 0 #d9a020}
+#pal{display:flex;gap:8px;overflow-x:auto;touch-action:pan-x;padding:2px 2px 8px;scrollbar-width:none}#pal::-webkit-scrollbar{display:none}
+#pal button{flex:0 0 76px;height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;padding:0}
+#pal button b{font-size:32px;font-weight:400;line-height:1.15}
+#pal button.on{background:#ffe9a0;box-shadow:0 3px 0 #d9a020;outline:3px solid #ffc94a}
+#act{display:flex;gap:8px;margin-top:2px}
+#act button{flex:1;height:46px;font-size:17px}
+#act button.dis{opacity:.4}
+#msg{font-size:14px;text-align:center;min-height:20px;margin-top:4px;opacity:.8}
+#toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:#5a3a22;color:#fff;padding:8px 16px;border-radius:18px;font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+</style></head><body>
+<div id="box">
+ <canvas id="cv" width="450" height="800"></canvas>
+ <div id="top"><a href="shop.html">← 가게</a><div id="tag">🧪 꾸미기 시험판 · 돈 안 들어요</div><button id="eye">👀 구경</button></div>
+ <div id="pn">
+  <div id="tabs"><button id="t0" class="on">🪑 가구</button><button id="t1">🎨 벽·바닥</button><button id="t2">📐 넓이</button></div>
+  <div id="pal"></div>
+  <div id="act"><button id="rot">↻ 돌리기</button><button id="del">🗑 치우기</button><button id="done">✔ 다 했어요</button></div>
+  <div id="msg"></div>
+ </div>
+ <div id="toast"></div>
+</div>
+<script src="js/sim.js?v=5"></script>
+<script src="js/art.js?v=7"></script>
+<script src="js/iso-test.js?v=1"></script>
+</body></html>
