@@ -8,8 +8,9 @@
 ## 파일 구조
 
 ```
-index.html        가게 (첫 화면)
-challenge.html    🔥 챌린지 = 붕어빵 서바이벌 (주간 순위표)
+index.html        🔥 챌린지 (첫 화면) = 붕어빵 서바이벌 (주간 순위표)
+shop.html         🏪 가게
+challenge.html    옛 주소 → 첫 화면으로 넘겨 줌
 verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 재생해 확인)
 og.png            카톡 미리보기 사진
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)
