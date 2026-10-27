@@ -142,7 +142,7 @@ const QC={p:'#f0b850',o:'#ecae4a',g:'#e8aa46'};
 function hit(x,y){if(y>=64&&y<330)return{k:'c',i:Math.max(0,Math.min(2,Math.floor(x/150)))};
  if(y>=400&&y<686){const rw=Math.floor((y-400)/72),i=rw*2+(x<225?0:1);if(rw<4&&y-400-rw*72<MH+4)return{k:'m',i};return null}
  if(y>=698){const n=run.nf;return{k:'f',i:Math.max(0,Math.min(n-1,Math.floor(x/(450/n))))}}return null}
-function at(f){return f.a==='m'?{x:mpos(f.i).x+64,y:mpos(f.i).y+4}:{x:f.i*150+75,y:200-(f.dy||0)}}
+function at(f){return f.a==='m'?{x:mpos(f.i).x+64,y:mpos(f.i).y+4}:{x:f.i*150+75,y:156-(f.dy||0)}}
 function mold(i){const X=mpos(i).x,Y=mpos(i).y;
  if(i>=BP2.nMold(run)){rr(X,Y,MW,MH,16,'rgba(60,40,30,.35)');em('🔒',X+MW/2,Y+MH/2,28,.8);return}
  const m=s.mold[i];let A=ui.ma[i];if(!A||A.s!==m.s){A=ui.ma[i]={s:m.s,t0:s.t}}const a=s.t-A.t0,tp=Math.max(0,1-(s.t-(ui.tp[i]===undefined?-9:ui.tp[i]))/.18);
@@ -165,17 +165,34 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
   const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-M.w,'#7ed88a'],[1-M.w,1+M.w,'#ffd23a'],[1+M.w,M.bad,'#7ed88a'],[M.bad,mx,'#e0503a']];
   for(const z of Z){cx.fillStyle=z[2];cx.fillRect(gx+gw*z[0]/mx,gy,gw*(z[1]-z[0])/mx,8)}rr(gx+gw*Math.min(m.p,mx)/mx-2,gy-3,4,14,2,'#fff')}
  tx(lab,X+146,Y+24,m.s>=3?16:18,lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
+/* 손님 말풍선 (리액션) */
+const RXP={p:['😍 최고예요!','🤩 PERFECT!','😍 이 맛이야!'],o:['😋 맛있어요!','😊 GREAT!','😋 좋아요!'],g:['🙂 고마워요','🙂 잘 먹을게요','🙂 GOOD']};
+const HELLO={n:'안녕하세요!',reg:'또 왔어요 😊',hurry:'빨리 주세요! ⏱️',vip:'특별 주문이에요 👑',group:'단체 주문이요! 🚌',critic:'평가하러 왔소 🎩'};
+function bub(x,y,t,bg='#fff',fg='#5a3a22'){cx.font='bold 13px "Jua","Noto Sans KR",sans-serif';const w=cx.measureText(t).width+16;rr(x-w/2,y-12,w,24,12,bg);cx.beginPath();cx.moveTo(x-5,y+11);cx.lineTo(x,y+18);cx.lineTo(x+5,y+11);cx.closePath();cx.fillStyle=bg;cx.fill();tx(t,x,y,13,fg,'center',bg)}
 function custDraw(c,i){const x0=i*150;rr(x0+8,76,134,244,18,'rgba(255,255,255,.35)');if(!c)return;
- const a=Math.min(1,c.in)*(c.leave>0?Math.max(0,c.leave/.8):1),ox=c.sh>0?Math.sin(s.t*70)*3:0;cx.globalAlpha=a;
+ const lv=c.leave>0?1-c.leave/.8:0,a=Math.min(1,c.in)*(c.leave>0?Math.max(0,1-lv*lv):1);
+ let ox=c.sh>0?Math.sin(s.t*70)*3:0,oy=0;const r=c.pat/c.max,ag=c.ag||0;
+ if(c.leave>0&&c.angry)ox+=(i===2?1:-1)*lv*70;else if(c.leave>0&&c.happy)oy-=Math.sin(lv*Math.PI)*28+lv*20;
+ else if(c.rxT>0){const u=1.4-c.rxT;oy-=Math.abs(Math.sin(u*12))*8*Math.max(0,1-u)}
+ else if(r<.3)ox+=Math.sin(s.t*30)*1.6;
+ cx.globalAlpha=a;
  const L=[];for(let f=0;f<6;f++)if(c.ord[f]>0)L.push(f);const hb=14+24*L.length;
- rr(x0+14,82,122,hb,14,'#fff');cx.beginPath();cx.moveTo(x0+62,82+hb);cx.lineTo(x0+75,82+hb+12);cx.lineTo(x0+88,82+hb);cx.closePath();cx.fillStyle='#fff';cx.fill();
- if(c.ty==='critic')tx('✨만!',x0+112,82+hb-9,13,'#c0392b','center','#fff');
- L.slice(0,6).forEach((f,k)=>{const rm=c.ord[f]-c.got[f],y=82+19+k*24;if(rm>0){em(BP2.R.menu[f].e,x0+44,y,22);tx('×'+rm,x0+90,y,22,'#6a3a1a','center','#fff')}else{em('✅',x0+44,y,20,.7)}});
- const ay=262,r=c.pat/c.max,ez=1-Math.pow(1-Math.min(1,c.in),3),mood=c.angry?'a':c.happy?'h':r<.3?'w':'n';
- if(c.an==='🧐')em('🧐',x0+75+ox,ay-10+(1-ez)*30,64);else
- animal(c.an,x0+75+ox,ay-22+(1-ez)*30,62,{t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:{vip:'#b48aff',reg:'#7ed88a',hurry:'#ff9a6a',group:'#ffd23a',critic:'#3a3a4a'}[c.ty]||['#7ec8ff','#ff9ab0','#9ad870'][i%3],tilt:mood==='w'?Math.sin(s.t*9)*.04:0});
- const bd={vip:'👑',reg:'⭐',hurry:'⏱️',group:'🚌',critic:'🎩'}[c.ty];if(bd)em(bd,x0+30,ay-58,26);if(mood==='a')em('💢',x0+112,ay-50,24);
- rr(x0+20,303,110,9,4,'rgba(0,0,0,.25)');rr(x0+20,303,110*Math.max(0,r),9,4,r>.5?'#7ed88a':r>.25?'#ffd23a':'#ff6a5a');cx.globalAlpha=1}
+ if(c.leave<=0){rr(x0+14,82,122,hb,14,'#fff');cx.beginPath();cx.moveTo(x0+62,82+hb);cx.lineTo(x0+75,82+hb+12);cx.lineTo(x0+88,82+hb);cx.closePath();cx.fillStyle='#fff';cx.fill();
+  if(c.ty==='critic')tx('✨만!',x0+112,82+hb-9,13,'#c0392b','center','#fff');
+  L.slice(0,6).forEach((f,k)=>{const rm=c.ord[f]-c.got[f],y=82+19+k*24;if(rm>0){em(BP2.R.menu[f].e,x0+44,y,22);tx('×'+rm,x0+90,y,22,'#6a3a1a','center','#fff')}else{em('✅',x0+44,y,20,.7)}})}
+ const ay=262,ez=1-Math.pow(1-Math.min(1,c.in),3),mood=c.angry?'a':c.happy||c.rxT>0?'h':r<.3?'w':'n',X=x0+75+ox,Y=ay-22+(1-ez)*30+oy;
+ if(c.an==='🧐')em('🧐',X,Y+12,64);else
+ animal(c.an,X,Y,62,{t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:{vip:'#b48aff',reg:'#7ed88a',hurry:'#ff9a6a',group:'#ffd23a',critic:'#3a3a4a'}[c.ty]||['#7ec8ff','#ff9ab0','#9ad870'][i%3],tilt:mood==='w'?Math.sin(s.t*9)*.04:c.rxT>0?Math.sin(s.t*14)*.06:0});
+ const bd={vip:'👑',reg:'⭐',hurry:'⏱️',group:'🚌',critic:'🎩'}[c.ty];if(bd)em(bd,X-45,Y-36,26);
+ /* 리액션 */
+ const by=Y-52;
+ if(c.leave>0&&c.angry){bub(X,by,'흥! 안 살래요 😤','#ffdcd6','#a0281a');em('💢',X+40,Y-8,22)}
+ else if(c.leave>0&&c.happy){bub(X,by,c.ty==='critic'?'🎩 별 다섯 개!':'또 올게요! 💖','#ffe9f2','#a03060');for(let k=0;k<3;k++){const ph=(s.t*1.5+k/3)%1;em('💖',X-24+k*24,Y-20-ph*40,14,1-ph)}}
+ else if(c.rxT>0){const q=c.rxQ||'g',L2=RXP[q]||RXP.g;let w=L2[(c.an.codePointAt(0)+(c.rxN|0))%L2.length];if(c.ty==='critic'&&q==='p')w='🎩 브라보!';bub(X,by,w,q==='p'?'#fff3b0':'#fff',q==='p'?'#a06000':'#5a3a22');if(q==='p'&&c.rxT>1)em('✨',X+36,Y-24,18)}
+ else if(ag<1.8&&ez>=1)bub(X,by,HELLO[c.ty]||HELLO.n);
+ else if(r<.3){bub(X,by,c.ty==='hurry'?'빨리요!! 😫':'아직이에요? 😥','#ffefd6');em('💦',X+30,Y-20+Math.sin(s.t*8)*3,18)}
+ else if(r<.5&&c.ty==='hurry')em('💦',X+30,Y-20+Math.sin(s.t*8)*3,16);
+ if(c.leave<=0){rr(x0+20,303,110,9,4,'rgba(0,0,0,.25)');rr(x0+20,303,110*Math.max(0,r),9,4,r>.5?'#7ed88a':r>.25?'#ffd23a':'#ff6a5a')}cx.globalAlpha=1}
 /* 접시 줄: 맛마다 개수, ✨완벽·👍좋음 */
 function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),cap=B.rackCap(run);
  tx('접시',24,338,14,'#fff','center','#7a4a22');tx(lv>=2?'맛별10':s.rack.length+'/'+cap,24,358,lv>=2?11:13,s.rack.length>=cap&&lv<2?'#ff9a8a':'#ffe9a0','center','#7a4a22');
@@ -187,7 +204,7 @@ function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),c
 function menuBar(){const B=BP2,R=B.R,n=run.nf,bw=(450-20-(n-1)*6)/n;for(let i=0;i<n;i++){const x=10+i*(bw+6),sel=s.sel===i,M=R.menu[i],lv=B.fuLv(run,i);rr(x,700,bw,88,16,sel?'#ffd76a':'#fff');if(sel){cx.lineWidth=4;cx.strokeStyle='#e8584a';cx.beginPath();cx.roundRect(x,700,bw,88,16);cx.stroke()}
   em(M.e,x+bw/2,722,n>4?26:30);if(lv)tx('★'+lv,x+bw-10,712,11,'#ff8a2a','right','#fff');tx(M.n,x+bw/2,748,n>4?12:14,'#5a3a22','center','#fff');tx(B.fmt(B.price(run,i)),x+bw/2,768,n>4?12:14,'#5a3a22','center','#fff');tx('재료 '+B.fmt(M.c),x+bw/2,782,10,'#a4701f','center','#fff')}}
 function hints(){if(s.d>2||s.ph!=='play')return;let h='';const B=BP2,act=s.mold.slice(0,B.nMold(run));
- if(act.some(m=>(m.s===3||m.s===4)&&m.p>=1-B.R.menu[m.f].w&&m.p<=1+B.R.menu[m.f].w))h='✨ 노란 구간에 누르면 완벽! (한 면만 맞으면 👍좋음)';
+ if(act.some(m=>(m.s===3||m.s===4)&&m.p>=1-B.R.menu[m.f].w&&m.p<=1+B.R.menu[m.f].w))h='✨ 노란 구간에 누르면 PERFECT! (한 면만 맞으면 GREAT)';
  else if(s.rack.length&&s.cust.some(c=>c))h='완성된 붕어빵은 손님을 톡! 해서 줘요';
  else if(act.some(m=>m.s===2))h='③ 덮개를 톡! 굽기 시작';else if(act.some(m=>m.s===1))h='② 아래에서 맛을 고르고 틀을 톡';
  else if(act.some(m=>m.s===0))h=run.up.auto?'빈 틀을 톡!':'① 빈 틀을 톡! 반죽을 부어요';if(h)tx(h,225,692,14,'#fff0c8','center','#4a3020')}
@@ -220,11 +237,11 @@ function tapPlay(x,y){const B=BP2,h=hit(x,y);if(!h)return null;
  else B.selFl(s,run,h.i);return h}
 /* 효과 큐 처리 공용 */
 function drainFx(){const q=s.fx;s.fx=[];for(const f of q){
- if(f.k==='snd'){OPT.snd(f.n);if(f.n==='burn')ui.shake=.3}else if(f.k==='toast')OPT.toast(f.t);else if(f.k==='rush')ui.rb=2.2;
+ if(f.k==='snd'){OPT.snd(f.n);if(f.n==='burn')ui.shake=.3}else if(f.k==='toast')OPT.toast(f.t);else if(f.k==='rx'){const c=s.cust[f.i];if(c){if(f.q){c.rxT=1.4;c.rxQ=f.q;c.rxN=(c.rxN|0)+1}}}else if(f.k==='rush')ui.rb=2.2;
  else if(f.k==='ft'){const p=at(f);ui.ft.push({t:f.t,x:p.x,y:p.y,c:f.c,l:1.1});if(/^\+\d/.test(f.t)&&f.a==='c'&&ui.coin.length<14)ui.coin.push({x:p.x,y:p.y,x1:366,y1:18,t:0})}
  else if(f.k==='pf'){if(ui.pa.length>40)continue;const p=at(f);for(let i=0;i<f.n;i++)ui.pa.push({e:f.e,x:p.x+(Math.random()*24-12),y:p.y+24,vx:Math.random()*80-40,vy:-40-Math.random()*70,l:.5+Math.random()*.4,s:18+Math.random()*10})}}}
 /* 매 프레임 효과 움직이기 */
-function tickFx(dt){for(const q of ui.ft){q.y-=40*dt;q.l-=dt}ui.ft=ui.ft.filter(q=>q.l>0);for(const q of ui.pa){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=200*dt;q.l-=dt}ui.pa=ui.pa.filter(q=>q.l>0);if(ui.rb>0)ui.rb-=dt;if(ui.shake>0)ui.shake-=dt;if(ui.hud>0)ui.hud-=dt;for(const f of ui.fly)f.t+=dt/.4;ui.fly=ui.fly.filter(f=>f.t<1);for(const c of ui.coin){c.t+=dt/.6;if(c.t>=1)ui.hud=.2}ui.coin=ui.coin.filter(c=>c.t<1)}
+function tickFx(dt){if(s)for(const c of s.cust)if(c){c.ag=(c.ag||0)+dt;if(c.rxT>0)c.rxT-=dt}for(const q of ui.ft){q.y-=40*dt;q.l-=dt}ui.ft=ui.ft.filter(q=>q.l>0);for(const q of ui.pa){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=200*dt;q.l-=dt}ui.pa=ui.pa.filter(q=>q.l>0);if(ui.rb>0)ui.rb-=dt;if(ui.shake>0)ui.shake-=dt;if(ui.hud>0)ui.hud-=dt;for(const f of ui.fly)f.t+=dt/.4;ui.fly=ui.fly.filter(f=>f.t<1);for(const c of ui.coin){c.t+=dt/.6;if(c.t>=1)ui.hud=.2}ui.coin=ui.coin.filter(c=>c.t<1)}
 const newUi=()=>({ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0});
 
 return{use,E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at,rackRow,menuBar,hints,weather,fxDraw,timeBar,drawPlay,tapPlay,drainFx,tickFx,newUi,QC}};

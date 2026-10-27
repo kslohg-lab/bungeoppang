@@ -14,8 +14,8 @@ service cloud.firestore {
         && d.keys().hasAll(['w', 'n', 'st', 'net', 'sc', 'v', 'ts'])
         && d.w == weekNow()
         && d.n is string && d.n.size() >= 1 && d.n.size() <= 10
-        && d.st is int && d.st >= 1 && d.st <= 40
-        && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 400000 * d.st
+        && d.st is int && d.st >= 1 && d.st <= 60
+        && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 800000 * d.st
         && d.sc == d.st * 1000000000 + d.net
         && d.v is int
         && d.ts == request.time;
