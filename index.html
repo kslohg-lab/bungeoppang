@@ -54,17 +54,17 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 .lr b{width:40px;text-align:center;font-weight:400;font-size:22px}.lr .ln{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lr .ls{text-align:right;line-height:1.1}.lr .ls i{font-style:normal;display:block}.lr .ls small{font-size:13px;opacity:.7}
 #ver{font-size:13px;opacity:.6;margin-top:8px}
-#bk{position:absolute;left:37px;top:34px;height:40px;padding:0 12px;font-size:16px;display:flex;align-items:center;text-decoration:none;color:#5a3a22;background:#fff;border-radius:16px;box-shadow:0 3px 0 #e0c4a0;z-index:2}
-#bk:active{transform:translateY(2px);box-shadow:0 1px 0 #e0c4a0}
+#bk{display:flex;flex-direction:column;align-items:center;justify-content:center;height:64px;margin-top:10px;border-radius:18px;text-decoration:none;color:#1f5a4a;background:linear-gradient(#b8f0dc,#8fdcc2);box-shadow:0 4px 0 #5fb89a}
+#bk span{font-size:23px;line-height:1.1}#bk small{font-size:14px;opacity:.8;margin-top:2px}
+#bk:active{transform:translateY(3px);box-shadow:0 1px 0 #5fb89a}
 </style></head><body>
 <div id="box">
  <canvas id="cv" width="450" height="800"></canvas>
  <button id="home">⏸️</button>
  <div id="menu" class="ov">
-  <a id="bk" href="shop.html">🏪 내 가게</a>
   <div class="card" style="top:22px"><div style="font-size:64px;line-height:1.1">🔥</div><h2>붕어빵 챌린지</h2>
    <div id="mw"></div><p id="mi" style="font-size:16px;line-height:1.5;margin:8px 0 0"></p>
-   <button id="m1" class="big"></button><button id="m5" class="big alt"></button>
+   <button id="m1" class="big"></button><button id="m5" class="big alt"></button><a id="bk" href="shop.html"><span>🏪 내 가게 가기</span><small>꾸미고 키우는 나만의 가게</small></a>
    <button id="m6" class="big sm">🏆 순위표</button><button id="m7" class="big sm">📤 친구에게 알리기</button><button id="m4" class="big sm">📖 규칙 · 🏅 내 기록</button><button id="m3" class="big sm">⚙️ 설정</button><div id="ver"></div></div>
  </div>
  <div id="shop" class="ov sh"><div class="card" style="top:14px;height:772px;padding:12px"><h2 id="st" style="margin:0 0 4px;font-size:26px"></h2><div id="ss" class="sum"></div><div id="sw" style="margin-bottom:4px"></div><div id="shl"></div><button id="s1" class="big" style="height:56px;margin-top:6px"></button></div></div>
@@ -78,6 +78,6 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 </div>
 <script src="js/sim.js?v=5"></script>
 <script src="js/art.js?v=5"></script>
-<script src="js/challenge.js?v=5"></script>
+<script src="js/challenge.js?v=6"></script>
 <script type="module" src="js/lb.js?v=5"></script>
 </body></html>
