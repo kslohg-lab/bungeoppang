@@ -46,12 +46,13 @@ function finishDay(){const res=B.dayResult(s,run),kind=B.endDay(run,res);
  if(kind==='pass'||kind==='revive'){save.run={run};store();if(kind==='pass'&&run.stage%5===0)submit(true);goShop(res,kind)}
  else{record();save.run=null;store();goOver(res,kind)}}
 function sumHtml(res,kind){let h=(kind==='revive'?'🎫 <b>부활권을 썼어요!</b> 같은 날을 한 번 더 해요<br>':'')+'💰 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+(res.pass?' ✅':' ❌')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ 완벽 '+res.perf+' · 😵 태움 '+res.burnt+' · 🔥 콤보 '+res.bc;return h}
-function goShop(res,kind){scr='shop';$('st').textContent=kind==='revive'?'🎫 한 번 더!':'🌙 '+(run.day-1)+'단계 통과!';$('ss').innerHTML=sumHtml(res,kind);renderShop();
+let lastR=null;
+function goShop(res,kind){lastR=res;scr='shop';$('st').textContent=kind==='revive'?'🎫 한 번 더!':'🌙 '+(run.day-1)+'단계 통과!';$('ss').innerHTML=sumHtml(res,kind);renderShop();
  const ev=B.evOf(run.day),c=B.cutline(run.day);$('s1').textContent=(kind==='revive'?'▶ '+run.day+'일차 다시 시작':'▶ '+run.day+'일차 시작')+' (컷트라인 '+fmt(c)+')';show('shop')}
 function renderShop(){
  $('sw').innerHTML='<span class="pill">🪙 '+fmt(run.coins)+'</span><span class="pill">'+(B.evOf(run.day)?R.ev[B.evOf(run.day)].e+' '+run.day+'일차 '+R.ev[B.evOf(run.day)].n:'📅 '+run.day+'일차')+'</span>';
  const L=$('shl');L.innerHTML='';
- const row=(e,n,d,label,can,fn)=>{const r=document.createElement('div');r.className='it';r.innerHTML='<b>'+e+'</b><div><span>'+n+'</span><br>'+d+'</div>';const b=document.createElement('button');b.textContent=label;if(!can)b.className='no';b.onclick=fn;r.appendChild(b);L.appendChild(r)};
+ const row=(e,n,d,label,can,fn,rec)=>{const r=document.createElement('div');r.className='it'+(rec?' rec':'');r.innerHTML='<b>'+e+'</b><div><span>'+n+'</span><br>'+d+'</div>';const b=document.createElement('button');b.textContent=label;if(!can)b.className='no';b.onclick=fn;r.appendChild(b);L.appendChild(r)};
  const buyK=k=>{if(!B.buy(run,k)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()};
  const D={
   fl:()=>{const m=R.menu[run.nf];return['🆕','새 메뉴',m.e+' '+m.n+' · 판매가 '+fmt(m.p)+'원 (더 비싸고 더 어려워요)']},
@@ -60,10 +61,12 @@ function renderShop(){
   auto:()=>['🤖','자동 반죽기','빈 틀을 한 번 톡! 하면 반죽+속+덮기'],
   pat:()=>['💬','친절 교육','손님 참을성 +8% (지금 +'+8*run.up.pat+'%)'],
   deco:()=>['🏮','가게 간판','손님이 +6% 더 와요 (지금 +'+6*run.up.deco+'%)'],
-  loc:()=>{const n=R.loc[run.up.loc+1];return['🗺️','장사 터',n.e+' '+n.n+' · 가격 ×'+n.pm+' · 손님 +'+Math.round((n.sp-1)*100)+'%']}};
- ['fl','mold','speed','auto','pat','deco','loc'].forEach(k=>{const c=B.upCost(run,k);
+  loc:()=>{const n=R.loc[run.up.loc+1];return['🗺️','장사 터',n.e+' '+n.n+' · 가격 ×'+n.pm+' · 손님 +'+Math.round((n.sp-1)*100)+'%']},
+  rack:()=>{const v=run.up.rack|0;return['🍽️','접시 넓히기',v?'맛마다 10개씩 쌓아 둬요 (지금 전체 16개)':'접시에 16개까지 쌓아 둬요 (지금 10개)']}};
+ const KS=['fl','mold','rack','speed','auto','pat','deco','loc'],rc=B.recUp(run,KS,lastR&&Object.assign({},lastR,{cut:B.cutline(run.day)}));if(rc){KS.splice(KS.indexOf(rc.k),1);KS.unshift(rc.k)}
+ KS.forEach(k=>{const c=B.upCost(run,k);
   if(c==null){const nm=k==='fl'?'새 메뉴':R.up[k].n;row(k==='fl'?'🆕':R.up[k].e,nm,'모두 열었어요!','완료 ✅',false,()=>{});return}
-  const d=D[k]();row(d[0],d[1],d[2],fmt(c)+'🪙',run.coins>=c,()=>buyK(k))});
+  const d=D[k](),isR=rc&&rc.k===k;row(d[0],d[1],d[2]+(isR?'<br><b class="why">👍 추천 · '+rc.why+'</b>':''),fmt(c)+'🪙',run.coins>=c,()=>buyK(k),isR)});
  const tc=B.ticketCost(run);
  if(run.ticket)row('🎫','부활권','탈락할 때 같은 날을 한 번 더 해요','보유 ✅',false,()=>{});
  else row('🎫','부활권 (한 판에 한 번)','컷트라인에 못 미쳐도 같은 날을 한 번 더 해요',fmt(tc)+'🪙',run.coins>=tc,()=>{if(!B.buyTicket(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()})}
@@ -188,10 +191,9 @@ function draw(){cx.save();const lc=B.L(run);
  const dc=['','🏮','🏮⛱️','🏮⛱️✨'][run.up.deco];tx(lc.e+(dc||''),170,22,18,'#fff','left');
  tx('🪙 '+fmt(run.coins+s.net),385,22,22,'#ffe9a0','right');
  const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,36,258,12,6,'rgba(0,0,0,.35)');rr(128,36,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,34,3,16,1,'#fff');tx('컷트라인 '+fmt(s.cut),122,43,13,'#fff','right');
- const tr=Math.max(0,1-s.t/R.len);rr(0,58,W,5,0,'rgba(0,0,0,.2)');rr(0,58,W*tr,5,0,s.rushed?'#ff6a5a':'#7ec8ff');
  s.cust.forEach((c,i)=>custDraw(c,i));
  if(s.combo>=2)tx('🔥 콤보 ×'+s.combo+' (+'+Math.round(Math.min(.5,s.combo*.05)*100)+'%)',225,311,18,'#fff0a0','center','#a4401f');
- tx('접시',26,342,14,'#fff','center','#7a4a22');const nf=run.nf,rw=(W-50)/nf;
+ tx('접시',24,338,14,'#fff','center','#7a4a22');tx(B.rackLv(run)>=2?'맛별10':s.rack.length+'/'+B.rackCap(run),24,358,B.rackLv(run)>=2?11:13,s.rack.length>=B.rackCap(run)&&B.rackLv(run)<2?'#ff9a8a':'#ffe9a0','center','#7a4a22');const nf=run.nf,rw=(W-50)/nf;
  for(let f=0;f<nf;f++){const ps=s.rack.filter(r=>r.f===f&&r.q==='p').length,gd=s.rack.filter(r=>r.f===f&&r.q==='g').length,rx=48+f*rw+rw/2;
   em(R.menu[f].e,rx-rw/2+14,366,nf>4?18:22);tx('×'+(ps+gd),rx+(nf>4?6:4),366,nf>4?16:20,'#fff');if(ps)tx('✨'+ps,rx+rw/2-12,382,12,'#ffe066','center','#7a4a22')}
  for(let i=0;i<6;i++)mold(i);
@@ -210,8 +212,14 @@ function draw(){cx.save();const lc=B.L(run);
  for(const q of ui.ft){cx.globalAlpha=Math.min(1,q.l*2);tx(q.t,q.x,q.y,22,q.c);cx.globalAlpha=1}
  if(s.ban>0){cx.globalAlpha=Math.min(1,s.ban);rr(40,330,370,120,24,'rgba(90,58,34,.85)');tx(s.d+'일차 시작! '+s.wea.e,225,362,30);tx(s.wea.n+' · 컷트라인 '+fmt(s.cut)+'원',225,400,19,'#ffe9a0');if(s.ev)tx(R.ev[s.ev].e+' '+R.ev[s.ev].n+' · '+R.ev[s.ev].d,225,428,15,'#ffe066');else tx(s.wea.sp>1?'손님이 많아요!':s.wea.sp<1?'손님이 적어요, 팁은 두둑해요':'평범한 하루',225,428,16,'#fff');cx.globalAlpha=1}
  if(ui.rb>0)tx('🔥 퇴근 시간 피크! 손님이 몰려와요',225,120,22,'#fff0a0','center','#c0392b');
+ timeBar();
  if(s.ph==='end')tx('🌙 영업 종료!',225,380,52,'#fff','center','#8a5a3a');
  cx.restore()}
+/* 마감 시간 바: 남은 초를 크게 보여 주고 10초 전에 알려요 */
+function timeBar(){const rem=Math.max(0,R.len-s.t),tr=rem/R.len,sec=Math.ceil(rem),hot=rem<=10&&s.ph==='play',bl=hot&&Math.floor(s.t*4)%2;
+ if(hot&&!ui.w10){ui.w10=1;toast('⏰ 10초 남았어요! 곧 마감!');snd('ready')}
+ rr(0,58,W,16,0,'rgba(40,24,14,.55)');rr(0,58,W*tr,16,0,hot?(bl?'#ff3a2a':'#ff8a5a'):s.rushed?'#ff9a4a':'#7ec8ff');
+ tx(s.ph==='end'?'🌙 영업 종료':'⏰ 마감까지 '+sec+'초',225,66,hot?16:14,'#fff','center',hot?'#a01a10':'#3a2a1a')}
 
 /* ---------- 반복 ---------- */
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
