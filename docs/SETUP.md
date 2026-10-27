@@ -13,6 +13,7 @@ challenge.html    🔥 챌린지 = 붕어빵 서바이벌 (주간 순위표)
 verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 재생해 확인)
 og.png            카톡 미리보기 사진
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)
+js/art.js         그림 도구 + 굽는 화면 (가게·챌린지가 함께 씀)
 js/shop.js        가게 화면·저장 (저장 키 bpShopPubV1)
 js/challenge.js   챌린지 화면·저장 (저장 키 bungeoppang2Pub1)
 js/lb.js          순위표 연결 (Firebase)
@@ -22,7 +23,7 @@ docs/             이 문서, firestore.rules.txt
 
 ## 고칠 때 규칙
 
-- 파일을 바꾸면 그 파일을 불러오는 html의 `?v=2` 숫자를 올려요 (폰에 옛 파일이 남지 않게).
+- 파일을 바꾸면 그 파일을 불러오는 html의 `?v=` 숫자를 올려요 (폰에 옛 파일이 남지 않게).
 - `js/sim.js`의 규칙 숫자를 바꾸면 `SIMV`도 올려요 (옛 순위표 기록과 구분). 챌린지 규칙은 가게 업그레이드와 상관없이 항상 같아야 해요.
 - Firestore 규칙을 바꾸면 `docs/firestore.rules.txt`를 Firebase 콘솔 → Firestore → 규칙에 붙여 넣고 게시.
 

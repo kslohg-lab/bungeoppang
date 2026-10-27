@@ -13,7 +13,7 @@ const R={
  cut:[[1,1500],[2,1900],[3,2400],[4,3000],[5,3800],[8,6000],[10,9500],[12,12500],[14,19000],[16,29000],[18,44000],[20,57000],[25,90000],[30,130000],[35,170000],[40,215000]],
  evCut:{fest:1.25,bomb:1.15,critic:1.2},
  up:{
-  mold:{n:'틀 늘리기',e:'🔥',max:4,cost:[3000,7000,14000,26000]},
+  mold:{n:'틀 늘리기',e:'🔥',max:6,cost:[3000,7000,14000,26000,60000,110000]},
   speed:{n:'불 조절',e:'⏱️',max:5,cost:[2000,3200,5100,8200,13100]},
   auto:{n:'자동 반죽기',e:'🤖',max:1,cost:[5000]},
   pat:{n:'친절 교육',e:'💬',max:3,cost:[3000,6500,13000]},
@@ -23,6 +23,9 @@ const R={
  loc:[{n:'골목 가게',e:'🏠',pm:1,sp:1,wall:'#fff3dc'},{n:'공원',e:'🌳',pm:1.15,sp:1.08,wall:'#eaf6dc'},{n:'학교 앞',e:'🏫',pm:1.3,sp:1.18,wall:'#e6eeff'},{n:'놀이공원',e:'🎡',pm:1.5,sp:1.28,wall:'#ffe6f4'}],
  wea:[{e:'☀️',n:'맑은 날',sp:1,pat:1,tp:0,w:50},{e:'🌧️',n:'비 오는 날',sp:.78,pat:1.1,tp:.2,w:25},{e:'❄️',n:'추운 날',sp:1.3,pat:.85,tp:0,w:25}],
  ev:{fest:{e:'🎪',n:'축제의 날',d:'손님이 몰려와요! 팁 ×1.5'},bomb:{e:'💣',n:'폭탄 주문의 날',d:'주문이 커요! 가격 ×1.25'},critic:{e:'🧐',n:'평론가의 날',d:'평론가 출몰! 완벽한 ✨ 준비'}},
+ qm:{p:1.4,o:1.15,g:1},
+ /* 맛 강화(5단계): 싼 맛일수록 많이 올라요. 값 = 기본값×(1+(fuX-1)×단계/5), 비용 = 기본값 × fuC */
+ fuX:[2.4,2.0,1.7,1.5,1.35,1.2],fuC:[8,20,45,90,160],fuN:['','좋은','특제','명품','장인','전설의'],
  ordG:1.9,ivBase:5.2,ivDay:.06,ivMin:2.9,emptyMax:4,maxStage:40,ticketMul:1.0,
  an:['🐶','🐱','🐰','🐻','🐼','🦊','🐯','🐸','🐵','🐧','🐹','🦁']
 };
@@ -35,8 +38,10 @@ const cutline=d=>{const ev=evOf(d);return Math.round(cutOf(d)*(ev?R.evCut[ev]:1)
 const fmt=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
 
 /* ---- 판(run) ---- */
-function newRun(seed,mode){return{lg:[],v:1,seed:seed>>>0,mode:mode||'week',day:1,coins:0,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0,rack:0},nf:1,ticket:0,tused:0,tot:0,bestNet:0,over:false,clear:false,stage:0}}
-const nMold=run=>Math.min(6,2+run.up.mold);
+function newRun(seed,mode){return{lg:[],v:1,seed:seed>>>0,mode:mode||'week',day:1,coins:0,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0,rack:0},fu:[0,0,0,0,0,0],nf:1,ticket:0,tused:0,tot:0,bestNet:0,over:false,clear:false,stage:0}}
+const nMold=run=>Math.min(8,2+run.up.mold),MOLDS=8;
+const fuLv=(run,f)=>(run.fu&&run.fu[f])|0;
+const price=(run,f)=>Math.round(R.menu[f].p*(1+(R.fuX[f]-1)*fuLv(run,f)/R.fuC.length));
 const speedF=run=>Math.max(.7,1-.06*run.up.speed);
 const tSide=(run,f)=>R.menu[f].t*speedF(run);
 const L=run=>R.loc[run.up.loc];
@@ -44,8 +49,9 @@ const L=run=>R.loc[run.up.loc];
 const rackLv=run=>run.up.rack|0;
 const rackCap=run=>[10,16,10][rackLv(run)];
 const rackFull=(s,run,f)=>rackLv(run)>=2?s.rack.filter(r=>r.f===f).length>=10:s.rack.length>=rackCap(run);
-function upCost(run,k){if(k==='fl')return run.nf>=R.menu.length?null:R.menu[run.nf].unlock;const u=R.up[k],lv=run.up[k]|0;return lv>=u.max?null:u.cost[lv]}
-function buy(run,k){if(run.lg)run.lg.push(['B',k]);const c=upCost(run,k);if(c==null||run.coins<c)return false;run.coins-=c;if(k==='fl')run.nf++;else run.up[k]=(run.up[k]|0)+1;return true}
+function upCost(run,k){if(k==='fl')return run.nf>=R.menu.length?null:R.menu[run.nf].unlock;
+ if(k[0]==='f'&&k[1]==='u'){const f=+k[2];if(!(f<run.nf))return null;const lv=fuLv(run,f);return lv>=R.fuC.length?null:Math.round(R.menu[f].p*R.fuC[lv]/100)*100}const u=R.up[k],lv=run.up[k]|0;return lv>=u.max?null:u.cost[lv]}
+function buy(run,k){if(run.lg)run.lg.push(['B',k]);const c=upCost(run,k);if(c==null||run.coins<c)return false;run.coins-=c;if(k==='fl')run.nf++;else if(k[0]==='f'&&k[1]==='u'){if(!run.fu)run.fu=[0,0,0,0,0,0];run.fu[+k[2]]++}else run.up[k]=(run.up[k]|0)+1;return true}
 const ticketCost=run=>Math.round(cutline(run.day)*R.ticketMul/100)*100;
 function buyTicket(run){if(run.lg)run.lg.push(['T']);const c=ticketCost(run);if(run.ticket||run.coins<c)return false;run.coins-=c;run.ticket=1;return true}
 
@@ -54,7 +60,7 @@ function newDay(run){
  if(run.lg)run.lg.push(['D']);
  const d=run.day,rng=mul(hs(run.seed,d*7919+13));let r=rng()*100,wi=0,acc=0;for(let i=0;i<R.wea.length;i++){acc+=R.wea[i].w;if(r<acc){wi=i;break}}
  const ev=evOf(d);if(ev==='fest')wi=0;else if(ev==='bomb')wi=1;
- return{d,ev,wea:R.wea[wi],loc:run.up.loc,rng,t:0,net:0,cut:cutline(d),cust:[null,null,null],mold:Array.from({length:6},()=>({s:0,f:0,p:0,qa:'g',sh:0})),rack:[],sel:0,combo:0,bc:0,spawnT:1.0,emp:0,served:0,lost:0,burnt:0,perf:0,made:0,
+ return{d,ev,wea:R.wea[wi],loc:run.up.loc,rng,t:0,net:0,cut:cutline(d),cust:[null,null,null],mold:Array.from({length:MOLDS},()=>({s:0,f:0,p:0,qa:'g',sh:0})),rack:[],sel:0,combo:0,bc:0,spawnT:1.0,emp:0,served:0,lost:0,burnt:0,perf:0,good:0,made:0,
   tk:0,ph:'play',endT:0,done:false,rushed:false,idleT:0,busyT:0,fx:[],ban:2.6}}
 const qOf=(f,p)=>{const m=R.menu[f];return p>1+m.w+1e-9?(p>m.bad?'b':'g'):p>=1-m.w-1e-9?'p':'g'};
 const perfMark=f=>{const m=R.menu[f];return[1-m.w,1+m.w]};
@@ -67,19 +73,19 @@ function moldTap(s,run,i){if(run.lg)run.lg.push([s.tk,0,i]);if(s.ph!=='play'||i>
  else if(m.s===3){if(m.p<.85){m.sh=.25;fx(s,{k:'ft',t:'아직!',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'no'});return}m.qa=qOf(m.f,m.p);m.s=4;m.p=0;fx(s,{k:'snd',n:'flip'});fx(s,{k:'pf',e:'✨',a:'m',i,n:2})}
  else if(m.s===4){if(m.p<.85){m.sh=.25;fx(s,{k:'ft',t:'아직!',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'no'});return}
   if(rackFull(s,run,m.f)){s.full=(s.full|0)+1;fx(s,{k:'toast',t:rackLv(run)>=2?R.menu[m.f].e+' '+R.menu[m.f].n+' 접시가 꽉 찼어요! 먼저 손님에게 주세요':'접시가 꽉 찼어요! 먼저 손님에게 주세요'});fx(s,{k:'snd',n:'no'});return}
-  const q=qOf(m.f,m.p),fq=(m.qa==='b'||q==='b')?'b':(m.qa==='p'&&q==='p')?'p':'g';m.s=0;
+  const q=qOf(m.f,m.p),fq=(m.qa==='b'||q==='b')?'b':(m.qa==='p'&&q==='p')?'p':(m.qa==='p'||q==='p')?'o':'g';m.s=0;
   if(fq==='b'){s.burnt++;s.combo=0;fx(s,{k:'ft',t:'탔어요! 😵',a:'m',i,c:'#ffb0a0'});fx(s,{k:'snd',n:'burn'})}
-  else{s.rack.push({f:m.f,q:fq});s.made++;if(fq==='p'){s.perf++;fx(s,{k:'ft',t:'완벽! ✨',a:'m',i,c:'#ffe066'});fx(s,{k:'snd',n:'perf'});fx(s,{k:'pf',e:'✨',a:'m',i,n:4})}else{fx(s,{k:'ft',t:'good',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'ready'})}}}
+  else{s.rack.push({f:m.f,q:fq});s.made++;if(fq==='p'){s.perf++;fx(s,{k:'ft',t:'완벽! ✨',a:'m',i,c:'#ffe066'});fx(s,{k:'snd',n:'perf'});fx(s,{k:'pf',e:'✨',a:'m',i,n:4})}else if(fq==='o'){s.good++;fx(s,{k:'ft',t:'좋아요 👍',a:'m',i,c:'#bff0b0'});fx(s,{k:'snd',n:'ready'})}else{fx(s,{k:'ft',t:'보통',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'ready'})}}}
  else if(m.s===5){m.s=0;fx(s,{k:'snd',n:'tap'})}}
 function selFl(s,run,f){if(run.lg)run.lg.push([s.tk,2,f]);if(f<run.nf&&f>=0){s.sel=f;fx(s,{k:'snd',n:'tap'})}}
-const pickR=(s,c,f)=>{const Rk=s.rack;let k=Rk.findIndex(r=>r.f===f&&r.q==='p');if(k<0&&c.ty!=='critic')k=Rk.findIndex(r=>r.f===f);return k};
+const pickR=(s,c,f)=>{const Rk=s.rack;let k=Rk.findIndex(r=>r.f===f&&r.q==='p');if(k<0&&c.ty!=='critic'){k=Rk.findIndex(r=>r.f===f&&r.q==='o');if(k<0)k=Rk.findIndex(r=>r.f===f)}return k};
 function canServe(s,c){return !!c&&c.leave<=0&&c.ord.some((o,f)=>o-c.got[f]>0&&pickR(s,c,f)>=0)}
 function serve(s,run,ci){if(run.lg)run.lg.push([s.tk,1,ci]);if(s.ph!=='play')return;const c=s.cust[ci];if(!c||c.leave>0)return;let gave=0;const lc=L(run),nf=R.menu.length;
  for(let f=0;f<nf;f++)while(c.ord[f]-c.got[f]>0){const k=pickR(s,c,f);if(k<0)break;const r=s.rack.splice(k,1)[0];c.got[f]++;gave++;
-  const cm=1+Math.min(.5,s.combo*.05),val=Math.round(R.menu[f].p*(r.q==='p'?1.3:1)*cm*({vip:1.5,reg:1.2,group:1.1,critic:3}[c.ty]||1)*lc.pm*(s.ev==='bomb'?1.25:1));
+  const cm=1+Math.min(.5,s.combo*.05),val=Math.round(price(run,f)*(R.qm[r.q]||1)*cm*({vip:1.5,reg:1.2,group:1.1,critic:3}[c.ty]||1)*lc.pm*(s.ev==='bomb'?1.25:1));
   s.net+=val;fx(s,{k:'ft',t:'+'+fmt(val),a:'c',i:ci,dy:gave*10,c:'#fff0a0'});fx(s,{k:'snd',n:'coin'});if(r.q==='p'){s.combo++;s.bc=Math.max(s.bc,s.combo)}}
  if(!gave){c.sh=.25;fx(s,{k:'toast',t:c.ty==='critic'&&s.rack.length?'평론가는 완벽한 ✨만 받아요!':'줄 붕어빵이 아직 없어요!'});fx(s,{k:'snd',n:'no'});return}
- if(c.ord.every((n,f)=>c.got[f]>=n)){let sum=0;c.ord.forEach((n,f)=>sum+=n*R.menu[f].p);sum*=lc.pm;
+ if(c.ord.every((n,f)=>c.got[f]>=n)){let sum=0;c.ord.forEach((n,f)=>sum+=n*price(run,f));sum*=lc.pm;
   const tp=Math.round(sum*((c.pat/c.max>.5?.15:.05)+s.wea.tp+(s.ev==='fest'?.5:0)));
   let ex=0;if(c.ty==='critic'){ex=1500+s.d*150;fx(s,{k:'ft',t:'평론가 극찬! 🎩 +'+fmt(ex),a:'c',i:ci,dy:-40,c:'#ffe066'})}else if(c.ty==='group')ex=1000+s.d*100;
   s.net+=tp+ex;fx(s,{k:'ft',t:'팁 +'+fmt(tp)+' 💝',a:'c',i:ci,dy:-20,c:'#ffd0e0'});c.leave=.8;c.happy=1;s.served++;fx(s,{k:'pf',e:'💖',a:'c',i:ci,n:3})}}
@@ -109,7 +115,7 @@ function step(s,run,dt){
  for(let i=0;i<nMold(run);i++){const m=s.mold[i];if(m.sh>0)m.sh-=dt;if(m.s===3||m.s===4){const b=m.p;m.p+=dt/tSide(run,m.f);if(b<.85&&m.p>=.85)fx(s,{k:'snd',n:'ready'});
   if(m.p>=R.menu[m.f].burn){m.s=5;s.combo=0;s.burnt++;fx(s,{k:'snd',n:'burn'});fx(s,{k:'pf',e:'💨',a:'m',i,n:3})}}}
  if(remain<=0){s.ph='end';s.endT=2.2;fx(s,{k:'snd',n:'win'})}}
-function dayResult(s,run){const net=Math.round(s.net);return{net,cut:s.cut,pass:net>=s.cut,full:s.full|0,served:s.served,lost:s.lost,perf:s.perf,burnt:s.burnt,bc:s.bc,made:s.made,idle:s.idleT/Math.max(1,s.idleT+s.busyT)}}
+function dayResult(s,run){const net=Math.round(s.net);return{net,cut:s.cut,pass:net>=s.cut,full:s.full|0,served:s.served,lost:s.lost,perf:s.perf,good:s.good,burnt:s.burnt,bc:s.bc,made:s.made,idle:s.idleT/Math.max(1,s.idleT+s.busyT)}}
 /* 하루가 끝났을 때 판 상태를 갱신하고 결과 종류를 돌려 준다: 'pass' | 'revive' | 'over' | 'clear' */
 function endDay(run,res){
  if(run.lg)run.lg.push(['E']);
@@ -124,14 +130,25 @@ function replay(seed,lg){const run=newRun(seed,'week');run.lg=null;let s=null;
   if(e[0]==='B')buy(run,e[1]);else if(e[0]==='T')buyTicket(run);else if(e[0]==='D')s=newDay(run);else if(e[0]==='E'){if(s)fin()}
   else if(s){while(s.tk<e[0])step(s,run,DT);if(e[1]===0)moldTap(s,run,e[2]);else if(e[1]===1)serve(s,run,e[2]);else if(e[1]===2)selFl(s,run,e[2])}}
  return run}
+/* 키우기 목록 글자: [그림, 이름, 설명, 'Lv a/b'] (가게·챌린지 공용) */
+function upInfo(run,k){const lvT=(a,b)=>'Lv '+a+'/'+b;
+ if(k==='fl'){const m=R.menu[run.nf];return m?['🆕','새 메뉴',m.e+' '+m.n+' · 판매가 '+fmt(m.p)+'원 (더 비싸고 더 어려워요)',lvT(run.nf-1,R.menu.length-1)]:['🆕','새 메뉴','모든 맛을 열었어요!',lvT(run.nf-1,R.menu.length-1)]}
+ if(k[0]==='f'&&k[1]==='u'){const f=+k[2],m=R.menu[f],lv=fuLv(run,f),n=R.fuC.length,nx=Math.round(m.p*(1+(R.fuX[f]-1)*Math.min(n,lv+1)/n));
+  return[m.e,m.n+' 강화',lv>=n?'최고 단계! 판매가 '+fmt(price(run,f))+'원':(R.fuN[lv+1]+' '+m.n+' · 판매가 '+fmt(price(run,f))+' → '+fmt(nx)+'원'),lvT(lv,n)]}
+ const u=R.up[k],lv=run.up[k]|0,L=R.loc;
+ const d={mold:nMold(run)>=8?'틀 8개 · 최대예요!':'틀 '+nMold(run)+'개 → '+(nMold(run)+1)+'개 (최대 8개)',speed:'굽는 시간 -6% (지금 -'+6*lv+'%)',auto:'빈 틀을 한 번 톡! 하면 반죽+속+덮기',pat:'손님 참을성 +8% (지금 +'+8*lv+'%)',
+  deco:'손님이 +6% 더 와요 (지금 +'+6*lv+'%)',loc:L[lv+1]?L[lv+1].e+' '+L[lv+1].n+' · 가격 ×'+L[lv+1].pm+' · 손님 +'+Math.round((L[lv+1].sp-1)*100)+'%':'최고의 장사 터예요',
+  rack:lv>=2?'맛마다 10개씩 쌓아 둬요':lv?'맛마다 10개씩 쌓아 둬요 (지금 전체 16개)':'접시에 16개까지 쌓아 둬요 (지금 10개)'}[k];
+ return[u.e,u.n,d,lvT(lv,u.max)]}
 /* 키우기 추천: keys=보여 줄 항목, r=지난 하루 결과(없어도 됨). {k,why} 또는 null */
 function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pick=(k,why)=>can(k)?{k,why}:null;let x=null;
  if(r){x=(r.full>=2&&pick('rack','접시가 '+r.full+'번 꽉 찼어요'))||(r.lost>=3&&(pick('pat','손님을 '+r.lost+'명 놓쳤어요 → 더 기다려 줘요')||pick('mold','손님을 '+r.lost+'명 놓쳤어요 → 한 번에 더 많이 구워요')))||
   (r.cut&&r.net<r.cut*1.25&&pick('fl','컷트라인이 빠듯해요 → 비싼 메뉴로 더 벌어요'))||(r.idle>.3&&(pick('deco','손님이 없는 시간이 길어요 → 손님을 더 불러요')||pick('loc','손님이 없는 시간이 길어요 → 손님이 많은 곳으로')));if(x)return x}
- const ord=[['mold','틀이 많을수록 한 번에 많이 구워요'],['fl','비싼 메뉴가 돈을 많이 벌어요'],['auto','손이 바쁠 때 큰 도움이 돼요'],['rack','미리 많이 구워 둘 수 있어요'],['speed','빨리 구워서 손님을 덜 기다리게 해요'],['pat','손님이 더 오래 기다려 줘요'],['loc','값을 더 받고 손님도 많아요'],['deco','손님이 더 자주 와요']];
+ const fuR=[0,1,2,3,4,5].filter(f=>f<run.nf).sort((a,b)=>fuLv(run,a)-fuLv(run,b)||b-a).map(f=>['fu'+f,R.menu[f].e+' '+R.menu[f].n+' 값을 올려요 ('+fmt(price(run,f))+'원 → 더 비싸게)']);
+ const ord=[['mold','틀이 많을수록 한 번에 많이 구워요'],['fl','비싼 메뉴가 돈을 많이 벌어요'],['auto','손이 바쁠 때 큰 도움이 돼요'],...fuR.slice(0,1),['rack','미리 많이 구워 둘 수 있어요'],['speed','빨리 구워서 손님을 덜 기다리게 해요'],['pat','손님이 더 오래 기다려 줘요'],['loc','값을 더 받고 손님도 많아요'],['deco','손님이 더 자주 와요']];
  for(const [k,why] of ord)if(can(k)&&upCost(run,k)<=run.coins)return{k,why};
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
-const weekSeed=(w)=>hs(20260601,w),SIMV=2; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{SIMV,weekSeed,R,DT,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+const weekSeed=(w)=>hs(20260601,w),SIMV=3; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
+return{SIMV,weekSeed,R,DT,MOLDS,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;
