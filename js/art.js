@@ -1,5 +1,7 @@
 /* ===== 그림 도구 (가게·챌린지 공용) — 코드로 그려서 외부 그림 파일이 없어요 =====
    ART(cx,{shape:()=>틀모양번호,toast,snd}) 로 만들고, 그리기 전에 A.use(s,run,ui) 로 지금 하루를 알려 줘요 */
+window.ART_IMG=window.ART_IMG||{};
+const ART_LOAD=(map)=>{for(const k in map){const im=new Image();im.decoding='async';im.src=map[k];window.ART_IMG[k]=im}};
 const ART=(cx,OPT)=>{
 if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r||0,w/2,h/2);this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath()};
 OPT=Object.assign({shape:()=>0,toast:()=>{},snd:()=>{}},OPT||{});
@@ -50,7 +52,11 @@ function mouth(r,mood,y){cx.strokeStyle='#4a2a14';cx.lineWidth=r*.06;cx.lineCap=
  else if(mood==='w'){cx.beginPath();cx.moveTo(-r*.14,y+r*.05);cx.quadraticCurveTo(-r*.07,y-r*.03,0,y+r*.05);cx.quadraticCurveTo(r*.07,y+r*.13,r*.14,y+r*.05);cx.stroke()}
  else{cx.beginPath();cx.moveTo(-r*.14,y);cx.quadraticCurveTo(-r*.07,y+r*.1,0,y);cx.quadraticCurveTo(r*.07,y+r*.1,r*.14,y);cx.stroke()}}
 /* 동물/사람 반신 그리기: kind(이모지 키), 중심(x,y)=얼굴 중심, 얼굴 지름 s */
-function animal(kind,x,y,s,o={}){const sp=SP[kind]||SP['🐶'],r=s/2,t=o.t||0,ph=o.ph||0,mood=o.mood||'n',bob=Math.sin(t*2.2+ph)*r*.04,blink=((t*1.0+ph)%3.7)<.12;
+/* 그림 파일이 있으면 코드 그림 대신 사용 (ART_IMG[kind]=Image) */
+function animal(kind,x,y,s,o={}){const im=window.ART_IMG&&window.ART_IMG[kind];if(im&&im.complete&&im.naturalWidth){const h=s*1.5,w=h*im.naturalWidth/im.naturalHeight,bob=Math.sin((o.t||0)*2.2+(o.ph||0))*s*.03;
+  cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);cx.restore();return}
+ return animalCode(kind,x,y,s,o)}
+function animalCode(kind,x,y,s,o={}){const sp=SP[kind]||SP['🐶'],r=s/2,t=o.t||0,ph=o.ph||0,mood=o.mood||'n',bob=Math.sin(t*2.2+ph)*r*.04,blink=((t*1.0+ph)%3.7)<.12;
  cx.save();cx.translate(x,y+bob);if(o.tilt)cx.rotate(o.tilt);
  if(sp.wing){cx.fillStyle='#46b062';for(const sx of[-1,1]){cx.beginPath();cx.moveTo(sx*r*.7,r*.4);cx.quadraticCurveTo(sx*r*1.5,-r*.2+Math.sin(t*4)*r*.1,sx*r*1.2,r*.9);cx.quadraticCurveTo(sx*r*1.0,r*.7,sx*r*.7,r*.8);cx.fill()}}
  if(o.shirt!==null&&!o.bust){const sc=o.shirt||'#7ec8ff';const g=cx.createLinearGradient(0,r*.7,0,r*1.7);g.addColorStop(0,lite(sc,.2));g.addColorStop(1,sc);cx.fillStyle=g;cx.beginPath();cx.roundRect(-r*.86,r*.66,r*1.72,r*1.1,r*.5);cx.fill();cx.strokeStyle=dark(sc,.35);cx.lineWidth=r*.05;cx.stroke();
