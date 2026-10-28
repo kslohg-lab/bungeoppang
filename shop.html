@@ -65,6 +65,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 #shl{height:430px;overflow-y:auto;touch-action:pan-y;text-align:left}
 .card input{width:100%;box-sizing:border-box;height:56px;border:3px solid #f0c890;border-radius:16px;font:inherit;font-size:24px;text-align:center;color:#5a3a22;background:#fffaf0;margin:8px 0 4px;user-select:text;-webkit-user-select:text;touch-action:auto;outline:none}
 .err{color:#d03030;font-size:16px;min-height:22px}
+.hl{position:relative;z-index:30;box-shadow:0 0 0 4px #ffc94a,0 0 18px 6px rgba(255,201,74,.8)!important;animation:hlp 1s infinite}@keyframes hlp{50%{box-shadow:0 0 0 6px #ffe066,0 0 26px 10px rgba(255,201,74,.9)}}
 #nb{position:absolute;right:8px;top:72px;height:40px;padding:0 12px;font-size:16px;z-index:2}#nbs{position:absolute;right:8px;top:122px;height:40px;padding:0 12px;font-size:16px;z-index:2;background:#d6f2e4;box-shadow:0 3px 0 #8fc8a8}
 .rtabs{display:flex;gap:8px}.rtabs button{flex:1;height:44px;font-size:18px;box-shadow:0 3px 0 #e0c4a0}.rtabs button.on{background:#ffc94a;box-shadow:0 3px 0 #d9a020}
 #rkl{height:560px;overflow-y:auto;touch-action:pan-y;text-align:left}
@@ -94,12 +95,14 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
  <div id="nm" class="ov sh"><div class="card" style="top:140px"><div style="font-size:60px">🏪</div><h2 id="nmh" style="font-size:24px"></h2><input id="nmi" maxlength="8" autocomplete="off" spellcheck="false" placeholder="가게 이름 (8글자까지)"><div id="nme" class="err"></div><p style="font-size:14px;margin:4px 0 0;opacity:.75">간판에 이 이름이 걸려요. 나중에 바꿀 수 있어요.</p><button id="nm1" class="big">✅ 이걸로 열어요</button><button id="nmx" class="big sm">취소</button></div></div>
  <div id="rk" class="ov sh"><div class="card" style="top:24px;height:752px;padding:14px"><h2 style="margin:0 0 6px;font-size:26px">🏘️ 가게 순위</h2><div class="rtabs"><button id="rk0" class="on">✨ 꾸미기 점수</button><button id="rk1">❤️ 인기</button></div><div id="rkh" class="ht" style="text-align:center;margin:4px 0 6px"></div><div id="rkl"></div><div style="display:flex;gap:8px;margin-top:6px"><button id="rkr" class="big sm" style="width:35%;height:48px;margin:0">🔄</button><button id="rkx" class="big sm" style="flex:1;height:48px;margin:0">닫기</button></div></div></div>
  <div id="vs" class="ov" style="pointer-events:none"><div id="vtop"><button id="vx">← 내 가게</button><div id="vnm"></div></div><div id="vbot"><div id="vinfo"></div><button id="vlk">❤️ 좋아요</button></div><div id="vmk"><button id="vmk1">🏪 나도 내 가게 만들기</button></div></div>
+ <div id="tour" class="ov" style="background:rgba(40,24,14,.5);z-index:20"><div id="tcap" class="card" style="top:auto;bottom:24px;padding:14px"><div id="ttx" style="font-size:19px;line-height:1.5;min-height:58px"></div><div style="display:flex;gap:8px;margin-top:8px"><button id="tsk" class="big sm" style="margin:0;flex:1">건너뛰기</button><button id="tnx" class="big" style="margin:0;flex:1.4"></button></div><div id="tdot" style="margin-top:8px;font-size:13px;opacity:.6"></div></div></div>
  <div id="toast"></div>
 </div>
 <script src="js/sim.js?v=6"></script>
 <script src="js/art.js?v=11"></script>
 <script src="js/iso.js?v=3"></script>
+<script src="js/filter.js?v=1"></script>
 <script src="js/share.js?v=2"></script>
-<script src="js/shop.js?v=9"></script>
+<script src="js/shop.js?v=10"></script>
 <script type="module" src="js/net.js?v=1"></script>
 </body></html>

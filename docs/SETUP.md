@@ -14,6 +14,7 @@ challenge.html    옛 주소 → 첫 화면으로 넘겨 줌
 verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 재생해 확인)
 og.jpg            카톡 미리보기 사진 (1200×630)
 js/share.js       자랑 카드 만들기·공유 (챌린지·가게)
+js/filter.js      닉네임·가게 이름 욕설 거르기 (규칙 파일 clean()과 같은 목록)
 img/              AI 일러스트 (손님 an_*.webp, 사장님 cook*.webp)
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)
 js/art.js         그림 도구 + 굽는 화면 (가게·챌린지가 함께 씀)

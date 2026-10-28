@@ -9,11 +9,15 @@ service cloud.firestore {
     function mine(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
+    // 욕설·비하 이름 막기 (js/filter.js 와 같은 목록, 띄어쓰기·숫자·기호 빼고 검사)
+    function clean(s) {
+      return !s.lower().replace('[^가-힣ㄱ-ㅎa-z]', '').matches('.*(시발|씨발|씨바|시바|씨빨|시빨|쌍년|ㅅㅂ|ㅆㅂ|ㅄ|병신|븅신|빙신|ㅂㅅ|좆|존나|졸라|개새|개색|새끼|섹스|쎅스|보지|자지|니애미|느금|엠창|애미|애비|지랄|ㅈㄹ|미친놈|미친년|또라이|등신|찐따|애자|한남|김치녀|된장녀|틀딱|일베|fuck|shit|bitch|sex|porn|dick|pussy|nigg|asshole).*');
+    }
     function okScore(d) {
       return d.keys().hasOnly(['w', 'n', 'st', 'net', 'sc', 'v', 'ts', 'live'])
         && d.keys().hasAll(['w', 'n', 'st', 'net', 'sc', 'v', 'ts'])
         && d.w == weekNow()
-        && d.n is string && d.n.size() >= 1 && d.n.size() <= 10
+        && d.n is string && d.n.size() >= 1 && d.n.size() <= 10 && clean(d.n)
         && d.st is int && d.st >= 1 && d.st <= 60
         && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 800000 * d.st
         && d.sc == d.st * 1000000000 + d.net
@@ -47,8 +51,8 @@ service cloud.firestore {
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
     function okShop(d) {
       return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts'])
-        && d.n is string && d.n.size() >= 1 && d.n.size() <= 12
-        && d.nk is string && d.nk.size() <= 12
+        && d.n is string && d.n.size() >= 1 && d.n.size() <= 12 && clean(d.n)
+        && d.nk is string && d.nk.size() <= 12 && clean(d.nk)
         && d.g is int && d.g >= 0 && d.g <= 6
         && d.sc is int && d.sc >= 0 && d.sc <= 3000000
         && d.lk is int && d.lk >= 0
