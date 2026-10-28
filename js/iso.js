@@ -154,16 +154,18 @@ function drawFloor(look,t,edit){const f=FLR[look.floor|0]||FLR[0];
  for(let gx=0;gx<N;gx++)for(let gy=0;gy<N;gy++)if(isPath(gx,gy)){cx.globalAlpha=edit?.34:.1;poly([iso(gx+.12,gy+.12),iso(gx+.88,gy+.12),iso(gx+.88,gy+.88),iso(gx+.12,gy+.88)],'#fff');cx.globalAlpha=1}
  const Lc=iso(0,N),Bc=iso(N,N),Rc=iso(N,0);poly([Lc,Bc,up(Bc,-8),up(Lc,-8)],dark(f[0],.3));poly([Bc,Rc,up(Rc,-8),up(Bc,-8)],dark(f[0],.42));
  poly([iso(N-.08,N-.9),iso(N+.4,N-.9),iso(N+.4,N-.1),iso(N-.08,N-.1)],'#c84a3a')}
-function drawCounter(t){const c=iso(2,.35);animal('cook',c.x,c.y-TW*.95,TW*.66,{t,ph:0,mood:'h',shirt:'#ffffff'});
+function drawCounter(t,look){const c=iso(2,.35);animal('cook',c.x,c.y-TW*.95,TW*.66,{t,ph:0,mood:'h',shirt:'#ffffff'});
  box(1,0,.06,TW*.34,'#b97d4a',{top:'#d9a06a'});box(2,0,.06,TW*.34,'#b97d4a',{top:'#d9a06a'});
  const p=iso(2,.5);for(let i=0;i<3;i++)A.bread(p.x-TW*.32+i*TW*.3,p.y-TW*.36,TW*.0032,'#e8a840',{plain:true});
- for(let i=0;i<2;i++){const ph=m2(t*.9+i*.5,1);cx.fillStyle='rgba(255,255,255,'+(.5*(1-ph))+')';cx.beginPath();cx.ellipse(p.x-TW*.2+i*TW*.4,p.y-TW*.5-ph*TW*.4,4+ph*5,3+ph*4,0,0,7);cx.fill()}}
+ for(let i=0;i<2;i++){const ph=m2(t*.9+i*.5,1);cx.fillStyle='rgba(255,255,255,'+(.5*(1-ph))+')';cx.beginPath();cx.ellipse(p.x-TW*.2+i*TW*.4,p.y-TW*.5-ph*TW*.4,4+ph*5,3+ph*4,0,0,7);cx.fill()}
+ /* ☕ 카페를 열면 왼쪽 카운터에 커피머신 */
+ if(look&&look.cafe){const q=iso(1.5,.5),w=TW*.42,h=TW*.5,x=q.x-w/2,y=q.y-TW*.34-h;A.rr(x,y,w,h,5,'#4a4a52');A.rr(x+3,y+3,w-6,h*.3,3,'#8a8a96');A.rr(x+w*.3,y+h*.45,w*.4,h*.22,2,'#2a2a30');A.rr(x+w*.34,y+h*.72,w*.32,h*.22,3,'#fff');const ph=m2(t*.8,1);cx.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';cx.beginPath();cx.ellipse(q.x,y-4-ph*TW*.3,3+ph*4,2+ph*3,0,0,7);cx.fill()}}
 function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);const y=c.y-WH*.95;cx.strokeStyle='#c89010';cx.lineWidth=2;cx.beginPath();cx.moveTo(c.x,y-30);cx.lineTo(c.x,y);cx.stroke();const g=cx.createRadialGradient(c.x,y,4,c.x,y,TW*1.2);g.addColorStop(0,'rgba(255,240,170,.5)');g.addColorStop(1,'rgba(255,240,170,0)');cx.fillStyle=g;cx.beginPath();cx.arc(c.x,y,TW*1.2,0,7);cx.fill();em('🔮',c.x,y+8,TW*.36)}
 /* ---------- 전체 ---------- */
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawItem(it,t,o.sel===it)});
- L.push({z:1.4,f:()=>drawCounter(t)});if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
+ L.push({z:1.4,f:()=>drawCounter(t,look)});if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
