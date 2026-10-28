@@ -6,7 +6,7 @@ else{
  (async()=>{
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
-   const [{initializeApp},{getAuth,signInAnonymously},{getFirestore,doc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp}]=
+   const [{initializeApp},{getAuth,signInAnonymously},{getFirestore,doc,collection,query,orderBy,limit,getDocs,setDoc,serverTimestamp}]=
      await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
    let authP=null;
@@ -24,15 +24,15 @@ else{
     /* 이번 주(또는 지난 주) 위쪽 30명 */
     async top(w){const c=cache.get(w);if(c&&Date.now()-c.t<45000)return c.rows;
      const q=query(collection(db,'weeks',String(w),'scores'),orderBy('sc','desc'),limit(30));
-     const snap=await getDocs(q);const rows=snap.docs.map(d=>{const x=d.data();return{u:d.id,n:x.n,st:x.st,net:x.net}});
+     const snap=await getDocs(q);const rows=snap.docs.map(d=>{const x=d.data();return{u:d.id,n:x.n,st:x.st,net:x.net,live:x.live===true,ts:x.ts&&x.ts.toMillis?x.ts.toMillis():0}});
      cache.set(w,{t:Date.now(),rows});return rows},
-    /* 점수 보내기 (한 번에 하나씩 순서대로). lg 가 있으면 다시 재생해 볼 수 있는 기록도 같이 올림 */
-    submit(e){chain=chain.then(async()=>{try{
+    /* 점수 보내기 (한 번에 하나씩 순서대로). live=판 진행 중. 점수를 먼저 올리고, lg 가 있으면 검증 기록은 따로(실패해도 점수는 남음) */
+    submit(e){chain=chain.then(async()=>{let ok=false;try{
       const uid=await login();LBo.uid=uid;
-      const b=writeBatch(db),sr=doc(db,'weeks',String(e.w),'scores',uid);
-      b.set(sr,{w:e.w,n:e.n,st:e.st,net:e.net,sc:e.st*1000000000+e.net,v:SIMV,ts:serverTimestamp()});
-      if(e.lg){const p=await pack(e.lg);if(p)b.set(doc(db,'weeks',String(e.w),'proofs',uid),{w:e.w,st:e.st,v:SIMV,p})}
-      await b.commit();cache.delete(e.w);return true}catch(err){console.warn('LB submit',err&&err.code||err);return false}});return chain}
+      await setDoc(doc(db,'weeks',String(e.w),'scores',uid),{w:e.w,n:e.n,st:e.st,net:e.net,sc:e.st*1000000000+e.net,v:SIMV,ts:serverTimestamp(),live:!!e.live});
+      ok=true;cache.delete(e.w);
+      if(e.lg){const p=await pack(e.lg);if(p)await setDoc(doc(db,'weeks',String(e.w),'proofs',uid),{w:e.w,st:e.st,v:SIMV,p})}
+     }catch(err){console.warn('LB submit',err&&err.code||err)}return ok});return chain}
    };
    window.LB=LBo;
    login().then(u=>{LBo.uid=u}).catch(e=>console.warn('LB login',e&&e.code||e));

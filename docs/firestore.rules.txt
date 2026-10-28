@@ -10,7 +10,7 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
     function okScore(d) {
-      return d.keys().hasOnly(['w', 'n', 'st', 'net', 'sc', 'v', 'ts'])
+      return d.keys().hasOnly(['w', 'n', 'st', 'net', 'sc', 'v', 'ts', 'live'])
         && d.keys().hasAll(['w', 'n', 'st', 'net', 'sc', 'v', 'ts'])
         && d.w == weekNow()
         && d.n is string && d.n.size() >= 1 && d.n.size() <= 10
@@ -18,7 +18,8 @@ service cloud.firestore {
         && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 800000 * d.st
         && d.sc == d.st * 1000000000 + d.net
         && d.v is int
-        && d.ts == request.time;
+        && d.ts == request.time
+        && (!('live' in d) || d.live is bool);
     }
 
     // 주간 순위표: 누구나 읽기, 내 칸에만 쓰기, 더 좋은 기록일 때만 갱신, 지우기 불가

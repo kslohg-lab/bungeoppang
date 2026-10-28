@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.2';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.5';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -35,16 +35,19 @@ function startRun(mode){au();run=B.newRun(mode==='week'?weekSeed():(Math.random(
 function startDay(){s=B.newDay(run);ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
 /* ---------- 순위표 보내기 ---------- */
 const LB=()=>window.LB&&!window.LB.off?window.LB:null;
-function submit(withProof){if(!run||run.mode!=='week'||run.wid!==wid()||!save.nick||run.stage<1)return;const lb=LB();if(!lb)return;
- const st=run.stage,net=run.tot,sb=save.sub;if(sb.id===run.wid&&(st<sb.stage||(st===sb.stage&&net<=sb.net)))return;
- lb.submit({w:run.wid,n:save.nick,st,net,lg:withProof?run.lg:null}).then(ok=>{if(ok){save.sub={id:run.wid,stage:st,net};store()}})}
+/* 매 단계 통과 때 진행 중(live)으로 올리고, 판이 끝나면(fin) 무조건 한 번 더 보내 확정해요. 더 나쁜 기록으로는 덮지 않아요 */
+function submit(withProof,fin){if(!run||run.mode!=='week'||run.wid!==wid()||!save.nick||run.stage<1)return;const lb=LB();if(!lb)return;
+ const st=run.stage,net=run.tot,sb=save.sub,same=sb.id===run.wid&&st===sb.stage&&net===sb.net;
+ if(sb.id===run.wid&&(st<sb.stage||(st===sb.stage&&net<sb.net)))return;
+ if(same&&!fin&&sb.live)return;if(same&&fin&&!sb.live)return;
+ lb.submit({w:run.wid,n:save.nick,st,net,live:!fin,lg:withProof?run.lg:null}).then(ok=>{if(ok){save.sub={id:run.wid,stage:st,net,live:!fin};store()}})}
 function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage||(st===a.stage&&net>a.net);
  if(gt(save.best,0)){save.best={stage:st,net}}
  if(m==='week'){if(save.week.id!==run.wid)save.week={id:run.wid,stage:0,net:0};if(gt(save.week,0))save.week={id:run.wid,stage:st,net}}
  else if(gt(save.free,0))save.free={stage:st,net};
- if(run.clear)save.clears++;submit(true)}
+ if(run.clear)save.clears++;submit(true,true)}
 function finishDay(){const res=B.dayResult(s,run),kind=B.endDay(run,res);
- if(kind==='pass'||kind==='revive'){save.run={run};store();if(kind==='pass'&&run.stage%5===0)submit(true);goShop(res,kind)}
+ if(kind==='pass'||kind==='revive'){save.run={run};store();if(kind==='pass')submit(run.stage%5===0,false);goShop(res,kind)}
  else{record();save.run=null;store();goOver(res,kind)}}
 function sumHtml(res,kind){let h=(kind==='revive'?'🎫 <b>부활권을 썼어요!</b> 같은 날을 한 번 더 해요<br>':'')+'💰 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+(res.pass?' ✅':' ❌')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc;return h}
 let lastR=null;
@@ -98,7 +101,7 @@ function openNick(first){nickFrom=first?'first':scr==='over'?'over':'menu';$('nk
  $('nki').value=save.nick||'붕어빵'+(10+Math.floor(Math.random()*90));$('nke').textContent='';show('nick');setTimeout(()=>{try{$('nki').focus();$('nki').select()}catch(e){}},50)}
 $('nk1').onclick=()=>{const n=cleanNick($('nki').value);if(n.length<1){$('nke').textContent='한 글자 이상 써 주세요';return}
  const ch=n!==save.nick;save.nick=n;store();
- const lb=LB();if(ch&&lb&&save.sub.id===wid())lb.submit({w:save.sub.id,n,st:save.sub.stage,net:save.sub.net,lg:null});
+ const lb=LB();if(ch&&lb&&save.sub.id===wid())lb.submit({w:save.sub.id,n,st:save.sub.stage,net:save.sub.net,live:!!save.sub.live,lg:null});
  toMenu();if(ch)toast('닉네임: '+n)};
 $('nki').addEventListener('keydown',e=>{if(e.key==='Enter')$('nk1').click()});
 $('nkx').onclick=()=>toMenu();
@@ -115,7 +118,7 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  if(!rows.length){L.innerHTML='<p class="ht">'+(lbWk===0?'아직 아무도 없어요. 첫 번째 주인공이 되어 보세요! 🏆':'지난 주 기록이 없어요.')+'</p>';return}
  const me=lb.uid;L.innerHTML='';
  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='lr'+(r.u===me?' me':'');
-  d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span><span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
+  const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
   d.querySelector('.ln').textContent=r.n;L.appendChild(d)});
  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'같은 단계면 번 돈이 많은 순서';L.appendChild(f)}
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else show('menu')};
