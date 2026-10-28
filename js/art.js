@@ -258,7 +258,7 @@ function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),c
 /* 아래 맛 고르기 */
 function menuBar(){const B=BP2,R=B.R,n=run.nf,bw=(450-20-(n-1)*6)/n;for(let i=0;i<n;i++){const x=10+i*(bw+6),sel=s.sel===i,M=R.menu[i],lv=B.fuLv(run,i);rr(x,700,bw,88,16,sel?'#ffd76a':'#fff');if(sel){cx.lineWidth=4;cx.strokeStyle='#e8584a';cx.beginPath();cx.roundRect(x,700,bw,88,16);cx.stroke()}
   em(M.e,x+bw/2,722,n>4?26:30);if(lv)tx('★'+lv,x+bw-10,712,11,'#ff8a2a','right','#fff');tx(M.n,x+bw/2,748,n>4?12:14,'#5a3a22','center','#fff');tx(B.fmt(B.price(run,i)),x+bw/2,768,n>4?12:14,'#5a3a22','center','#fff');tx('재료 '+B.fmt(M.c),x+bw/2,782,10,'#a4701f','center','#fff')}}
-function hints(){if(s.d>2||s.ph!=='play')return;let h='';const B=BP2,act=s.mold.slice(0,B.nMold(run));
+function hints(){if(s.d>2||s.ph!=='play'||s.noHint)return;let h='';const B=BP2,act=s.mold.slice(0,B.nMold(run));
  if(act.some(m=>(m.s===3||m.s===4)&&m.p>=1-B.R.menu[m.f].w&&m.p<=1+B.R.menu[m.f].w))h='✨ 노란 구간에 누르면 PERFECT! (한 면만 맞으면 GREAT)';
  else if(s.rack.length&&s.cust.some(c=>c))h='완성된 붕어빵은 손님을 톡! 해서 줘요';
  else if(act.some(m=>m.s===2))h='③ 덮개를 톡! 굽기 시작';else if(act.some(m=>m.s===1))h='② 아래에서 맛을 고르고 틀을 톡';

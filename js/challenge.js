@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.5';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.6';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -18,15 +18,21 @@ const SND={tap(){tone(500,.08,'triangle',.1)},pour(){tone(300,.18,'sine',.12,0,1
 const snd=k=>{try{SND[k]&&SND[k]()}catch(e){}};
 
 /* ---------- 화면 전환 ---------- */
-const show=n=>{['menu','shop','over','pause','set','how','nick','lb'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home').style.display=scr==='game'?'block':'none'};
+const show=n=>{['menu','shop','over','pause','set','how','nick','lb','rv'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home').style.display=scr==='game'?'block':'none'};
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1700)}
 function ask(btn,label,fn){if(btn.dataset.a!=='1'){btn.dataset.a='1';btn.dataset.o=btn.textContent;btn.textContent=label;setTimeout(()=>{if(btn.dataset.a==='1'){btn.dataset.a='0';btn.textContent=btn.dataset.o}},3000)}else{btn.dataset.a='0';btn.textContent=btn.dataset.o;fn()}}
 const esc=t=>String(t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+/* 체크포인트: 10단계마다 그 순간의 판을 저장해 두고, 죽으면 거기서 다시 */
+const cpOK=()=>save.cp&&save.cp.wid===wid()&&save.cp.run&&save.cp.run.sv===B.SIMV;
+const clone=o=>JSON.parse(JSON.stringify(o));
+function startFromCp(){if(!cpOK())return;au();run=clone(save.cp.run);save.runs++;save.run={run};store();startDay();toast('🔁 '+(save.cp.stage+1)+'단계부터 다시! 화이팅 🔥')}
 function renderMenu(){
+ if(save.run&&save.run.run&&save.run.run.over){run=save.run.run;record();save.run=null;store();run=null}
  const sr=save.run,wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('mw').innerHTML='<span class="pill">🙂 '+esc(save.nick)+'</span><span class="pill">🏅 이번 주 '+wk.stage+'단계</span>';$('ver').textContent='시험판 v'+VER+' · 이번 주 판 #'+wid();
  $('mi').innerHTML='컷트라인을 못 넘으면 탈락!<br>몇 단계까지 갈 수 있을까요? (최고 '+R.maxStage+'단계 완주)<br>⭐ 이번 주 판은 모두 같은 손님! 순위표에서 겨뤄요';
  if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid()){$('m1').textContent='▶ 이어서 하기 · '+sr.run.day+'일차';$('m5').style.display='block';$('m5').textContent='🆕 처음부터 다시 시작'}
+ else if(cpOK()){$('m1').textContent='▶ 이번 주 판 1단계부터';$('m5').style.display='block';$('m5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)'}
  else{$('m1').textContent='▶ 이번 주 판 시작';$('m5').style.display='none'}}
 function toMenu(){scr='menu';s=null;paused=false;renderMenu();show('menu')}
 
@@ -40,21 +46,36 @@ function submit(withProof,fin){if(!run||run.mode!=='week'||run.wid!==wid()||!sav
  const st=run.stage,net=run.tot,sb=save.sub,same=sb.id===run.wid&&st===sb.stage&&net===sb.net;
  if(sb.id===run.wid&&(st<sb.stage||(st===sb.stage&&net<sb.net)))return;
  if(same&&!fin&&sb.live)return;if(same&&fin&&!sb.live)return;
- lb.submit({w:run.wid,n:save.nick,st,net,live:!fin,lg:withProof?run.lg:null}).then(ok=>{if(ok){save.sub={id:run.wid,stage:st,net,live:!fin};store()}})}
+ return lb.submit({w:run.wid,n:save.nick,st,net,live:!fin,lg:withProof?run.lg:null}).then(ok=>{if(ok){save.sub={id:run.wid,stage:st,net,live:!fin};store()}return ok})}
 function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage||(st===a.stage&&net>a.net);
  if(gt(save.best,0)){save.best={stage:st,net}}
  if(m==='week'){if(save.week.id!==run.wid)save.week={id:run.wid,stage:0,net:0};if(gt(save.week,0))save.week={id:run.wid,stage:st,net}}
  else if(gt(save.free,0))save.free={stage:st,net};
- if(run.clear)save.clears++;submit(true,true)}
+ if(run.clear)save.clears++;return submit(true,true)}
 function finishDay(){const res=B.dayResult(s,run),kind=B.endDay(run,res);
- if(kind==='pass'||kind==='revive'){save.run={run};store();if(kind==='pass')submit(run.stage%5===0,false);goShop(res,kind)}
- else{record();save.run=null;store();goOver(res,kind)}}
+ if(kind==='pass'||kind==='revive'){
+  if(kind==='pass'&&run.mode==='week'&&run.stage%10===0&&run.stage<R.maxStage&&(!cpOK()||run.stage>=save.cp.stage))save.cp={wid:run.wid,stage:run.stage,run:clone(run)};
+  save.run={run};store();let pr=null;if(kind==='pass')pr=submit(run.stage%5===0,false);goShop(res,kind);rankInto('srk',pr,'shop')}
+ else if(kind==='over'&&run.mode==='week'&&B.canLateRevive(run)){save.run={run};store();openRevive(res)}
+ else endRun(res,kind)}
+function endRun(res,kind){const pr=record();save.run=null;store();goOver(res,kind);rankInto('ork',pr,'over')}
+/* 탈락 직후: 부활권을 사서 같은 날 한 번 더 */
+let rvRes=null;
+function openRevive(res){rvRes=res;scr='rv';const c=B.ticketCost(run);$('rvb').innerHTML='💰 오늘 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+'<br>🪙 가진 코인 '+fmt(run.coins)+'<br>부활권을 사면 <b>'+run.day+'일차를 한 번 더</b> 할 수 있어요';
+ $('rv1').textContent='🎫 부활권 사고 다시 (🪙 '+fmt(c)+')';show('rv')}
+$('rv1').onclick=()=>{if(!B.lateRevive(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');goShop(rvRes,'revive')};
+$('rv2').onclick=()=>ask($('rv2'),'⚠️ 정말 끝낼까요? 한 번 더!',()=>endRun(rvRes,'over'));
+/* 지금 내 순위 (순위표 위쪽 30명 안) */
+let lastRank='';
+function rankInto(id,pr,where){const lb=LB(),el=()=>$(id);if(!lb){if(el())el().textContent='';return}if(el())el().textContent=where==='over'?'🏆 순위 확인 중…':'🏆 …';
+ Promise.resolve(pr).then(()=>{if(lb.bust)lb.bust();return lb.top(wid())}).then(rows=>{if(scr!==where)return;const i=rows.findIndex(r=>r.u===lb.uid);
+  lastRank=i<0?'30위 밖':(i+1)+'위'+(i<3?' '+['🥇','🥈','🥉'][i]:'');if(el())el().textContent='🏆 이번 주 '+lastRank}).catch(()=>{if(el())el().textContent=''})}
 function sumHtml(res,kind){let h=(kind==='revive'?'🎫 <b>부활권을 썼어요!</b> 같은 날을 한 번 더 해요<br>':'')+'💰 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+(res.pass?' ✅':' ❌')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc;return h}
 let lastR=null;
 function goShop(res,kind){lastR=res;scr='shop';$('st').textContent=kind==='revive'?'🎫 한 번 더!':'🌙 '+(run.day-1)+'단계 통과!';$('ss').innerHTML=sumHtml(res,kind);renderShop();
  const ev=B.evOf(run.day),c=B.cutline(run.day);$('s1').textContent=(kind==='revive'?'▶ '+run.day+'일차 다시 시작':'▶ '+run.day+'일차 시작')+' (컷트라인 '+fmt(c)+')';show('shop')}
 function renderShop(){
- $('sw').innerHTML='<span class="pill">🪙 '+fmt(run.coins)+'</span><span class="pill">'+(B.evOf(run.day)?R.ev[B.evOf(run.day)].e+' '+run.day+'일차 '+R.ev[B.evOf(run.day)].n:'📅 '+run.day+'일차')+'</span>';
+ $('sw').innerHTML='<span class="pill">🪙 '+fmt(run.coins)+'</span><span class="pill">'+(B.evOf(run.day)?R.ev[B.evOf(run.day)].e+' '+run.day+'일차 '+R.ev[B.evOf(run.day)].n:'📅 '+run.day+'일차')+'</span>'+(run.mode==='week'&&LB()?'<span class="pill" id="srk" style="background:#ffe9a0">🏆 '+(lastRank?'이번 주 '+lastRank:'…')+'</span>':'');
  const L=$('shl');L.innerHTML='';
  const row=(e,n,d,label,can,fn,rec)=>{const r=document.createElement('div');r.className='it'+(rec?' rec':'');r.innerHTML='<b>'+e+'</b><div>'+(String(n).startsWith('<span')?n:'<span>'+n+'</span>')+'<br>'+d+'</div>';const b=document.createElement('button');b.textContent=label;if(!can)b.className='no';b.onclick=fn;r.appendChild(b);L.appendChild(r)};
  const buyK=k=>{if(!B.buy(run,k)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()};
@@ -71,20 +92,22 @@ function renderShop(){
  sec('🎫 부활권');
  const tc=B.ticketCost(run);
  if(run.ticket)row('🎫','부활권','탈락할 때 같은 날을 한 번 더 해요','보유 ✅',false,()=>{});
- else row('🎫','부활권 (한 판에 한 번)','컷트라인에 못 미쳐도 같은 날을 한 번 더 해요',fmt(tc)+'🪙',run.coins>=tc,()=>{if(!B.buyTicket(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()})}
+ else row('🎫','부활권','컷트라인에 못 미쳐도 같은 날을 한 번 더 해요 (탈락한 순간에도 살 수 있어요)',fmt(tc)+'🪙',run.coins>=tc,()=>{if(!B.buyTicket(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()})}
 function goOver(res,kind){scr='over';const st=run.stage;$('ot').textContent=run.clear?'🎉 '+R.maxStage+'단계 완주!':(run.giveUp?'🏳️ 포기했어요':'💥 '+(st+1)+'일차에서 탈락');
- let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind)+'<br>');
+ let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind).replace('💰 순수익','💰 오늘 수익')+'<br>');
  h+='<br>🏅 도달 단계 <b>'+st+'</b> · 누적 순수익 '+fmt(run.tot)+'원';
  const w=save.week.id===run.wid?save.week:null;if(run.mode==='week'&&w)h+='<br>이번 주 내 최고 <b>'+w.stage+'단계</b>';
- $('obd').innerHTML=h;$('o1').textContent='🔁 이번 주 판 다시 도전';show('over')}
-function giveUp(){if(!run||run.over)return;run.over=true;run.giveUp=true;record();save.run=null;store();paused=false;$('pause').style.display='none';goOver(null,'over')}
+ $('obd').innerHTML=h;const cp=cpOK()&&!run.clear;$('o5').style.display=cp?'block':'none';if(cp)$('o5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)';
+ $('o1').textContent=cp?'🆕 1단계부터 새로':'🔁 이번 주 판 다시 도전';$('o1').className=cp?'big sm':'big';$('ork').textContent='';show('over')}
+$('o5').onclick=startFromCp;
+function giveUp(){if(!run||run.over)return;run.over=true;run.giveUp=true;paused=false;$('pause').style.display='none';endRun(null,'over')}
 
 /* ---------- 연결: 버튼 ---------- */
 $('m1').onclick=()=>{au();const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid()){run=sr.run;startDay()}else startRun('week')};
-$('m5').onclick=()=>ask($('m5'),'⚠️ 지금 판이 사라져요. 한 번 더!',()=>startRun('week'));
+$('m5').onclick=()=>{const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid())ask($('m5'),'⚠️ 지금 판이 사라져요. 한 번 더!',()=>startRun('week'));else startFromCp()};
 function renderHow(){const wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('hw').innerHTML='<p class="ht"><b>🏅 내 기록</b></p><div class="sum">이번 주 판: <b>'+wk.stage+'단계</b> ('+fmt(wk.net)+'원)<br>전체 최고: <b>'+save.best.stage+'단계</b> · 도전 '+save.runs+'번 · 완주 '+save.clears+'번</div>'+
- '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. 노란 구간에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 노란 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 초록 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 팥 하나만 키워서 멀리 가는 것도 가능해요!<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🎫 부활권은 한 판에 한 번, 탈락한 날을 다시 해 볼 수 있어요.<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
+ '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. 노란 구간에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 노란 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 초록 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 팥 하나만 키워서 멀리 가는 것도 가능해요!<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
 $('m4').onclick=()=>{au();renderHow();show('how')};$('hx').onclick=()=>show('menu');
 $('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=share;
 $('m3').onclick=()=>{au();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐';$('sk').textContent='✏️ 닉네임 바꾸기 ('+save.nick+')';$('rs').textContent='🗑️ 기록·저장 지우기';show('set')};
@@ -93,6 +116,7 @@ $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'�
 $('sc').onclick=()=>show('menu');
 $('rs').onclick=()=>ask($('rs'),'⚠️ 정말 지울까요? 한 번 더!',()=>{save={snd:save.snd,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null};store();renderMenu();toast('모두 지웠어요')});
 $('s1').onclick=()=>{au();startDay()};
+$('sm1').onclick=()=>openLb(0);$('sm2').onclick=()=>{toMenu();toast('판은 저장됐어요. ▶ 이어서 하기로 돌아와요')};
 $('o4').onclick=()=>openLb(0);$('o1').onclick=()=>{startRun('week')};$('o3').onclick=toMenu;
 /* ---------- 닉네임 ---------- */
 let nickFrom=null;
@@ -102,7 +126,7 @@ function openNick(first){nickFrom=first?'first':scr==='over'?'over':'menu';$('nk
 $('nk1').onclick=()=>{const n=cleanNick($('nki').value);if(n.length<1){$('nke').textContent='한 글자 이상 써 주세요';return}
  const ch=n!==save.nick;save.nick=n;store();
  const lb=LB();if(ch&&lb&&save.sub.id===wid())lb.submit({w:save.sub.id,n,st:save.sub.stage,net:save.sub.net,live:!!save.sub.live,lg:null});
- toMenu();if(ch)toast('닉네임: '+n)};
+ toMenu();if(nickFrom==='first')setTimeout(startTour,300);else if(ch)toast('닉네임: '+n)};
 $('nki').addEventListener('keydown',e=>{if(e.key==='Enter')$('nk1').click()});
 $('nkx').onclick=()=>toMenu();
 /* ---------- 순위표 ---------- */
@@ -121,7 +145,7 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
   const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
   d.querySelector('.ln').textContent=r.n;L.appendChild(d)});
  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'같은 단계면 번 돈이 많은 순서';L.appendChild(f)}
-$('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else show('menu')};
+$('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
 function share(){const wk=save.week.id===wid()?save.week:{stage:0};const url=location.origin+location.pathname;
  const txt='🔥 붕어빵 챌린지 — 이번 주 '+(wk.stage?wk.stage+'단계까지 갔어요! 내 기록을 넘어 봐 😎':'같이 도전해요! 누가 제일 멀리 가는지 겨뤄요 🏆');
@@ -151,9 +175,47 @@ function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.
   tx('🪙 '+fmt(run.coins+s.net),385,20,ui.hud>0?26:22,ui.hud>0?'#fff6c0':'#ffe9a0','right');
   const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,38,258,12,6,'rgba(0,0,0,.35)');rr(128,38,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,36,3,16,1,'#fff');tx('컷트라인 '+fmt(s.cut),122,45,13,'#fff','right')}})}
 
+/* ---------- 따라하기 영상: 진짜 게임 화면에서 손가락이 직접 시연해요 ---------- */
+let demo=null,demoFrom='how';
+function playDemo(from){au();demoFrom=from||'how';run=B.newRun(12345,'free');run.lg=null;s=B.newDay(run);s.ban=0;s.spawnT=999;s.noHint=1;ui=A.newUi();A.use(s,run,ui);
+ s.cust=[null,{an:'🐰',ty:'n',ord:[1,0,0,0,0,0],got:[0,0,0,0,0,0],pat:999,max:999,in:1,leave:0,sh:0,ag:9},null];
+ demo={i:0,w:0,fx:225,fy:620,tap:0,done:0};scr='demo';paused=false;show('none');$('dm').style.display='block';$('home').style.display='none'}
+const MP=()=>({x:A.mpos(0).x+64,y:A.mpos(0).y+29}),FP=()=>({x:225,y:744}),CP=()=>({x:225,y:236});
+const inYel=()=>{const m=s.mold[0],M=R.menu[m.f];return m.p>=1-M.w*.3};
+const DS=[
+ {c:'① 빈 틀을 톡! 반죽을 부어요',p:MP,w:1.1},
+ {c:'② 아래에서 맛(팥)을 골라요',p:FP,w:1},
+ {c:'③ 틀을 한 번 더 톡! 속을 넣어요',p:MP,w:1},
+ {c:'④ 덮개를 톡! 굽기 시작',p:MP,w:1},
+ {c:'⑤ 막대가 노란 구간에 오면 톡! 뒤집어요',p:MP,u:()=>s.mold[0].s===3&&inYel()},
+ {c:'⑥ 또 노란 구간에서 톡! 꺼내면 ✨PERFECT',p:MP,u:()=>s.mold[0].s===4&&inYel()},
+ {c:'⑦ 손님을 톡! 붕어빵을 건네요',p:CP,w:1.2},
+ {c:'🔥 PERFECT를 이어서 주면 콤보! 이제 직접 해 봐요',p:()=>({x:225,y:560}),w:2.8,end:1}];
+function demoTick(dt){if(!demo||demo.done)return;s.spawnT=999;const st=DS[demo.i],tg=st.p(),k=Math.min(1,dt*6);demo.fx+=(tg.x-demo.fx)*k;demo.fy+=(tg.y-demo.fy)*k;if(demo.tap>0)demo.tap-=dt;
+ const near=Math.hypot(tg.x-demo.fx,tg.y-demo.fy)<6;demo.w+=dt;
+ if(near&&(st.u?st.u():demo.w>=st.w)){if(st.end){endDemo();return}A.tapPlay(tg.x,tg.y);drain();demo.tap=.35;demo.i++;demo.w=0}}
+function demoDraw(){if(!demo)return;const st=DS[Math.min(demo.i,DS.length-1)];
+ A.rr(16,80,418,50,18,'rgba(90,58,34,.94)');A.tx(st.c,225,105,st.c.length>22?16:18,'#fff','center','#5a3a22');
+ if(demo.tap>0){cx.strokeStyle='rgba(255,230,90,'+demo.tap*2.5+')';cx.lineWidth=4;cx.beginPath();cx.arc(demo.fx,demo.fy,30*(1.2-demo.tap*2),0,7);cx.stroke()}
+ A.em('👆',demo.fx+12,demo.fy+26-(demo.tap>0?6:0),48)}
+function endDemo(){demo=null;s=null;run=null;$('dm').style.display='none';if(demoFrom==='how'){scr='menu';renderHow();show('how')}else toMenu()}
+$('hd').onclick=()=>playDemo('how');$('dmx').onclick=endDemo;
+/* ---------- 처음 온 사람: 메뉴 안내 (건너뛰기 가능) ---------- */
+const TOUR=[['m1','▶ <b>시작</b> — 이번 주 판을 시작해요.<br>이번 주엔 모두 같은 손님이 와요!'],['bk','🏪 <b>내 가게</b> — 꾸미고 키우는 나만의 붕어빵 가게'],['m6','🏆 <b>순위표</b> — 이번 주 친구들과 단계를 겨뤄요'],['m7','📤 <b>친구에게 알리기</b> — 카톡으로 초대해요'],['m4','📖 <b>규칙</b> — 움직이는 따라하기 영상도 있어요'],['m3','⚙️ <b>설정</b> — 소리 끄기, 닉네임 바꾸기']];
+let ti=0;
+function tourShow(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
+ if(ti>=TOUR.length){$('ttx').innerHTML='준비 끝! 🎉<br>게임 방법을 움직이는 영상으로 볼까요?';$('tnx').textContent='▶ 따라하기 보기';$('tsk').textContent='바로 시작';$('tdot').textContent='';$('tcap').style.top='auto';$('tcap').style.bottom='24px';return}
+ const [id,txt]=TOUR[ti],el=$(id);el.classList.add('hl');$('ttx').innerHTML=txt;$('tnx').textContent=ti===TOUR.length-1?'다음 ▶':'다음 ▶';$('tsk').textContent='건너뛰기';$('tdot').textContent=(ti+1)+' / '+TOUR.length;
+ const br=$('box').getBoundingClientRect(),sc=br.height/H,y=(el.getBoundingClientRect().top-br.top)/sc;if(y>420){$('tcap').style.top='24px';$('tcap').style.bottom='auto'}else{$('tcap').style.top='auto';$('tcap').style.bottom='24px'}}
+function startTour(){if(save.tour)return;ti=0;$('tour').style.display='block';tourShow()}
+function endTour(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));$('tour').style.display='none';save.tour=1;store()}
+$('tnx').onclick=()=>{if(ti>=TOUR.length){endTour();playDemo('menu');return}ti++;tourShow()};
+$('tsk').onclick=()=>endTour();
+
 /* ---------- 반복 ---------- */
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
- if(s&&scr==='game'){if(!paused){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain();if(s.done)break}
+ if(s&&scr==='demo'){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain()}A.tickFx(dt);demoTick(dt);if(scr==='demo'){draw();demoDraw()}}
+ else if(s&&scr==='game'){if(!paused){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain();if(s.done)break}
   A.tickFx(dt);
   if(s.done){draw();finishDay();requestAnimationFrame(loop);return}}draw()}
  requestAnimationFrame(loop)}

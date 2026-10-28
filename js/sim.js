@@ -53,6 +53,9 @@ function upCost(run,k){if(k==='fl')return run.nf>=R.menu.length?null:R.menu[run.
  if(k[0]==='f'&&k[1]==='u'){const f=+k[2];if(!(f<run.nf))return null;const lv=fuLv(run,f);return lv>=R.fuC.length?null:Math.round(R.menu[f].p*R.fuC[lv]/100)*100}const u=R.up[k],lv=run.up[k]|0;return lv>=u.max?null:u.cost[lv]}
 function buy(run,k){if(run.lg)run.lg.push(['B',k]);const c=upCost(run,k);if(c==null||run.coins<c)return false;run.coins-=c;if(k==='fl')run.nf++;else if(k[0]==='f'&&k[1]==='u'){if(!run.fu)run.fu=[0,0,0,0,0,0];run.fu[+k[2]]++}else run.up[k]=(run.up[k]|0)+1;return true}
 const ticketCost=run=>Math.round(cutline(run.day)*R.ticketMul/100)*100;
+/* 탈락 직후 부활권을 사서 같은 날을 다시 (기록 ['V']). 옛 기록에는 없어서 재생 결과가 그대로예요 */
+const canLateRevive=run=>!!run.over&&!!run.failed&&!run.clear&&!run.giveUp&&run.coins>=ticketCost(run);
+function lateRevive(run){if(run.lg)run.lg.push(['V']);if(!canLateRevive(run))return false;run.coins-=ticketCost(run);run.over=false;run.failed=0;run.tused++;return true}
 function buyTicket(run){if(run.lg)run.lg.push(['T']);const c=ticketCost(run);if(run.ticket||run.coins<c)return false;run.coins-=c;run.ticket=1;return true}
 
 /* ---- 하루 ---- */
@@ -122,11 +125,11 @@ function endDay(run,res){
  if(res.pass){run.coins=Math.max(0,run.coins+res.net);run.tot+=res.net;run.stage=run.day;run.bestNet=Math.max(run.bestNet,res.net);
   if(run.day>=R.maxStage){run.clear=true;run.over=true;return'clear'}run.day++;return'pass'}
  if(run.ticket){run.ticket=0;run.tused++;return'revive'}
- run.over=true;return'over'}
+ run.over=true;run.failed=1;return'over'}
 /* 기록(lg)을 처음부터 다시 돌려 결과를 확인 (같은 시드·같은 입력이면 항상 같음) */
 function replay(seed,lg){const run=newRun(seed,'week');run.lg=null;let s=null;
  const fin=()=>{while(!s.done)step(s,run,DT);endDay(run,dayResult(s,run));s=null};
- for(const e of lg){if(run.over)break;
+ for(const e of lg){if(e[0]==='V'){lateRevive(run);continue}if(run.over)break;
   if(e[0]==='B')buy(run,e[1]);else if(e[0]==='T')buyTicket(run);else if(e[0]==='D')s=newDay(run);else if(e[0]==='E'){if(s)fin()}
   else if(s){while(s.tk<e[0])step(s,run,DT);if(e[1]===0)moldTap(s,run,e[2]);else if(e[1]===1)serve(s,run,e[2]);else if(e[1]===2)selFl(s,run,e[2])}}
  return run}
@@ -150,5 +153,5 @@ function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pi
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
 const weekSeed=(w)=>hs(20260601,w),SIMV=4; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{SIMV,weekSeed,R,DT,MOLDS,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+return{SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;
