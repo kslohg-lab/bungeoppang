@@ -9,7 +9,20 @@ const FUR=[
  {k:'chair',n:'의자',e:'🪑',p:600,g:0,rot:1,seat:1},{k:'table',n:'탁자',e:'🍽️',p:1500,g:0},{k:'plant',n:'화분',e:'🪴',p:800,g:0},
  {k:'rug',n:'러그',e:'🟥',p:1200,g:0,flat:1},{k:'bear',n:'곰 인형',e:'🧸',p:2000,g:0},{k:'stand',n:'붕어 입간판',e:'🐟',p:2500,g:1},
  {k:'lamp',n:'등불',e:'🏮',p:3000,g:1},{k:'sofa',n:'소파',e:'🛋️',p:6000,g:1,rot:1,seat:1},{k:'shelf',n:'빵 진열대',e:'🥐',p:9000,g:2,rot:1},
- {k:'tree',n:'나무 화분',e:'🌳',p:12000,g:2},{k:'tank',n:'어항',e:'🐠',p:25000,g:3},{k:'piano',n:'피아노',e:'🎹',p:60000,g:4,rot:1}];
+ {k:'tree',n:'나무 화분',e:'🌳',p:12000,g:2},{k:'tank',n:'어항',e:'🐠',p:25000,g:3},{k:'piano',n:'피아노',e:'🎹',p:60000,g:4,rot:1},
+ /* 받침 위 장식 (emo: 받침색 b, 크기 z) */
+ {k:'cactus',n:'선인장',e:'🌵',p:1000,g:0,emo:1,b:'#c8643a',z:.46},{k:'basket',n:'빵 바구니',e:'🧺',p:1500,g:0,emo:1,b:'#c89a64',z:.44},
+ {k:'candle',n:'촛대',e:'🕯️',p:1800,g:0,emo:1,b:'#8a6a50',z:.42,glow:1},{k:'bench',n:'벤치',e:'🪑',p:4000,g:1,rot:1,seat:1},
+ {k:'books',n:'책장',e:'📚',p:4500,g:1,emo:1,b:'#7a5030',z:.5,tall:.42},{k:'frame',n:'그림 이젤',e:'🖼️',p:5000,g:1,emo:1,b:'#6a4024',z:.52},
+ {k:'koi',n:'잉어 깃발',e:'🎏',p:6500,g:1,emo:1,b:'#5a5048',z:.6,pole:1},{k:'pinata',n:'피냐타',e:'🪅',p:9000,g:2,emo:1,b:'#e8b04a',z:.52},
+ {k:'cake',n:'디저트 진열장',e:'🍰',p:15000,g:2,emo:1,b:'#f0d8e0',z:.4,tall:.36,glass:1},{k:'coffee',n:'커피 머신',e:'☕',p:18000,g:2,emo:1,b:'#5a5a62',z:.42,tall:.3},
+ {k:'sakura',n:'벚꽃 나무',e:'🌸',p:22000,g:2,emo:1,b:'#a85a34',z:.9,tree:1},{k:'vase',n:'도자기',e:'🏺',p:30000,g:3,emo:1,b:'#d8c8a8',z:.55},
+ {k:'slide',n:'미끄럼틀',e:'🛝',p:40000,g:3,emo:1,b:'#7ec8ff',z:.7},{k:'moai',n:'돌 석상',e:'🗿',p:50000,g:3,emo:1,b:'#8a867c',z:.7},
+ {k:'carousel',n:'미니 회전목마',e:'🎠',p:70000,g:4,emo:1,b:'#ff9ab0',z:.8},{k:'claw',n:'뽑기 기계',e:'🧸',p:90000,g:4,emo:1,b:'#ff6a8a',z:.4,tall:.6,glass:1},
+ {k:'fountain',n:'분수대',e:'⛲',p:120000,g:4,emo:1,b:'#b8c8d8',z:.85},{k:'train',n:'기차 모형',e:'🚂',p:150000,g:4,emo:1,b:'#6a8a5a',z:.62},
+ {k:'trophy',n:'황금 트로피',e:'🏆',p:300000,g:5,emo:1,b:'#3a2a3a',z:.62,glow:1},{k:'wheel',n:'미니 관람차',e:'🎡',p:500000,g:5,emo:1,b:'#7a8aa8',z:1},
+ {k:'dragon',n:'용 조각상',e:'🐉',p:800000,g:5,emo:1,b:'#4a3a30',z:.86},{k:'throne',n:'왕좌',e:'👑',p:1500000,g:6,rot:1,seat:1},
+ {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1}];
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 넓히기: n칸, g=필요 등급, p=가격 */
 const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},{n:8,g:5,p:400000}];
@@ -44,7 +57,13 @@ function drawItem(it,t,sel){const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=
  case'piano':{shadow(c.x,c.y+2,TW*.34);const p=box(gx,gy,.12,TW*.34,'#2e2a2e',{top:'#3e3a40'});const E=[[p.T,p.R],[p.L,p.T],[p.R,p.B],[p.B,p.L]][d];cx.strokeStyle='#fff';cx.lineWidth=TW*.07;cx.beginPath();cx.moveTo((E[0].x*3+p.c.x)/4,(E[0].y*3+p.c.y)/4);cx.lineTo((E[1].x*3+p.c.x)/4,(E[1].y*3+p.c.y)/4);cx.stroke();em('🎵',p.c.x+Math.sin(t*2)*6,p.c.y-TW*.35-m2(t*20,14),TW*.18,.8);break}
  case'rug':{poly([iso(gx+.06,gy+.06),iso(gx+.94,gy+.06),iso(gx+.94,gy+.94),iso(gx+.06,gy+.94)],'#d85a5a','#a83a3a',2);poly([iso(gx+.22,gy+.22),iso(gx+.78,gy+.22),iso(gx+.78,gy+.78),iso(gx+.22,gy+.78)],'#f0b060');break}
  case'bear':{shadow(c.x,c.y+2,TW*.16);em('🧸',c.x,c.y-TW*.2,TW*.46);break}
+ case'bench':{shadow(c.x,c.y+2,TW*.34);if(d<2)panel(gx,gy,d,.12,TW*.13,TW*.16,'#8a5a3a');box(gx,gy,.14,TW*.12,'#b07a4a');if(d>=2)panel(gx,gy,d,.12,TW*.12,TW*.12,'#8a5a3a');break}
+ case'throne':{shadow(c.x,c.y+2,TW*.32);if(d<2)panel(gx,gy,d,.14,TW*.16,TW*.46,'#c8283c');box(gx,gy,.16,TW*.16,'#d4a020',{top:'#e84050'});if(d>=2)panel(gx,gy,d,.14,TW*.16,TW*.2,'#c8283c');em('👑',c.x,c.y-TW*.62,TW*.3);break}
  case'stand':{shadow(c.x,c.y+2,TW*.18);cx.fillStyle='#6a4024';cx.fillRect(c.x-TW*.16,c.y-TW*.2,3,TW*.2);cx.fillRect(c.x+TW*.14,c.y-TW*.2,3,TW*.2);rr(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44,8,'#fff3dc');cx.strokeStyle='#8a5a3a';cx.lineWidth=2;cx.strokeRect(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44);A.fish2(c.x,c.y-TW*.42,TW*.0042,'#f0b850',{plain:true});tx('붕어빵',c.x,c.y-TW*.26,Math.max(9,TW*.13),'#8a3a1a','center','#fff3dc');break}
+ default:{const f=FK[it.k];if(!f||!f.emo)break;shadow(c.x,c.y+2,TW*.3);const h=TW*(f.tall||.1);const p=box(gx,gy,f.tall?.14:.3,h,f.b,f.glass?{top:'rgba(220,240,255,.85)'}:{});
+  if(f.pole){cx.fillStyle='#5a5048';cx.fillRect(c.x-2,c.y-TW*.9,4,TW*.9)}
+  if(f.glow){const g=cx.createRadialGradient(p.c.x,p.c.y-TW*.3,2,p.c.x,p.c.y-TW*.3,TW*.55);g.addColorStop(0,'rgba(255,230,150,'+(.4+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,230,150,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.c.x,p.c.y-TW*.3,TW*.55,0,7);cx.fill()}
+  const sway=f.tree||f.pole?Math.sin(t*1.5+gx)*1.2:0;em(f.e,p.c.x+sway,p.c.y-TW*f.z*.5-(f.pole?TW*.5:0)+(f.glass?TW*.12:0),TW*f.z)}
  }
  if(sel){cx.globalAlpha=.6+.4*Math.sin(t*6);poly([iso(gx,gy),iso(gx+1,gy),iso(gx+1,gy+1),iso(gx,gy+1)],null,'#ffc94a',3);cx.globalAlpha=1}}
 /* ---------- 손님 (꾸밈용으로 걸어다녀요) ---------- */

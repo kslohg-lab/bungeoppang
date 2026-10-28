@@ -44,6 +44,37 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
+    function okShop(d) {
+      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts'])
+        && d.n is string && d.n.size() >= 1 && d.n.size() <= 12
+        && d.nk is string && d.nk.size() <= 12
+        && d.g is int && d.g >= 0 && d.g <= 6
+        && d.sc is int && d.sc >= 0 && d.sc <= 3000000
+        && d.lk is int && d.lk >= 0
+        && d.room is int && d.room >= 4 && d.room <= 8
+        && d.eq is map && d.eq.size() <= 16
+        && d.fur is list && d.fur.size() <= 64
+        && d.ts == request.time;
+    }
+    match /shops/{uid} {
+      allow read: if true;
+      allow create: if mine(uid) && okShop(request.resource.data) && request.resource.data.lk == 0;
+      allow update: if (mine(uid) && okShop(request.resource.data) && request.resource.data.lk == resource.data.lk)
+        || (request.auth != null && !mine(uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lk'])
+            && request.resource.data.lk == resource.data.lk + 1
+            && !exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid))
+            && existsAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)));
+      allow delete: if false;
+      match /likes/{v} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == v && v != uid
+          && getAfter(/databases/$(database)/documents/shops/$(uid)).data.lk == get(/databases/$(database)/documents/shops/$(uid)).data.lk + 1;
+        allow update, delete: if false;
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

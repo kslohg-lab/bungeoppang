@@ -19,6 +19,8 @@ js/shop.js        가게 화면·저장 (저장 키 bpShopPubV1)
 js/challenge.js   챌린지 화면·저장 (저장 키 bungeoppang2Pub1)
 js/lb.js          순위표 연결 (Firebase)
 js/firebase-config.js  Firebase 웹 설정값 (공개돼도 괜찮은 값)
+js/iso.js         가게 그림(비스듬히 내려다보기)·가구 목록
+js/net.js         가게 순위·구경 연결 (Firebase, shops/{uid})
 docs/             이 문서, firestore.rules.txt
 ```
 

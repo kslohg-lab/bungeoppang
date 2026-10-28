@@ -283,7 +283,7 @@ function drawPlay(o){STM=!!o.street;const B=BP2,R=B.R,t=performance.now()/1000;c
  rackRow();for(let i=0;i<B.MOLDS;i++)mold(i);
  {const pg=Math.max(0,Math.min(1,(s.t/R.len-.55)/.45));if(pg>0){cx.fillStyle='rgba(255,140,50,'+(.2*pg)+')';cx.fillRect(0,64,450,640)}const vg=cx.createRadialGradient(225,380,260,225,380,520);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(40,20,10,.28)');cx.fillStyle=vg;cx.fillRect(0,64,450,640)}
  hints();menuBar();weather();if(o.fx)o.fx(t);fxDraw();
- if(s.ban>0){cx.globalAlpha=Math.min(1,s.ban);rr(40,330,370,120,24,'rgba(90,58,34,.85)');tx(s.d+'일차 시작! '+s.wea.e,225,362,30);tx(o.sub,225,400,19,'#ffe9a0');if(s.ev)tx(R.ev[s.ev].e+' '+R.ev[s.ev].n+' · '+R.ev[s.ev].d,225,428,15,'#ffe066');else tx(s.wea.sp>1?'손님이 많아요!':s.wea.sp<1?'손님이 적어요, 팁은 두둑해요':'평범한 하루',225,428,16,'#fff');cx.globalAlpha=1}
+ if(s.ban>0){cx.globalAlpha=Math.min(1,s.ban);rr(40,330,370,120,24,'rgba(90,58,34,.85)');tx((o.title||s.d+'일차 시작!')+' '+s.wea.e,225,362,30);tx(o.sub,225,400,19,'#ffe9a0');if(s.ev)tx(R.ev[s.ev].e+' '+R.ev[s.ev].n+' · '+R.ev[s.ev].d,225,428,15,'#ffe066');else tx(s.wea.sp>1?'손님이 많아요!':s.wea.sp<1?'손님이 적어요, 팁은 두둑해요':'평범한 하루',225,428,16,'#fff');cx.globalAlpha=1}
  if(ui.rb>0)tx('🔥 퇴근 시간 피크! 손님이 몰려와요',225,120,22,'#fff0a0','center','#c0392b');
  timeBar();if(s.ph==='end')tx('🌙 영업 종료!',225,380,52,'#fff','center','#8a5a3a');cx.restore()}
 /* 탭 처리 공용: 손님/틀/맛. 꺼낸 빵은 접시로 날아가요 */

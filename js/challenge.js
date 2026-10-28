@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.6';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.7';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -143,8 +143,8 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  const me=lb.uid;L.innerHTML='';
  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='lr'+(r.u===me?' me':'');
   const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
-  d.querySelector('.ln').textContent=r.n;L.appendChild(d)});
- const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'같은 단계면 번 돈이 많은 순서';L.appendChild(f)}
+  d.querySelector('.ln').textContent=r.n;d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)};L.appendChild(d)});
+ const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f)}
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
 function share(){const wk=save.week.id===wid()?save.week:{stage:0};const url=location.origin+location.pathname;
