@@ -164,7 +164,7 @@ const gradeCol=()=>['#aaa','#c8a070','#7ec8ff','#7ed88a','#ffd23a','#ff9a3a','#f
 function hud(){rr(0,0,W,64,0,'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ✨+'+Math.round(charmBonus()*100)+'%',12,48,15,'#ffe9a0','left');tx('🪙 '+fmt(save.coins),438,22,22,'#ffe9a0','right');tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#ffc890','#ffe8c8'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
-function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{cafe:BIZ.cafeOn(save),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
+function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
  if(deco){IS.draw(t,look(prev),save.fur,{top:56,bottom:H-262,edit:dtabK()==='fur',sel:dsel,ghost:dghost});

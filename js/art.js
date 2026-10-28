@@ -54,7 +54,7 @@ function mouth(r,mood,y){cx.strokeStyle='#4a2a14';cx.lineWidth=r*.06;cx.lineCap=
 /* 동물/사람 반신 그리기: kind(이모지 키), 중심(x,y)=얼굴 중심, 얼굴 지름 s */
 /* 그림 파일이 있으면 코드 그림 대신 사용 (ART_IMG[kind]=Image) */
 function animal(kind,x,y,s,o={}){const im=window.ART_IMG&&window.ART_IMG[kind];if(im&&im.complete&&im.naturalWidth){const h=s*1.62,w=h*im.naturalWidth/im.naturalHeight,bob=Math.sin((o.t||0)*2.2+(o.ph||0))*s*.03;
-  cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);cx.restore();return}
+  cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);/* 뒤뚱 걷기: 발을 축으로 좌우로 기울고 걸음마다 살짝 눌려요 */if(o.walk!=null){cx.rotate(Math.sin(o.walk)*.13);const k=1-.06*Math.abs(Math.cos(o.walk));cx.scale(1+(1-k)*.6,k)}if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);cx.restore();return}
  return animalCode(kind,x,y,s,o)}
 function animalCode(kind,x,y,s,o={}){const sp=SP[kind]||SP['🐶'],r=s/2,t=o.t||0,ph=o.ph||0,mood=o.mood||'n',bob=Math.sin(t*2.2+ph)*r*.04,blink=((t*1.0+ph)%3.7)<.12;
  cx.save();cx.translate(x,y+bob);if(o.tilt)cx.rotate(o.tilt);
@@ -236,7 +236,7 @@ function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
  const sz=62*k,arrived=d>=1&&c.leave<=0;
  cx.globalAlpha=a*.25;cx.fillStyle='#000';cx.beginPath();cx.ellipse(x,y+sz*.86,sz*.42,sz*.1,0,0,7);cx.fill();cx.globalAlpha=a;
  const mood=c.angry?'a':c.happy||c.rxT>0?'h':r<.3?'w':'n';
- if(c.an==='🧐')em('🧐',x,y+sz*.2,sz*1.05);else animal(c.an,x,y,sz,{t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:SHIRT(c),tilt:mood==='w'?Math.sin(s.t*9)*.04:c.rxT>0?Math.sin(s.t*14)*.06:0});
+ if(c.an==='🧐')em('🧐',x,y+sz*.2,sz*1.05);else animal(c.an,x,y,sz,{walk:(c.leave>0||!arrived)?s.t*11+i:null,t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:SHIRT(c),tilt:mood==='w'?Math.sin(s.t*9)*.04:c.rxT>0?Math.sin(s.t*14)*.06:0});
  const bd={vip:'👑',reg:'⭐',hurry:'⏱️',group:'🚌',critic:'🎩'}[c.ty];if(bd)em(bd,x-sz*.72,y-sz*.58,26*k);
  /* 주문 말풍선: 도착하면 */
  if(c.leave<=0&&d>.75){const L=[];for(let f=0;f<6;f++)if(c.ord[f]>0)L.push(f);const hb=12+22*L.length,bx=sx-58,top=Math.max(80,y-sz*.62-hb-40);cx.globalAlpha=Math.min(1,(d-.75)*4);
