@@ -337,10 +337,18 @@ function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
   vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.FK[it.k]);
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
+  $('vmk').style.display=save.name?'none':'block';
   if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게'}else N.liked(uid).then(l=>{if(l){$('vlk').className='done';$('vlk').textContent='❤️ 눌렀어요'}}).catch(()=>{})}).catch(()=>{toast('불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
 function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
-function leaveVisit(){vd=null;IS.reset();applyCook();if(vFrom==='rk'){openRank()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
+function leaveVisit(){vd=null;IS.reset();applyCook();$('vmk').style.display='none';if(vFrom==='rk'){openRank()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
+$('vmk1').onclick=()=>{vFrom='home';leaveVisit()};
+/* 📤 내 가게 자랑: 가게 모습을 크게 다시 그려 카드로 */
+function shopSnap(){const off=document.createElement('canvas');off.width=900;off.height=960;const c2=off.getContext('2d');c2.scale(2,2);
+ const A2=ART(c2,{shape:()=>save.eq.shape|0}),I2=ISO(c2,A2);I2.draw(performance.now()/1000,look(null),save.fur||[],{top:10,bottom:470,noCust:true});return off}
+$('nbs').onclick=()=>{au();syncShop();whenNet(N=>go(N.uid),()=>go(null));
+ function go(uid){const url=location.origin+'/shop.html'+(uid?'?visit='+uid:'');const txt='🏪 내 붕어빵 가게 「'+nm()+'」 구경 와! ❤️ 눌러주고, 너도 가게 만들어 봐 🐟';
+  SHARE.send(SHARE.shop({name:nm(),lv:shopLv(),sc:decoScore(),lk:0,snap:shopSnap(),url}),txt,url,'붕어빵 가게')}};
 $('vlk').onclick=()=>{if(!vd||$('vlk').className==='done')return;whenNet(N=>{if(vuid===N.uid)return;$('vlk').className='done';N.like(vuid).then(()=>{vd.lk=(vd.lk|0)+1;renderVisit();$('vlk').textContent='❤️ 눌렀어요';snd('win');toast('❤️ 좋아요를 보냈어요!')}).catch(()=>{$('vlk').textContent='❤️ 눌렀어요';toast('이미 눌렀거나 잠시 뒤에 다시 해 주세요')})})};
 /* ---------- 반복 ---------- */
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;

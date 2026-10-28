@@ -12,7 +12,9 @@ index.html        🔥 챌린지 (첫 화면) = 붕어빵 서바이벌 (주간 �
 shop.html         🏪 가게
 challenge.html    옛 주소 → 첫 화면으로 넘겨 줌
 verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 재생해 확인)
-og.png            카톡 미리보기 사진
+og.jpg            카톡 미리보기 사진 (1200×630)
+js/share.js       자랑 카드 만들기·공유 (챌린지·가게)
+img/              AI 일러스트 (손님 an_*.webp, 사장님 cook*.webp)
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)
 js/art.js         그림 도구 + 굽는 화면 (가게·챌린지가 함께 씀)
 js/shop.js        가게 화면·저장 (저장 키 bpShopPubV1)

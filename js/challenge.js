@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='1.7';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='2.0';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -109,7 +109,8 @@ function renderHow(){const wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('hw').innerHTML='<p class="ht"><b>🏅 내 기록</b></p><div class="sum">이번 주 판: <b>'+wk.stage+'단계</b> ('+fmt(wk.net)+'원)<br>전체 최고: <b>'+save.best.stage+'단계</b> · 도전 '+save.runs+'번 · 완주 '+save.clears+'번</div>'+
  '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. 노란 구간에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 노란 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 초록 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 팥 하나만 키워서 멀리 가는 것도 가능해요!<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
 $('m4').onclick=()=>{au();renderHow();show('how')};$('hx').onclick=()=>show('menu');
-$('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=share;
+$('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=()=>share();
+$('o6').onclick=()=>share({stage:run?run.stage:0,net:run?run.tot:0});
 $('m3').onclick=()=>{au();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐';$('sk').textContent='✏️ 닉네임 바꾸기 ('+save.nick+')';$('rs').textContent='🗑️ 기록·저장 지우기';show('set')};
 $('sk').onclick=()=>openNick(false);
 $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐'};
@@ -147,12 +148,14 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f)}
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
-function share(){const wk=save.week.id===wid()?save.week:{stage:0};const url=location.origin+location.pathname;
- const txt='🔥 붕어빵 챌린지 — 이번 주 '+(wk.stage?wk.stage+'단계까지 갔어요! 내 기록을 넘어 봐 😎':'같이 도전해요! 누가 제일 멀리 가는지 겨뤄요 🏆');
- if(navigator.share){navigator.share({title:'붕어빵 챌린지',text:txt,url}).catch(()=>{});return}
- const full=txt+'\n'+url;const done=()=>toast('복사했어요! 카톡에 붙여넣기 하세요');
- try{navigator.clipboard.writeText(full).then(done,()=>fb())}catch(e){fb()}
- function fb(){const t=document.createElement('textarea');t.value=full;t.style.cssText='position:fixed;opacity:0;left:0;top:0';document.body.appendChild(t);t.select();try{document.execCommand('copy');done()}catch(e){toast(full)}t.remove()}}
+/* 자랑하기: 그림 카드 + 링크 (js/share.js) */
+if(!window.ART_IMG.cook){const im=new Image();im.src='img/cook1.webp';window.ART_IMG.cook=im}
+function share(o){au();const wk=save.week.id===wid()?save.week:{stage:0,net:0},url=location.origin+'/';
+ const st=o&&o.stage!=null?o.stage:wk.stage,net=o&&o.net!=null?o.net:wk.net;
+ const txt=st?'🔥 붕어빵 챌린지 이번 주 '+st+'단계'+(lastRank?' ('+lastRank+')':'')+'까지 갔어요! 내 기록 넘어 봐 😎':'🔥 붕어빵 챌린지 같이 해요! 이번 주 누가 제일 멀리 가는지 겨뤄요 🏆';
+ if(!st){if(navigator.share){navigator.share({title:'붕어빵 챌린지',text:txt,url}).catch(()=>{});return}SHARE.copy(txt+'\n'+url).then(()=>toast('복사했어요! 카톡에 붙여넣기 하세요'));return}
+ const go=()=>{const cv=SHARE.challenge({nick:save.nick||'붕어빵',stage:st,net,rank:lastRank,wk:wid(),url});SHARE.send(cv,txt.replace('단계(','단계 ('),url,'붕어빵 챌린지')};
+ const lb=LB();if(lastRank||!lb){go();return}toast('카드 만드는 중…');Promise.race([lb.top(wid()),new Promise(r=>setTimeout(()=>r(null),2500))]).then(rows=>{if(rows){const i=rows.findIndex(r=>r.u===lb.uid);lastRank=i<0?'30위 밖':(i+1)+'위'+(i<3?' '+['🥇','🥈','🥉'][i]:'')}go()}).catch(go)}
 function pauseGame(){if(scr!=='game'||!s||paused||s.ph!=='play')return;paused=true;$('pause').style.display='block'}
 function resumeGame(){if(!paused)return;paused=false;$('pause').style.display='none';last=0}
 $('home').onclick=pauseGame;$('p1').onclick=resumeGame;$('p2').onclick=()=>ask($('p2'),'⚠️ 판이 끝나요. 한 번 더!',giveUp);
@@ -201,7 +204,7 @@ function demoDraw(){if(!demo)return;const st=DS[Math.min(demo.i,DS.length-1)];
 function endDemo(){demo=null;s=null;run=null;$('dm').style.display='none';if(demoFrom==='how'){scr='menu';renderHow();show('how')}else toMenu()}
 $('hd').onclick=()=>playDemo('how');$('dmx').onclick=endDemo;
 /* ---------- 처음 온 사람: 메뉴 안내 (건너뛰기 가능) ---------- */
-const TOUR=[['m1','▶ <b>시작</b> — 이번 주 판을 시작해요.<br>이번 주엔 모두 같은 손님이 와요!'],['bk','🏪 <b>내 가게</b> — 꾸미고 키우는 나만의 붕어빵 가게'],['m6','🏆 <b>순위표</b> — 이번 주 친구들과 단계를 겨뤄요'],['m7','📤 <b>친구에게 알리기</b> — 카톡으로 초대해요'],['m4','📖 <b>규칙</b> — 움직이는 따라하기 영상도 있어요'],['m3','⚙️ <b>설정</b> — 소리 끄기, 닉네임 바꾸기']];
+const TOUR=[['m1','▶ <b>시작</b> — 이번 주 판을 시작해요.<br>이번 주엔 모두 같은 손님이 와요!'],['bk','🏪 <b>내 가게</b> — 꾸미고 키우는 나만의 붕어빵 가게'],['m6','🏆 <b>순위표</b> — 이번 주 친구들과 단계를 겨뤄요'],['m7','📤 <b>친구에게 자랑하기</b> — 내 기록 카드를 카톡으로 보내요'],['m4','📖 <b>규칙</b> — 움직이는 따라하기 영상도 있어요'],['m3','⚙️ <b>설정</b> — 소리 끄기, 닉네임 바꾸기']];
 let ti=0;
 function tourShow(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
  if(ti>=TOUR.length){$('ttx').innerHTML='준비 끝! 🎉<br>게임 방법을 움직이는 영상으로 볼까요?';$('tnx').textContent='▶ 따라하기 보기';$('tsk').textContent='바로 시작';$('tdot').textContent='';$('tcap').style.top='auto';$('tcap').style.bottom='24px';return}
