@@ -17,8 +17,8 @@ const SLOTS=[{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'t
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
 /* ---------- 저장 ---------- */
-const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4});
-let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!save.dexS)save.dexS={}}}catch(e){}
+const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4,st:{bake:1,serve:1,promo:0},bought:[]});
+let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);if(!save.st||typeof save.st!=='object')save.st=DEF().st;if(!Array.isArray(save.bought))save.bought=[];save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!save.dexS)save.dexS={}}}catch(e){}
 const store=()=>{try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}};
 /* 처음 가구: 새 가게(또는 업데이트 전 가게)에 탁자·의자 2개·화분을 놓아 드려요 */
 const starter=()=>{if(Array.isArray(save.fur))return;save.inv=Object.assign({chair:2,table:1,plant:1},save.inv);save.fur=[{k:'table',x:0,y:2,d:0},{k:'chair',x:0,y:3,d:1},{k:'chair',x:1,y:2,d:1},{k:'plant',x:0,y:1,d:0}];store()};starter();
@@ -39,7 +39,7 @@ const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
 /* ---------- 상태 ---------- */
 let scr='home',paused=false,acc=0,last=0,run=null,s=null,ui={ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0},prev=null,dtab=0,goals=[],bg=null;
 const walk=[0,1,2,3].map(i=>({off:i*131,sp:22+i*7,an:R.an[(i*3+1)%12]}));
-const show=n=>{['hm','dc','up','res','pause','set','col','nm','rk','vs'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home2').style.display=scr==='game'?'block':'none'};
+const show=n=>{['hm','dc','up','res','pause','set','col','nm','rk','vs','led'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home2').style.display=scr==='game'?'block':'none'};
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1800)}
 const esc=t=>String(t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 function ask(btn,label,fn){if(btn.dataset.a!=='1'){btn.dataset.a='1';btn.dataset.o=btn.textContent;btn.textContent=label;setTimeout(()=>{if(btn.dataset.a==='1'){btn.dataset.a='0';btn.textContent=btn.dataset.o}},3000)}else{btn.dataset.a='0';btn.textContent=btn.dataset.o;fn()}}
@@ -52,6 +52,25 @@ const snd=k=>{try{SND[k]&&SND[k]()}catch(e){}};
 const A=ART(cx,{shape:()=>save.eq.shape|0,toast:t=>toast(t),snd:k=>snd(k)});
 const IS=ISO(cx,A);
 const {E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at}=A;
+/* ---------- 경영: 직원이 알아서 장사 (js/biz.js) ---------- */
+const seatsN=()=>(save.fur||[]).filter(it=>{const f=IS.FK[it.k];return f&&f.seat&&IS.inRoom(it.x,it.y,save.room)}).length;
+const bctx=()=>({lv:shopLv(),charm:charmBonus(),seats:seatsN()});
+let bizPop=0,bizFl=[],bizT=0,bizN=0;
+function bizTick(away){const g=BIZ.settle(save,Date.now(),bctx());if(!g)return null;if(g.whole>0)bizPop+=g.whole;if(away&&g.h>=3/60&&save.name)awayCard(g);return g}
+const hm=h=>{const m=Math.max(1,Math.round(h*60));return m>=60?Math.floor(m/60)+'시간'+(m%60?' '+m%60+'분':''):m+'분'};
+const n1=x=>String(Math.round(x*10)/10);
+const lgRow=(lab,v,minus)=>'<div class="lg'+(minus?' m':'')+'"><span>'+lab+'</span><span>'+(minus?'−':'+')+fmt(Math.round(v))+'</span></div>';
+function lgBlock(x,title,extra){const net=x.rev-x.mat-x.rent-x.wage-x.tax;
+ return'<div class="sum">'+(title?'<b>'+title+'</b>':'')+'<div class="lg"><span>🐾 손님</span><span>'+fmt(Math.round(x.cust))+'명</span></div>'+lgRow('💰 매출',x.rev)+lgRow('🧂 재료비',x.mat,1)+lgRow('🏠 월세',x.rent,1)+lgRow('👥 월급',x.wage,1)+lgRow('🏛️ 세금 (10%)',x.tax,1)+
+ '<div class="lg t"><span>순이익</span><b class="'+(net<0?'neg':'')+'">'+(net<0?'−':'+')+fmt(Math.abs(Math.round(net)))+' 🪙</b></div>'+(extra||'')+'</div>'}
+function nkBox(r){const c=k=>r.neck===k||(r.neck==='both'&&k!=='arrive')?' class="on"':'';return'<div class="nk"><div'+c('arrive')+'>🐾 오는 손님<b>'+n1(r.arrive)+'</b>명/시간</div><div'+c('bake')+'>🍞 굽기<b>'+n1(r.bake)+'</b>명/시간</div><div'+c('serve')+'>🧾 계산<b>'+n1(r.serve)+'</b>명/시간</div></div>'}
+const NKT={arrive:'🐾 손님이 더 와야 해요 → 📣 홍보 알바 · 🎨 꾸미기(가게 Lv)',bake:'🍞 굽기가 밀려요 → 굽기 알바를 키워요',serve:'🧾 계산이 밀려요 → 계산 알바를 키워요',both:'🍞 굽기 · 🧾 계산이 같이 밀려요 → 두 알바를 함께 키워요'};
+const debtTxt=()=>save.debt>0?'<p class="ht" style="color:#c03030">💸 밀린 돈 '+fmt(Math.ceil(save.debt))+'원 · 다 갚을 때까지 알바가 절반만 일해요 (월급도 절반). 들어오는 돈으로 먼저 갚아요</p>':'';
+function bzShow(e,t,h,b1,f1,b2,f2){$('bze').textContent=e;$('bzt').textContent=t;$('bzb').innerHTML=h;$('bz1').textContent=b1;$('bz1').onclick=()=>{bzHide();f1&&f1()};$('bz2').style.display=b2?'block':'none';if(b2){$('bz2').textContent=b2;$('bz2').onclick=()=>{bzHide();f2&&f2()}}$('bz').style.display='block'}
+function bzHide(){$('bz').style.display='none'}
+function awayCard(g){bzShow('🌙','자리 비운 동안 '+hm(g.h),'<p class="ht" style="text-align:center;margin-top:0">직원들이 가게를 지켰어요!</p>'+lgBlock(g,'')+(g.capped?'<p class="ht" style="text-align:center">⏰ 8시간까지만 쌓여요. 자주 들러 주세요!</p>':'')+(g.paid?'<p class="ht">💸 밀린 돈 '+fmt(g.paid)+'원을 갚았어요</p>':'')+debtTxt(),'🪙 좋아요!',null,'📒 장부 보기',()=>openLed())}
+function bizIntro(){save.biz=1;store();bzShow('💼','이제 가게가 혼자서도 장사해요!','• 개업 선물: 🍞 굽기 알바 · 🧾 계산 알바 Lv1<br>• 자리를 비워도 <b>최대 8시간</b>까지 장사해요<br>• 매출에서 재료비 · 월세 · 월급 · 세금(10%)을 빼고 남은 돈이 들어와요<br>• 넓은 가게는 월세가 있어요. <b>가게를 사면 월세 0원!</b><br>• 심심할 때 <b>🙋 도와주기</b>로 직접 구워 더 벌어요','👥 직원 보러 가기',()=>openUp('home',0),'좋아요',null)}
+function bizBtn(){const b=$('biz');if(!b)return;if(save.debt>0){b.className='debt';b.textContent='💸 밀린 돈 '+fmt(Math.ceil(save.debt))}else{const r=BIZ.rates(save,bctx());b.className='';b.textContent='💼 영업 중 '+(r.net>=0?'+':'−')+fmt(Math.abs(Math.round(r.net)))+'/시간'}}
 /* 계절: 14일마다 바뀌어요 (봄→여름→가을→겨울) */
 const seasonOf=d=>Math.floor((d-1)/14)%4,SEAS=['🌸 봄','☀️ 여름','🍂 가을','❄️ 겨울'];
 /* ---------- 실제 날짜 (한국 시간, 모두 같은 날씨·이벤트·목표) ---------- */
@@ -150,7 +169,8 @@ function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
  if(deco){IS.draw(t,look(prev),save.fur,{top:56,bottom:H-262,edit:dtabK()==='fur',sel:dsel,ghost:dghost});
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
- else{IS.draw(t,look(null),save.fur,{top:64,bottom:518});const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud()}}
+ else{IS.draw(t,look(null),save.fur,{top:64,bottom:518});const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
+  if(scr==='home'){if(bizPop>0&&t-bizT>2.5){bizFl.push({v:bizPop,t});bizPop=0;bizT=t}bizFl=bizFl.filter(f=>t-f.t<1.8);bizFl.forEach(f=>{const u=(t-f.t)/1.8;cx.globalAlpha=1-u*u;tx('+'+fmt(f.v)+' 🪙',16,132-u*12,18,'#fff6c0','left','#5a3a22');cx.globalAlpha=1})}else bizPop=0}}
 function gradeFloorBase(){return['#b8b4ac','#d2a46a','#c89a64','#6fbf5a','#8a867c','#9a968e','#9a80d8'][save.eq.floor]||'#b8b4ac'}
 
 /* 지붕 장식: front=false 는 하늘 쪽(불꽃놀이), true 는 건물 앞 */
@@ -179,52 +199,84 @@ const DXT=[10,30];
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
 function renderHome(){const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
  $('hg').innerHTML='<b>📋 오늘의 목표</b> (하루 한 번씩 ⭐) · '+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' <b>'+R.ev[w.ev].n+'</b>':' '+w.wea.n)+'<br>'+goals.map((g,i)=>(gd.done[i]?'✅ <s>':'• ')+g.p.t(g.n)+(gd.done[i]?'</s>':'')).join('<br>');
- $('h1').textContent='▶ 장사하기'}
+ $('h1').textContent='🙋 도와주기';bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm')}
 /* ---------- 하루 ---------- */
 const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:charmBonus()/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
 function startDay(){au();if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=run0();s=B.newDay(run);{const w=todayWx();s.wea=w.wea;s.ev=w.ev}ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
 function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl=goals.map((g,i)=>({g,ok:g.p.ok(res,g.n),was:gd.done[i]}));let star=0,bonus=0;const g0=grade();
  gl.forEach((x,i)=>{if(x.ok&&!x.was){gd.done[i]=1;star++}});const got=gd.done.filter(Boolean).length;if(got===3&&!gd.all){gd.all=1;bonus=500+lv*250}
- const gain=Math.max(0,res.net)+bonus;save.coins+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
+ const tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.max(0,res.net)-tax+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
  save.bestNet=Math.max(save.bestNet,res.net);save.bestCombo=Math.max(save.bestCombo,res.bc);
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
  save.lr={full:res.full|0,lost:res.lost,idle:res.idle,net:res.net};const nd=s.dxNew||[];store();
- const g1=grade();let h='<div class="sum"><b>'+(res.net>=0?'💰 순수익 '+fmt(res.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(res.net)+'원)')+'</b>'+(res.net<0?'<br>(손해는 없던 걸로 해 드려요!)':'')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc+'</div>';
+ const g1=grade();let h='<div class="sum"><b>'+(res.net>=0?'💰 순수익 '+fmt(res.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(res.net)+'원)')+'</b>'+(res.net<0?'<br>(손해는 없던 걸로 해 드려요!)':tax?'<br>🏛️ 세금 −'+fmt(tax)+' → 🪙 +'+fmt(res.net-tax):'')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc+'</div>';
  h+='<div class="sum"><b>📋 오늘의 목표</b><br>'+gl.map((x,i)=>(gd.done[i]?'✅ ':'⬜ ')+x.g.p.t(x.g.n)+(x.ok&&!x.was?' <b>⭐+1</b>':'')).join('<br>')+(star?'<br>⭐ +'+star:'')+(bonus?' · 🎁 오늘 목표 모두 달성! 보너스 🪙 '+fmt(bonus):'')+(got===3&&!bonus?'<br>오늘 목표는 다 했어요. 내일 새 목표가 나와요!':'')+'</div>';
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
  if(g1>g0)h+='<div class="sum" style="background:#ffeaa8"><b>🎉 가게 등급이 올랐어요!</b><br>'+GR[g1].e+' <b>'+GR[g1].n+'</b> · 새 꾸미기 상품이 열렸어요</div>';
  h+='<div style="text-align:center;font-size:16px">🪙 '+fmt(save.coins)+' · ⭐ '+save.stars+' · '+GR[g1].e+' '+GR[g1].n+'</div>';
- $('rt').textContent='🌙 장사 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;scr='res';s=null;snd('win');show('res')}
+ $('rt').textContent='🌙 도와주기 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;scr='res';s=null;snd('win');show('res')}
 $('r1').onclick=()=>{startDay()};$('r4').onclick=()=>{toHome()};
 $('r2').onclick=()=>openDeco('res');$('r3').onclick=()=>openUp('res');
 $('p2').onclick=()=>ask($('p2'),'⚠️ 여기까지로 정산해요. 한 번 더!',()=>{paused=false;$('pause').style.display='none';finishDay()});
 /* ---------- 가게 키우기 (굽기 업그레이드) ---------- */
-let backTo='home';
-function openUp(from){backTo=from;scr='up';renderUp();show('up')}
-function renderUp(){
- $('uw').innerHTML='<span class="pill">🪙 '+fmt(save.coins)+'</span><span class="pill">'+R.loc[save.up.loc].e+' '+R.loc[save.up.loc].n+'</span>';
- const nu=Math.min(save.nfUse,save.nf);$('um').innerHTML='<b>오늘 팔 메뉴</b> '+R.menu.slice(0,nu).map(m=>m.e).join('')+' ('+nu+'종)　<button id="nfm" style="width:44px;height:38px;padding:0;font-size:20px">➖</button> <button id="nfp" style="width:44px;height:38px;padding:0;font-size:20px">➕</button><div style="font-size:13px;opacity:.75;margin-top:2px">어려운 맛이 힘들면 줄여 두세요. 열어 둔 맛은 사라지지 않아요</div>';
- $('nfm').onclick=()=>{if(save.nfUse>1){save.nfUse--;store();renderUp()}};$('nfp').onclick=()=>{if(save.nfUse<save.nf){save.nfUse++;store();renderUp()}};
- const L=$('shl');L.innerHTML='';
+let backTo='home',utab=0;
+function openUp(from,tab){backTo=from;if(tab!=null)utab=tab;scr='up';renderUp(true);show('up')}
+function renderUp(top){[0,1,2].forEach(i=>$('ut'+i).className=i===utab?'on':'');
+ const L=$('shl'),sy=L.scrollTop;L.innerHTML='';$('um').style.display=utab===2?'block':'none';L.style.height=utab===2?'430px':'520px';
  const row=(e,n,d,label,can,fn,rec)=>{const r=document.createElement('div');r.className='it'+(rec?' rec':'');r.innerHTML='<b>'+e+'</b><div>'+(n.startsWith('<span')?n:'<span>'+n+'</span>')+'<br>'+d+'</div>';const b=document.createElement('button');b.textContent=label;if(!can)b.className='no';b.onclick=fn;r.appendChild(b);L.appendChild(r)};
  const sec=h=>{const p=document.createElement('p');p.className='ht';p.innerHTML='<b>'+h+'</b>';L.appendChild(p)};
+ const note=(h,st)=>{const p=document.createElement('p');p.className='ht';if(st)p.style.cssText=st;p.innerHTML=h;L.appendChild(p)};
+ const r=BIZ.rates(save,bctx());
+ $('uw').innerHTML='<span class="pill">🪙 '+fmt(save.coins)+'</span><span class="pill">💼 '+(r.net>=0?'+':'−')+fmt(Math.abs(Math.round(r.net)))+'/시간</span>';
+ if(utab===0){
+  note(nkBox(r)+'<span style="color:#c0601a">'+NKT[r.neck]+'</span>');
+  const rk=r.neck==='arrive'?['promo']:r.neck==='both'?['bake','serve']:[r.neck];
+  BIZ.STAFF.forEach(x=>{const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k);
+   const eff={bake:'굽기 '+n1(4+2.5*lv)+' → '+n1(4+2.5*(lv+1))+'명/시간',serve:'계산 '+n1(4+2.5*lv)+' → '+n1(4+2.5*(lv+1))+'명/시간',promo:'오는 손님 +'+15*lv+'% → +'+15*(lv+1)+'%'}[x.k];
+   row(x.an,'<span>'+x.e+' '+x.n+'</span> <small>Lv '+lv+'/'+BIZ.SMAX+'</small>',x.d+'<br>'+(c==null?'최고 레벨이에요!':eff)+'<br>💵 월급 '+fmt(BIZ.wageOf(lv))+(c==null?'':' → '+fmt(BIZ.wageOf(lv+1)))+'원/시간'+(rk.includes(x.k)&&c!=null?'<br><b class="why">👍 지금 여기가 막혀요</b>':''),
+    c==null?'완료 ✅':(lv?'레벨업 ':'고용 ')+fmt(c)+'🪙',c!=null&&save.coins>=c,()=>{if(c==null)return;if(!BIZ.hire(save,x.k)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast(x.e+' '+x.n+' Lv'+(lv+1)+'!');renderUp();bizBtn()},rk.includes(x.k)&&c!=null)});
+  note('💡 알바가 많아도 손님이 안 오면 월급만 나가요. 빨간 칸(막히는 곳)부터 키워요!<br>🪑 의자·소파·벤치를 놓으면 손님이 더 많이 사요 (지금 +'+Math.round(r.seatB*100)+'%)'+debtTxt())}
+ else if(utab===1){const p=BIZ.place(save),own=BIZ.owned(save);
+  sec('🏠 지금 가게');
+  if(!p.rent)row(p.e,'<span>'+p.n+'</span> <small>'+save.room+'×'+save.room+'</small>','월세가 없어요. 넓히면 손님이 더 와요','✅',false,()=>{});
+  else if(own)row(p.e,'<span>'+p.n+'</span> <small>'+save.room+'×'+save.room+'</small>','✅ 내가 산 가게 · 월세 0원','내 가게 🏠',false,()=>{});
+  else row(p.e,'<span>'+p.n+'</span> <small>'+save.room+'×'+save.room+'</small>','월세 '+fmt(p.rent)+'원/시간 → 사면 0원<br><small>'+Math.round(p.buy/p.rent)+'시간 영업하면 본전이에요</small>','사기 '+fmt(p.buy)+'🪙',save.coins>=p.buy,()=>{if(!BIZ.buyPlace(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast('🎉 '+p.n+'이 내 가게가 됐어요! 월세 0원');renderUp();bizBtn()},true);
+  sec('📐 가게 크기별');
+  [4,5,6,7,8].forEach(n=>{const q=BIZ.PLACE[n],cur=save.room===n,bo=save.bought.includes(n);
+   row(q.e,'<span>'+q.n+'</span> <small>'+n+'×'+n+'</small>',(q.rent?'월세 '+fmt(q.rent)+'원/시간 · 사면 '+fmt(q.buy)+'🪙':'월세 없음')+'<br>오는 손님 +'+Math.round((q.mul-1)*100)+'%',cur?'지금 여기':n<save.room?'✅':bo?'✅ 산 가게':'📐 넓히기',n>save.room,()=>{if(n>save.room)openDeco('up',true)})});
+  note('더 넓은 가게로 가려면 🎨 꾸미기 → 📐 넓히기 (보증금을 내요). 넓을수록 손님이 많이 오고 가구도 많이 놓을 수 있어요.')}
+ else{
+ const nu=Math.min(save.nfUse,save.nf);$('um').innerHTML='<b>팔 메뉴</b> '+R.menu.slice(0,nu).map(m=>m.e).join('')+' ('+nu+'종)　<button id="nfm" style="width:44px;height:38px;padding:0;font-size:20px">➖</button> <button id="nfp" style="width:44px;height:38px;padding:0;font-size:20px">➕</button><div style="font-size:13px;opacity:.75;margin-top:2px">비싼 맛이 많을수록 직원 장사 매출도 올라요 · 도와주기가 힘들면 줄여 두세요</div>';
+ $('nfm').onclick=()=>{if(save.nfUse>1){save.nfUse--;store();renderUp();bizBtn()}};$('nfp').onclick=()=>{if(save.nfUse<save.nf){save.nfUse++;store();renderUp();bizBtn()}};
  const FU=[0,1,2,3,4,5].filter(f=>f<save.nf).map(f=>'fu'+f),ALL=['fl','mold','rack','speed','auto','pat','loc',...FU],rc=B.recUp(save,ALL,save.lr);
  const one=k=>{const c=B.upCost(save,k),d=B.upInfo(save,k),isR=rc&&rc.k===k,nm='<span>'+d[1]+'</span> <small>'+d[3]+'</small>';
   if(c==null){row(d[0],nm,d[2],'완료 ✅',false,()=>{});return}
-  row(d[0],nm,d[2]+(isR?'<br><b class="why">👍 추천 · '+rc.why+'</b>':''),fmt(c)+'🪙',save.coins>=c,()=>{if(!B.buy(save,k)){toast('코인이 부족해요!');snd('no');return}if(k==='fl')save.nfUse=save.nf;store();snd('win');renderUp()},isR)};
+  row(d[0],nm,d[2]+(isR?'<br><b class="why">👍 추천 · '+rc.why+'</b>':''),fmt(c)+'🪙',save.coins>=c,()=>{if(!B.buy(save,k)){toast('코인이 부족해요!');snd('no');return}if(k==='fl')save.nfUse=save.nf;store();snd('win');renderUp();bizBtn()},isR)};
+ note('🙋 도와주기(직접 굽기)가 쉬워지는 업그레이드예요. 🆕 새 메뉴 · 🫘 맛 강화 · 🗺️ 장사 터는 직원 장사 매출도 올려요!','text-align:center');
  if(rc){sec('👍 지금 추천');one(rc.k)}
  sec('🔥 굽기');['fl','mold','rack','speed','auto'].filter(k=>!rc||rc.k!==k).forEach(one);
  sec('🫘 맛 강화 (값이 올라요 · 싼 맛일수록 많이)');FU.filter(k=>!rc||rc.k!==k).forEach(one);
- sec('🏪 손님');['pat','loc'].filter(k=>!rc||rc.k!==k).forEach(one);
- const p=document.createElement('p');p.className='ht';p.style.textAlign='center';p.innerHTML='🎨 코인은 꾸미기에도 쓸 수 있어요!';L.appendChild(p)}
-$('ux').onclick=()=>{if(backTo==='res'){scr='res';show('res')}else toHome()};
+ sec('🏪 손님');['pat','loc'].filter(k=>!rc||rc.k!==k).forEach(one)}
+ L.scrollTop=top?0:sy}
+[0,1,2].forEach(i=>$('ut'+i).onclick=()=>{utab=i;renderUp(true)});
+$('ux').onclick=()=>{if(backTo==='res'){scr='res';show('res')}else if(backTo==='led')openLed();else toHome()};
+/* ---------- 장부 ---------- */
+function openLed(){bzHide();scr='led';renderLed();show('led')}
+function renderLed(){const r=BIZ.rates(save,bctx()),L=BIZ.ledger(save,Date.now()),Y=save.ledY,hp=x=>x&&x.help?'<div class="lg"><span>🙋 도와주기로 번 돈 (따로)</span><span>+'+fmt(Math.round(x.help))+'</span></div>':'';
+ let h='<p class="ht" style="margin-top:0"><b>⏱️ 지금 1시간에</b></p>'+nkBox(r)+'<p class="ht" style="color:#c0601a;margin-top:0">'+NKT[r.neck]+'</p>'+lgBlock(r,'','<div style="font-size:13px;opacity:.7;margin-top:4px">손님 한 명이 '+fmt(Math.round(r.perCust))+'원어치 사요'+(r.seatB?' (🪑 자리 +'+Math.round(r.seatB*100)+'%)':'')+' · 자리를 비워도 8시간까지 장사해요</div>');
+ h+=debtTxt();
+ h+='<p class="ht"><b>📅 오늘</b> ('+(L.h?hm(L.h)+' 영업':'방금 문 열었어요')+')</p>'+lgBlock(L,'',hp(L));
+ if(Y)h+='<p class="ht"><b>📅 어제</b> ('+hm(Y.h)+' 영업)</p>'+lgBlock(Y,'',hp(Y));
+ h+='<p class="ht" style="font-size:14px;opacity:.75">• 세금은 매출에서 재료비를 뺀 돈의 10%예요<br>• 월세는 넓은 가게만 내요. 🏠 가게를 사면 0원<br>• 돈이 모자라면 밀린 돈이 생기고, 알바가 절반만 일해요</p>';
+ $('lb').innerHTML=h}
+$('l1').onclick=()=>openUp('led',0);$('lx').onclick=()=>toHome();$('biz').onclick=()=>{au();openLed()};
 /* ---------- 꾸미기 (가구 놓기 + 꾸밈 칸 + 넓히기) ---------- */
 let dback='home',dsel=null,dpick=null,dghost=null;
 const DT=()=>[{k:'fur',n:'🪑 가구'},...SLOTS.map(s=>({k:s.k,n:s.n,sl:s})),{k:'room',n:'📐 넓히기'}];
 const dtabK=()=>(DT()[dtab]||{}).k;
-function openDeco(from){dback=from;dtab=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
+function openDeco(from,room){dback=from;dtab=room?DT().length-1:0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc');if(room)$('dtabs').scrollLeft=9999}
 function lockOf(it){if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
 const placed=k=>save.fur.filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
@@ -244,7 +296,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   IS.ROOM.forEach(r=>{const own=save.room>=r.n,lk=!own&&r.g>grade()?'🔒 '+GR[r.g].n:null;card('📐',r.n+'×'+r.n,own?(save.room===r.n?'지금 크기':'✅'):lk?lk.replace('🔒 ',''):'🪙'+fmt(r.p),(prev&&prev.k==='room'&&prev.id===r.n?'on':save.room===r.n?'eq':'')+(lk?' lk':''),()=>{prev=own?null:{k:'room',id:r.n};renderDeco()})});
   const nx=IS.ROOM.find(r=>r.n===save.room+1);
   if(prev&&prev.k==='room'){const r=IS.ROOM.find(q=>q.n===prev.id),lk=r.g>grade(),seq=r.n===save.room+1;
-   dbtn('da1',lk?'🔒 '+GR[r.g].n+' 등급':!seq?'먼저 '+(save.room+1)+'×'+(save.room+1):'📐 넓히기 🪙'+fmt(r.p),lk||!seq?'dis':'go',()=>{if(lk||!seq)return;if(save.coins<r.p){toast('코인이 부족해요!');snd('no');return}save.coins-=r.p;save.room=r.n;prev=null;IS.reset();store();snd('win');toast('가게가 '+r.n+'×'+r.n+'로 넓어졌어요! 🎉');renderDeco()});msg='미리 보는 중이에요'}
+   dbtn('da1',lk?'🔒 '+GR[r.g].n+' 등급':!seq?'먼저 '+(save.room+1)+'×'+(save.room+1):'📐 넓히기 🪙'+fmt(r.p),lk||!seq?'dis':'go',()=>{if(lk||!seq)return;if(save.coins<r.p){toast('코인이 부족해요!');snd('no');return}save.coins-=r.p;save.room=r.n;prev=null;IS.reset();store();snd('win');toast('가게가 '+r.n+'×'+r.n+'로 넓어졌어요! 🎉');renderDeco();bizBtn()});{const q=BIZ.PLACE[r.n];msg=q.e+' '+q.n+' · 보증금 🪙'+fmt(r.p)+' · 월세 '+fmt(q.rent)+'/시간 (사면 0원) · 손님 +'+Math.round((q.mul-1)*100)+'%'}}
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=tabs[dtab].sl;
@@ -271,7 +323,7 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-262||y<56)return;const n=save.room
  if(spare(dpick)<=0){if(save.coins<f.p){toast('코인이 부족해요! (🪙'+fmt(f.p)+')');snd('no');return}save.coins-=f.p;save.inv[dpick]=(save.inv[dpick]||0)+1;toast(f.n+' 구입! -🪙'+fmt(f.p))}
  const nw={k:dpick,x:gx,y:gy,d:0};save.fur.push(nw);dsel=nw;store();snd('win');dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
 cv.addEventListener('pointerdown',e=>{if(scr!=='deco')return;e.preventDefault();const r=cv.getBoundingClientRect();decoTap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)});
-$('dx').onclick=()=>{prev=null;dsel=null;dpick=null;syncShop();if(dback==='res'){scr='res';show('res')}else toHome()};
+$('dx').onclick=()=>{prev=null;dsel=null;dpick=null;syncShop();bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1];let h='<span class="pill">⭐ '+save.stars+'</span><span class="pill">'+GR[g].e+' '+GR[g].n+'</span><span class="pill">📖 '+Object.keys(save.dex).length+'/'+R.an.length+'</span>';
  h+='<p class="ht"><b>🏅 가게 등급</b> (손님을 많이 받을수록 올라요)</p><div class="sum">누적 손님 <b>'+fmt(save.served)+'명</b> · 영업 '+save.days+'일'+(nx?'<div class="bar"><i style="width:'+Math.round(100*(save.served-GR[g].at)/(nx.at-GR[g].at))+'%"></i></div>다음 등급 '+nx.e+' '+nx.n+'까지 '+fmt(nx.at-save.served)+'명':'<br>🎉 최고 등급이에요!')+'<br>최고 하루 수익 '+fmt(save.bestNet)+'원 · 최고 콤보 '+save.bestCombo+'</div>';
@@ -284,12 +336,12 @@ $('cx').onclick=()=>show('hm');
 let nmFirst=false;
 function cleanName(t){return String(t).replace(/[\u0000-\u001f\u007f<>&"\\]/g,'').replace(/\s+/g,' ').trim().slice(0,8)}
 function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵 가게 이름을 지어요!':'가게 이름 바꾸기';$('nmx').style.display=first?'none':'block';$('nmi').value=save.name||'행복 붕어빵';$('nme').textContent='';show('nm');setTimeout(()=>{try{$('nmi').focus();$('nmi').select()}catch(e){}},50)}
-$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;store();toHome();if(nmFirst&&!save.tour)setTimeout(startTour,300);if(!nmFirst)toast('간판이 바뀌었어요')};
+$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst&&!save.tour)setTimeout(startTour,300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐'};
 $('sr').onclick=()=>openName(false);$('sc').onclick=()=>show('hm');
 $('rst').onclick=()=>ask($('rst'),'⚠️ 가게가 모두 사라져요! 한 번 더',()=>{const sn=save.snd;save=DEF();save.snd=sn;store();openName(true);toast('모두 지웠어요')});
-$('h1').onclick=startDay;$('h2').onclick=()=>{au();openDeco('home')};$('h3').onclick=()=>{au();openUp('home')};$('h4').onclick=()=>{au();renderCol();show('col')};
+$('h1').onclick=startDay;$('h2').onclick=()=>{au();openDeco('home')};$('h3').onclick=()=>{au();openUp('home',0)};$('h4').onclick=()=>{au();renderCol();show('col')};
 const ckLabel=()=>{$('sck').textContent='🧑‍🍳 사장님: '+COOKS[save.cook|0].n+' (눌러서 바꾸기)'};
 $('h5').onclick=()=>{au();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐';ckLabel();show('set')};
 $('sck').onclick=()=>{save.cook=((save.cook|0)+1)%COOKS.length;applyCook();store();ckLabel();syncShop();snd('tap')};
@@ -307,7 +359,7 @@ const FLC=['#c9935f','#d2a46a','#c89a64','#7fbf6a','#a8a498','#b8384a','#8ac8e8'
 /* 장사 화면: 챌린지처럼 가게 앞 거리 + 걸어오는 손님, 차양·마스코트는 내 가게 꾸밈 */
 const AWX=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
 function shopAwning(){const ac=AWX[save.eq.awn|0]||AWX[0],n=15,w=W/n;for(let i=0;i<n;i++){const c=ac[0]==='rb'?RB[i%RB.length]:i%2?ac[1]:ac[0];cx.fillStyle=c;cx.fillRect(i*w,60,w,16);cx.beginPath();cx.arc(i*w+w/2,76,w/2,0,Math.PI);cx.fill()}cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(0,60,W,3)}
-function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'장사 시작!',sub:nm()+' · '+s.wea.n+' · 가게 Lv'+run.day,
+function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와주기 시작!',sub:nm()+' · '+s.wea.n+' · 가게 Lv'+run.day,
  bg:t=>{cx.fillStyle='#ffe0b5';cx.fillRect(0,0,W,H);cx.fillStyle=FLC[save.eq.floor]||FLC[0];cx.fillRect(0,322,W,78);cx.fillStyle='rgba(255,255,255,.18)';cx.fillRect(0,322,W,6);cx.fillStyle='rgba(0,0,0,.14)';cx.fillRect(0,328,W,4);cx.fillStyle='#6b5344';cx.fillRect(0,394,W,310)},
  front:t=>{shopAwning();const g=cx.createLinearGradient(0,318,0,330);g.addColorStop(0,'#b97d4a');g.addColorStop(1,'#a06a3a');cx.fillStyle=g;cx.fillRect(0,318,W,8)},
  head:t=>{rr(0,0,W,58,0,'#8a5a3a');tx(s.wea.e+' 🏪Lv'+run.day,12,18,20,'#fff','left');tx('🪙 '+fmt(save.coins+s.net),388,18,ui.hud>0?27:22,ui.hud>0?'#fff6c0':'#ffe9a0','right');
@@ -352,7 +404,7 @@ $('nbs').onclick=()=>{au();syncShop();whenNet(N=>go(N.uid),()=>go(null));
   SHARE.send(SHARE.shop({name:nm(),lv:shopLv(),sc:decoScore(),lk:0,snap:shopSnap(),url}),txt,url,'붕어빵 가게')}};
 $('vlk').onclick=()=>{if(!vd||$('vlk').className==='done')return;whenNet(N=>{if(vuid===N.uid)return;$('vlk').className='done';N.like(vuid).then(()=>{vd.lk=(vd.lk|0)+1;renderVisit();$('vlk').textContent='❤️ 눌렀어요';snd('win');toast('❤️ 좋아요를 보냈어요!')}).catch(()=>{$('vlk').textContent='❤️ 눌렀어요';toast('이미 눌렀거나 잠시 뒤에 다시 해 주세요')})})};
 /* ---------- 가게 첫 방문 안내 (건너뛰기 가능) ---------- */
-const TOUR=[['h1','▶ <b>장사하기</b> — 90초 동안 붕어빵을 팔아 코인을 벌어요. 몇 번이든 할 수 있어요!'],['h2','🎨 <b>꾸미기</b> — 가구를 사서 가게 바닥에 직접 놓아요.<br>예쁠수록 손님이 많이 와요 (가게 Lv)'],['h3','🔧 <b>키우기</b> — 틀·새 메뉴·맛 강화로 더 많이 벌어요'],['nb','🏘️ <b>가게 순위</b> — 다른 사람 가게를 구경하고 ❤️를 눌러요'],['nbs','📤 <b>내 가게 자랑</b> — 카톡으로 "구경 와!" 링크를 보내요'],['hc','🔥 <b>챌린지</b> — 매주 친구들과 단계를 겨루는 서바이벌!']];
+const TOUR=[['biz','💼 <b>영업 중</b> — 직원들이 알아서 장사해요. 자리를 비워도 8시간까지!<br>누르면 장부(매출·월세·월급·세금)를 봐요'],['h1','🙋 <b>도와주기</b> — 심심할 때 직접 90초 동안 구워서 더 벌어요'],['h2','🎨 <b>꾸미기</b> — 가구를 사서 가게 바닥에 직접 놓아요.<br>예쁠수록 손님이 많이 와요 (가게 Lv)'],['h3','💼 <b>경영</b> — 알바를 뽑고 키우고, 가게를 사서 월세를 없애요'],['nb','🏘️ <b>가게 순위</b> — 다른 사람 가게를 구경하고 ❤️를 눌러요'],['nbs','📤 <b>내 가게 자랑</b> — 카톡으로 "구경 와!" 링크를 보내요'],['hc','🔥 <b>챌린지</b> — 매주 친구들과 단계를 겨루는 서바이벌!']];
 let ti=0;
 function tourShow(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
  if(ti>=TOUR.length){$('ttx').innerHTML='준비 끝! 🎉<br>첫 가구를 하나 놓아 볼까요? (선물로 준 의자·탁자도 있어요)';$('tnx').textContent='🎨 꾸미러 가기';$('tsk').textContent='나중에';$('tdot').textContent='';$('tcap').style.top='auto';$('tcap').style.bottom='24px';return}
@@ -373,9 +425,11 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
  requestAnimationFrame(loop)}
 function fit(){const b=document.body,sc=Math.min(b.clientWidth/W,b.clientHeight/H);$('box').style.transform='translate('+(b.clientWidth-W*sc)/2+'px,'+(b.clientHeight-H*sc)/2+'px) scale('+sc+')'}
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();if(AC){if(document.hidden)AC.suspend();else AC.resume()}});
-addEventListener('pagehide',pauseGame);
-window.__shop={IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
-fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name)toHome();else{renderHome();openName(true)}}requestAnimationFrame(loop);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(AC){if(document.hidden)AC.suspend();else AC.resume()}});
+addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
+/* 1초마다 직원 장사 정산 */
+setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
+window.__shop={BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350)}else{renderHome();openName(true)}}requestAnimationFrame(loop);
 setTimeout(syncShop,1500);
 })();
