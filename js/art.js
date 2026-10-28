@@ -53,7 +53,7 @@ function mouth(r,mood,y){cx.strokeStyle='#4a2a14';cx.lineWidth=r*.06;cx.lineCap=
  else{cx.beginPath();cx.moveTo(-r*.14,y);cx.quadraticCurveTo(-r*.07,y+r*.1,0,y);cx.quadraticCurveTo(r*.07,y+r*.1,r*.14,y);cx.stroke()}}
 /* 동물/사람 반신 그리기: kind(이모지 키), 중심(x,y)=얼굴 중심, 얼굴 지름 s */
 /* 그림 파일이 있으면 코드 그림 대신 사용 (ART_IMG[kind]=Image) */
-function animal(kind,x,y,s,o={}){const im=window.ART_IMG&&window.ART_IMG[kind];if(im&&im.complete&&im.naturalWidth){const h=s*1.5,w=h*im.naturalWidth/im.naturalHeight,bob=Math.sin((o.t||0)*2.2+(o.ph||0))*s*.03;
+function animal(kind,x,y,s,o={}){const im=window.ART_IMG&&window.ART_IMG[kind];if(im&&im.complete&&im.naturalWidth){const h=s*1.62,w=h*im.naturalWidth/im.naturalHeight,bob=Math.sin((o.t||0)*2.2+(o.ph||0))*s*.03;
   cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);cx.restore();return}
  return animalCode(kind,x,y,s,o)}
 function animalCode(kind,x,y,s,o={}){const sp=SP[kind]||SP['🐶'],r=s/2,t=o.t||0,ph=o.ph||0,mood=o.mood||'n',bob=Math.sin(t*2.2+ph)*r*.04,blink=((t*1.0+ph)%3.7)<.12;
@@ -307,3 +307,5 @@ function tickFx(dt){if(s)for(const c of s.cust)if(c){c.ag=(c.ag||0)+dt;if(c.rxT>
 const newUi=()=>({ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0});
 
 return{use,E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at,rackRow,menuBar,hints,weather,fxDraw,timeBar,drawPlay,tapPlay,drainFx,tickFx,newUi,QC}};
+/* 손님 동물 그림 (img/an_*.webp, AI 일러스트) */
+ART_LOAD({'🐶':'img/an_dog.webp','🐱':'img/an_cat.webp','🐰':'img/an_rabbit.webp','🐻':'img/an_bear.webp','🐼':'img/an_panda.webp','🦊':'img/an_fox.webp','🐯':'img/an_tiger.webp','🐸':'img/an_frog.webp','🐵':'img/an_monkey.webp','🐧':'img/an_penguin.webp','🐹':'img/an_hamster.webp','🦁':'img/an_lion.webp'});
