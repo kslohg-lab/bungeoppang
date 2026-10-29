@@ -69,10 +69,14 @@ const qOf=(f,p)=>{const m=R.menu[f];return p>1+m.w+1e-9?(p>m.bad?'b':'g'):p>=1-m
 const perfMark=f=>{const m=R.menu[f];return[1-m.w,1+m.w]};
 const fx=(s,o)=>s.fx.push(o);
 function takeCost(s,run,f){s.net-=R.menu[f].c}
+/* 탄 붕어빵 톡 = 바로 버리고 빈 틀 (가게·연습은 바로, 챌린지는 2966주(11/2 월)부터: 이번 주 기록 다시 재생이 그대로 맞도록) */
+const BURN_WK=2966,canToss=run=>run.mode!=='week'||(run.wid|0)>=BURN_WK;
+const tossable=(run,m)=>canToss(run)&&((m.s===3&&m.p>R.menu[m.f].bad)||(m.s===4&&(m.qa==='b'||m.p>R.menu[m.f].bad)));
 function moldTap(s,run,i){if(run.lg)run.lg.push([s.tk,0,i]);if(s.ph!=='play'||i>=nMold(run))return;const m=s.mold[i];
  if(m.s===0){if(run.up.auto){m.f=s.sel;takeCost(s,run,m.f);m.s=3;m.p=0;m.qa='g';fx(s,{k:'snd',n:'pour'});fx(s,{k:'pf',e:'💨',a:'m',i,n:2})}else{m.s=1;fx(s,{k:'snd',n:'pour'})}}
  else if(m.s===1){m.f=s.sel;takeCost(s,run,m.f);m.s=2;fx(s,{k:'snd',n:'pour'})}
  else if(m.s===2){m.s=3;m.p=0;m.qa='g';fx(s,{k:'snd',n:'tap'})}
+ else if(tossable(run,m)){m.s=0;m.p=0;s.burnt++;s.combo=0;fx(s,{k:'ft',t:'🗑️ 버렸어요',a:'m',i,c:'#ffb0a0'});fx(s,{k:'snd',n:'burn'})}
  else if(m.s===3){if(m.p<.85){m.sh=.25;fx(s,{k:'ft',t:'아직!',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'no'});return}m.qa=qOf(m.f,m.p);m.s=4;m.p=0;fx(s,{k:'snd',n:'flip'});fx(s,{k:'pf',e:'✨',a:'m',i,n:2})}
  else if(m.s===4){if(m.p<.85){m.sh=.25;fx(s,{k:'ft',t:'아직!',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'no'});return}
   if(rackFull(s,run,m.f)){s.full=(s.full|0)+1;fx(s,{k:'toast',t:rackLv(run)>=2?R.menu[m.f].e+' '+R.menu[m.f].n+' 접시가 꽉 찼어요! 먼저 손님에게 주세요':'접시가 꽉 찼어요! 먼저 손님에게 주세요'});fx(s,{k:'snd',n:'no'});return}
@@ -127,7 +131,7 @@ function endDay(run,res){
  if(run.ticket){run.ticket=0;run.tused++;return'revive'}
  run.over=true;run.failed=1;return'over'}
 /* 기록(lg)을 처음부터 다시 돌려 결과를 확인 (같은 시드·같은 입력이면 항상 같음) */
-function replay(seed,lg){const run=newRun(seed,'week');run.lg=null;let s=null;
+function replay(seed,lg,wid){const run=newRun(seed,'week');run.lg=null;run.wid=wid|0;let s=null;
  const fin=()=>{while(!s.done)step(s,run,DT);endDay(run,dayResult(s,run));s=null};
  for(const e of lg){if(e[0]==='V'){lateRevive(run);continue}if(run.over)break;
   if(e[0]==='B')buy(run,e[1]);else if(e[0]==='T')buyTicket(run);else if(e[0]==='D')s=newDay(run);else if(e[0]==='E'){if(s)fin()}
@@ -153,5 +157,5 @@ function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pi
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
 const weekSeed=(w)=>hs(20260601,w),SIMV=4; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+return{BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;

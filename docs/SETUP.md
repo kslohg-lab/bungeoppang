@@ -14,6 +14,7 @@ challenge.html    옛 주소 → 첫 화면으로 넘겨 줌
 verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 재생해 확인)
 og.jpg            카톡 미리보기 사진 (1200×630)
 js/share.js       자랑 카드 만들기·공유 (챌린지·가게)
+js/news.js        📢 새 소식(패치 노트). 업데이트할 때 맨 위에 항목 추가
 js/filter.js      닉네임·가게 이름 욕설 거르기 (규칙 파일 clean()과 같은 목록)
 img/              AI 일러스트 (손님 an_*.webp, 사장님 cook*.webp)
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)
@@ -32,6 +33,8 @@ docs/             이 문서, firestore.rules.txt
 ## 고칠 때 규칙
 
 - 파일을 바꾸면 그 파일을 불러오는 html의 `?v=` 숫자를 올려요 (폰에 옛 파일이 남지 않게).
+- 업데이트마다 `js/news.js` 맨 위에 새 소식을 적어요 (새 버전 첫 접속 때 한 번 떠요).
+- 챌린지 굽기 규칙을 주중에 바꾸면 이번 주 기록 다시 재생이 어긋나요 → 다음 주 번호부터 적용 (예: sim.js `BURN_WK`).
 - `js/sim.js`의 규칙 숫자를 바꾸면 `SIMV`도 올려요 (옛 순위표 기록과 구분). 챌린지 규칙은 가게 업그레이드와 상관없이 항상 같아야 해요.
 - Firestore 규칙을 바꾸면 `docs/firestore.rules.txt`를 Firebase 콘솔 → Firestore → 규칙에 붙여 넣고 게시.
 

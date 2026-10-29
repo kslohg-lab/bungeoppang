@@ -1,0 +1,33 @@
+/* ===== 📢 새 소식 (패치 노트) — 챌린지·가게 공용 =====
+   새 버전으로 처음 들어오면 한 번 떠요. 설정의 '📢 새 소식'에서 다시 볼 수 있어요.
+   업데이트할 때 맨 위에 새 항목을 더하고 v를 올려요. */
+const NEWS=(()=>{
+const KEY='bpNewsSeen';
+const L=[
+ {v:'2.5',d:'10월 29일',t:[
+  '🗑️ 탄 붕어빵을 톡 하면 바로 버리고 빈 틀이 돼요 (가게는 지금부터, 🔥 챌린지는 11월 2일 월요일 새 판부터)',
+  '🔥 콤보 표시가 손님 주문을 가리지 않게 시간 줄 오른쪽으로 옮겼어요',
+  '🏪 가게 화면 손님·직원 크기를 가구에 맞게 줄였어요',
+  '🎨 꾸미기가 쉬워졌어요: 탭 4개(가구·벽바닥·간판장식·넓히기), 꾸미는 동안 손님 숨김, 고른 가구 한 번 더 톡 = 돌리기, 빈 칸 톡 = 옮기기',
+  '📢 이 새 소식 창이 생겼어요']},
+ {v:'2.4',d:'10월 29일',t:['👥 뽑은 직원들이 가게 그림에 나와요 (🐻 굽기 · 🐰 계산 · 🦊 홍보 · 🐼 바리스타)','🚶 손님들이 뒤뚱뒤뚱 걸어요']},
+ {v:'2.3',d:'10월 29일',t:['☕ 카페가 생겼어요! 💼 경영 → ☕ 카페에서 커피머신을 사면 열려요','🥤 🙋 도와주기 → ☕ 음료 만들기: 컵 고르고 꾹 눌러 점선까지 붓기','🫘 원두 등급 · 음료 6종 · 🐼 바리스타']},
+ {v:'2.2',d:'10월 29일',t:['💼 가게가 혼자서도 장사해요! 자리를 비워도 8시간까지','👥 알바 고용 (굽기 · 계산 · 홍보), 📒 장부 (매출 · 월세 · 월급 · 세금)','🏠 가게를 사면 월세 0원','▶ 장사하기 → 🙋 도와주기 (직접 굽기)']},
+ {v:'2.1',d:'10월 28일',t:['💌 친구 자랑 링크로 들어오면 도전장이 떠요','👆 처음 온 사람은 직접 따라 하며 배워요','🚫 닉네임 · 가게 이름 욕설 거르기']},
+ {v:'2.0',d:'10월 28일',t:['📤 결과 · 내 가게 자랑 카드로 카톡에 공유해요']}];
+const latest=L[0].v;
+let ov=null;
+function open(){close();ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box';
+ const c=document.createElement('div');c.style.cssText='background:#fff;border-radius:26px;width:100%;max-height:96%;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;text-align:left;color:#5a3a22';
+ const h=document.createElement('div');h.style.cssText='font-size:26px;text-align:center;margin-bottom:8px';h.textContent='📢 새 소식';
+ const b=document.createElement('div');b.style.cssText='overflow-y:auto;touch-action:pan-y;flex:1;min-height:0';
+ L.forEach((n,i)=>{const s=document.createElement('div');s.style.cssText='background:'+(i===0?'#fff1b8':'#fff6e6')+';border-radius:16px;padding:10px 12px;margin-bottom:8px;font-size:15px;line-height:1.5';
+  const t=document.createElement('b');t.style.cssText='display:block;font-size:17px;margin-bottom:2px';t.textContent=(i===0?'✨ ':'')+'v'+n.v+' · '+n.d;s.appendChild(t);
+  n.t.forEach(x=>{const p=document.createElement('div');p.textContent='• '+x;s.appendChild(p)});b.appendChild(s)});
+ const x=document.createElement('button');x.textContent='좋아요!';x.style.cssText='margin-top:10px;height:54px;font-size:21px;border:0;border-radius:18px;background:#ffc94a;box-shadow:0 4px 0 #d9a020;color:#5a3a22;font-family:inherit';x.onclick=close;
+ c.append(h,b,x);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}
+function close(){if(ov){ov.remove();ov=null}}
+function seen(){try{localStorage.setItem(KEY,latest)}catch(e){}}
+/* isNew: 처음 온 사람은 띄우지 않고 '본 것'으로 */
+function check(isNew){let v=null;try{v=localStorage.getItem(KEY)}catch(e){}if(v===latest)return false;if(isNew){seen();return false}open();return true}
+return{L,latest,open,close,check}})();

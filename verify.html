@@ -12,7 +12,7 @@ button{font:inherit;padding:8px 14px;border-radius:10px;border:0;background:#ffc
 <p>위쪽 30명의 플레이 기록을 이 브라우저에서 처음부터 다시 돌려 점수가 맞는지 확인해요. (운영자용 · 서버 비용 거의 없음)</p>
 <div><button id="b0">이번 주</button><button id="b1">지난 주</button></div>
 <p id="st"></p><table id="tb"></table>
-<script src="js/sim.js?v=5"></script>
+<script src="js/sim.js?v=7"></script>
 <script type="module">
 import {CFG} from './js/firebase-config.js';
 const $=id=>document.getElementById(id),V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
@@ -31,7 +31,7 @@ else{
     if(pr.exists()){const p=pr.data();
      if(p.v!==BP2.SIMV)res='<span class="na">옛 규칙 버전</span>';
      else if(p.st!==x.st)res='<span class="na">기록이 점수보다 짧음 (진행 중?)</span>';
-     else{const run=BP2.replay(BP2.weekSeed(w),await unpack(p.p));
+     else{const run=BP2.replay(BP2.weekSeed(w),await unpack(p.p),w);
       if(run.stage===x.st&&run.tot===x.net){res='<span class="ok">✅ 일치</span>';okc++}else{res='<span class="bad">❌ 불일치 (재생: '+run.stage+'단계 / '+run.tot+'원)</span>';bad++}}}
    }catch(e){res='<span class="bad">⚠️ 오류 '+String(e.message||e).replace(/[<>&]/g,'')+'</span>'}
    const nm=document.createElement('span');nm.textContent=x.n;

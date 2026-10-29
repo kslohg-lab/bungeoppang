@@ -167,7 +167,7 @@ function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se=
 function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
- if(deco){IS.draw(t,look(prev),save.fur,{top:56,bottom:H-262,edit:dtabK()==='fur',sel:dsel,ghost:dghost});
+ if(deco){const lk=look(prev);lk.staff={};IS.draw(t,lk,save.fur,{top:56,bottom:H-DPH,edit:dtabK()==='fur',sel:dsel,ghost:dghost,noCust:true});
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
  else{IS.draw(t,look(null),save.fur,{top:64,bottom:518});const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
   if(scr==='home'){if(bizPop>0&&t-bizT>2.5){bizFl.push({v:bizPop,t});bizPop=0;bizT=t}bizFl=bizFl.filter(f=>t-f.t<1.8);bizFl.forEach(f=>{const u=(t-f.t)/1.8;cx.globalAlpha=1-u*u;tx('+'+fmt(f.v)+' 🪙',16,132-u*12,18,'#fff6c0','left','#5a3a22');cx.globalAlpha=1})}else bizPop=0}}
@@ -296,24 +296,29 @@ function renderLed(){const r=BIZ.rates(save,bctx()),L=BIZ.ledger(save,Date.now()
 $('l1').onclick=()=>openUp('led',0);$('lx').onclick=()=>toHome();$('biz').onclick=()=>{au();openLed()};
 /* ---------- 꾸미기 (가구 놓기 + 꾸밈 칸 + 넓히기) ---------- */
 let dback='home',dsel=null,dpick=null,dghost=null;
-const DT=()=>[{k:'fur',n:'🪑 가구'},...SLOTS.map(s=>({k:s.k,n:s.n,sl:s})),{k:'room',n:'📐 넓히기'}];
-const dtabK=()=>(DT()[dtab]||{}).k;
-function openDeco(from,room){dback=from;dtab=room?DT().length-1:0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc');if(room)$('dtabs').scrollLeft=9999}
+/* 꾸미기 탭 4개: 가구 / 벽·바닥 / 간판·장식 / 넓히기 (벽·바닥·장식은 아래 작은 칸으로 고르기) */
+const DPH=296; /* 꾸미기 아래 판 높이 */
+const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 간판·장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'room',n:'📐 넓히기'}];
+let dsub=0;
+const DT=()=>DG;
+const dtabK=()=>{const g=DG[dtab]||DG[0];return g.sl?g.sl[Math.min(dsub,g.sl.length-1)]:g.k};
+function openDeco(from,room){dback=from;dtab=room?DG.length-1:0;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
 function lockOf(it){if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
 const placed=k=>save.fur.filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
 function renderDeco(){const tabs=DT(),tk=dtabK();
  $('dcw').textContent='🪙 '+fmt(save.coins);$('dci').textContent='✨ 매력 +'+Math.round(charmBonus()*100)+'%';
- const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
+ const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
+ {const S=$('dsub'),g=DG[dtab];S.innerHTML='';S.style.display=g.sl?'flex':'none';if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
  const L=$('dl'),sl0=L.scrollLeft;L.innerHTML='';
  const card=(e,n,sub,cls,fn)=>{const b=document.createElement('button');b.className='cd '+(cls||'');b.innerHTML='<b>'+e+'</b>'+n+'<small>'+sub+'</small>';b.onclick=fn;L.appendChild(b)};
  let msg='';
  if(tk==='fur'){
   IS.FUR.forEach(f=>{const lk=lockOf(f),sp=spare(f.k);card(f.e,f.n,lk?lk.replace('🔒 ',''):sp>0?'보관 '+sp+'개':'🪙'+fmt(f.p),(dpick===f.k?'on':'')+(lk?' lk':''),()=>{if(lk){toast(lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()})});
   const f=dsel&&IS.FK[dsel.k];
-  dbtn('da1','↻ 돌리기',f&&f.rot?'':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){dsel.d=((dsel.d|0)+1)%4;store();snd('tap')}});
+  dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){dsel.d=((dsel.d|0)+1)%4;store();snd('tap')}});
   dbtn('da2','📦 보관함에 넣기',dsel?'':'dis',()=>{if(dsel){save.fur=save.fur.filter(it=>it!==dsel);dsel=null;store();snd('tap');renderDeco()}});
-  msg=dsel?f.n+' · 돌리거나 보관함에 넣을 수 있어요 (다시 놓으면 공짜)':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):'가구를 고르고 가게 바닥을 톡! · 놓인 가구를 톡 하면 골라져요 · 흰 칸은 손님 길'}
+  msg=dsel?f.n+' 골랐어요 · 한 번 더 톡 = 돌리기 · 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 흰 칸은 손님 길'}
  else if(tk==='room'){
   IS.ROOM.forEach(r=>{const own=save.room>=r.n,lk=!own&&r.g>grade()?'🔒 '+GR[r.g].n:null;card('📐',r.n+'×'+r.n,own?(save.room===r.n?'지금 크기':'✅'):lk?lk.replace('🔒 ',''):'🪙'+fmt(r.p),(prev&&prev.k==='room'&&prev.id===r.n?'on':save.room===r.n?'eq':'')+(lk?' lk':''),()=>{prev=own?null:{k:'room',id:r.n};renderDeco()})});
   const nx=IS.ROOM.find(r=>r.n===save.room+1);
@@ -321,7 +326,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
    dbtn('da1',lk?'🔒 '+GR[r.g].n+' 등급':!seq?'먼저 '+(save.room+1)+'×'+(save.room+1):'📐 넓히기 🪙'+fmt(r.p),lk||!seq?'dis':'go',()=>{if(lk||!seq)return;if(save.coins<r.p){toast('코인이 부족해요!');snd('no');return}save.coins-=r.p;save.room=r.n;prev=null;IS.reset();store();snd('win');toast('가게가 '+r.n+'×'+r.n+'로 넓어졌어요! 🎉');renderDeco();bizBtn()});{const q=BIZ.PLACE[r.n];msg=q.e+' '+q.n+' · 보증금 🪙'+fmt(r.p)+' · 월세 '+fmt(q.rent)+'/시간 (사면 0원) · 손님 +'+Math.round((q.mul-1)*100)+'%'}}
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
- else{const sl=tabs[dtab].sl;
+ else{const sl=SLOTS.find(x=>x.k===tk);
   sl.L.forEach((it,id)=>{const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
    card(it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:save.eq[sl.k],it=sl.L[id],own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
@@ -334,13 +339,16 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   msg=prev&&!eqd?'미리 보는 중 · 매력 +'+charmOf(it):sl.n+' 고르기'}
  $('dmsg').textContent=msg;L.scrollLeft=sl0}
 /* 가게 바닥을 톡: 가구 고르기 / 놓기 */
-function decoTap(x,y){if(dtabK()!=='fur'||y>H-262||y<56)return;const n=save.room,{gx,gy}=IS.toTile(x,y);
+function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room,{gx,gy}=IS.toTile(x,y);
  if(!IS.inRoom(gx,gy,n)){dsel=null;renderDeco();return}
  const it=save.fur.find(q=>q.x===gx&&q.y===gy);
- if(it){dsel=dsel===it?null:it;dpick=null;renderDeco();return}
- if(!dpick){dsel=null;renderDeco();return}
+ /* 고른 가구를 한 번 더 톡 = 돌리기 */
+ if(it){if(dsel===it){if(IS.FK[it.k].rot){it.d=((it.d|0)+1)%4;store();snd('tap')}else toast('이 가구는 돌릴 수 없어요')}else{dsel=it;dpick=null;snd('tap')}renderDeco();return}
  if(IS.isCounter(gx,gy)){toast('여기는 카운터예요');snd('no');return}
  if(IS.isPath(gx,gy,n)){toast('흰 칸은 손님이 다니는 길이에요');snd('no');return}
+ /* 가구를 고른 채 빈 칸 톡 = 옮기기 */
+ if(dsel&&!dpick){dsel.x=gx;dsel.y=gy;store();snd('tap');dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco();return}
+ if(!dpick){dsel=null;renderDeco();return}
  const f=IS.FK[dpick];
  if(spare(dpick)<=0){if(save.coins<f.p){toast('코인이 부족해요! (🪙'+fmt(f.p)+')');snd('no');return}save.coins-=f.p;save.inv[dpick]=(save.inv[dpick]||0)+1;toast(f.n+' 구입! -🪙'+fmt(f.p))}
  const nw={k:dpick,x:gx,y:gy,d:0};save.fur.push(nw);dsel=nw;store();snd('win');dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
@@ -361,7 +369,7 @@ function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵
 $('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst&&!save.tour)setTimeout(startTour,300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐'};
-$('sr').onclick=()=>openName(false);$('sc').onclick=()=>show('hm');
+$('sr').onclick=()=>openName(false);$('snw').onclick=()=>{show('hm');NEWS.open()};$('sc').onclick=()=>show('hm');
 $('rst').onclick=()=>ask($('rst'),'⚠️ 가게가 모두 사라져요! 한 번 더',()=>{const sn=save.snd;save=DEF();save.snd=sn;store();openName(true);toast('모두 지웠어요')});
 $('h1').onclick=()=>{au();if(BIZ.cafeOn(save))bzShow('🙋','어디를 도와줄까요?','<p style="text-align:center;margin:0">🐟 붕어빵: 틀에 넣고 뒤집어 굽기<br>☕ 음료: 컵 고르고 꾹 눌러 붓기</p>','🐟 붕어빵 굽기',()=>startDay(),'☕ 음료 만들기',()=>startCafe());else startDay()};$('h2').onclick=()=>{au();openDeco('home')};$('h3').onclick=()=>{au();openUp('home',0)};$('h4').onclick=()=>{au();renderCol();show('col')};
 const ckLabel=()=>{$('sck').textContent='🧑‍🍳 사장님: '+COOKS[save.cook|0].n+' (눌러서 바꾸기)'};
@@ -453,6 +461,6 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
 setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
 window.__shop={CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
-fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350)}else{renderHome();openName(true)}}requestAnimationFrame(loop);
+fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400)}else{NEWS.check(true);renderHome();openName(true)}}requestAnimationFrame(loop);
 setTimeout(syncShop,1500);
 })();

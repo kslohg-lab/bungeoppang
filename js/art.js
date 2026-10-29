@@ -165,7 +165,7 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
   const inP=m.p>=1-M.w&&m.p<=1+M.w,glow=inP&&Math.floor(s.t*6)%2?'rgba(255,230,90,.95)':null;
   bread(fx,fy,sc,col,{sy:sy===0?.02:sy,dy,glow});
   if(!(m.s===4&&a<.4)){cx.fillStyle=M.col;cx.globalAlpha=.9;cx.beginPath();cx.arc(fx-11,fy+2,3,0,7);cx.fill();cx.globalAlpha=1}
-  em(M.e,X+18,Y+17,18);lab=m.s===3?(rd?'뒤집어!':'앞면 굽는 중'):(rd?'꺼내!':'뒷면 굽는 중');steam(fx,fy,i,Math.min(1,m.p/.5));
+  em(M.e,X+18,Y+17,18);lab=BP2.tossable(run,m)?'탔어요! 버리기':m.s===3?(rd?'뒤집어!':'앞면 굽는 중'):(rd?'꺼내!':'뒷면 굽는 중');steam(fx,fy,i,Math.min(1,m.p/.5));
   if(m.s===4&&m.qa==='p')em('✨',X+MW-16,Y+14,14);
   if(inP&&Math.floor(s.t*6)%2)lc='#ffe066';if(m.p>=M.bad)lc='#ff8a80';
   const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-M.w,'#7ed88a'],[1-M.w,1+M.w,'#ffd23a'],[1+M.w,M.bad,'#7ed88a'],[M.bad,mx,'#e0503a']];
@@ -279,13 +279,15 @@ function fxDraw(){for(const f of ui.fly){const u=Math.min(1,f.t),e=1-Math.pow(1-
 function timeBar(){const R=BP2.R,rem=Math.max(0,R.len-s.t),tr=rem/R.len,sec=Math.ceil(rem),hot=rem<=10&&s.ph==='play',bl=hot&&Math.floor(s.t*4)%2;
  if(hot&&!ui.w10){ui.w10=1;OPT.toast('⏰ 10초 남았어요! 곧 마감!');OPT.snd('ready')}
  rr(0,58,450,16,0,'rgba(40,24,14,.55)');rr(0,58,450*tr,16,0,hot?(bl?'#ff3a2a':'#ff8a5a'):s.rushed?'#ff9a4a':'#7ec8ff');
- tx(s.ph==='end'?'🌙 영업 종료':'⏰ 마감까지 '+sec+'초',225,66,hot?16:14,'#fff','center',hot?'#a01a10':'#3a2a1a')}
+ tx(s.ph==='end'?'🌙 영업 종료':'⏰ 마감까지 '+sec+'초',225,66,hot?16:14,'#fff','center',hot?'#a01a10':'#3a2a1a');
+ /* 콤보: 손님 주문을 가리지 않게 시간 줄 오른쪽 끝에 */
+ if(STM&&s.combo>=2){rr(330,58,120,16,0,'#d0501f');tx('🔥 콤보 ×'+s.combo+' +'+Math.round(Math.min(.5,s.combo*.05)*100)+'%',390,66,13,'#fff0a0','center','#7a2a0f')}}
 /* 화면 전체: o.bg() 배경, o.head() 위쪽 줄, o.mid() 손님 아래 장식, o.sub 시작 배너 둘째 줄 */
 let STM=false;
 function drawPlay(o){STM=!!o.street;const B=BP2,R=B.R,t=performance.now()/1000;cx.save();if(ui.shake>0){const k=ui.shake/.3*4;cx.translate((Math.random()-.5)*k,(Math.random()-.5)*k)}
  o.bg(t);o.head(t);
  if(o.street){streetBg(o);if(o.front)o.front(t);const ord=[0,1,2].sort((p,q)=>((s.cust[p]&&s.cust[p].ag)||9)-((s.cust[q]&&s.cust[q].ag)||9));for(const i of ord)custStreet(s.cust[i],i)}else s.cust.forEach((c,i)=>custDraw(c,i));if(o.mid)o.mid(t);
- if(s.combo>=2)tx('🔥 콤보 ×'+s.combo+' (+'+Math.round(Math.min(.5,s.combo*.05)*100)+'%)',225,o.street?96:316,18,'#fff0a0','center','#a4401f');
+ if(s.combo>=2&&!o.street)tx('🔥 콤보 ×'+s.combo+' (+'+Math.round(Math.min(.5,s.combo*.05)*100)+'%)',225,316,18,'#fff0a0','center','#a4401f');
  rackRow();for(let i=0;i<B.MOLDS;i++)mold(i);
  {const pg=Math.max(0,Math.min(1,(s.t/R.len-.55)/.45));if(pg>0){cx.fillStyle='rgba(255,140,50,'+(.2*pg)+')';cx.fillRect(0,64,450,640)}const vg=cx.createRadialGradient(225,380,260,225,380,520);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(40,20,10,.28)');cx.fillStyle=vg;cx.fillRect(0,64,450,640)}
  hints();menuBar();weather();if(o.fx)o.fx(t);fxDraw();
