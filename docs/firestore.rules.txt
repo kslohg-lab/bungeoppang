@@ -79,6 +79,20 @@ service cloud.firestore {
       }
     }
 
+    // 📦 기록 옮기기: 6자리 번호로 한 번 읽고 지워요 (목록 보기는 불가)
+    match /xfer/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null
+        && code.matches('[0-9]{6}')
+        && request.resource.data.keys().hasOnly(['p', 'u', 'ts'])
+        && request.resource.data.p is string && request.resource.data.p.size() < 900000
+        && request.resource.data.u == request.auth.uid
+        && request.resource.data.ts == request.time;
+      allow update: if false;
+      allow delete: if request.auth != null;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

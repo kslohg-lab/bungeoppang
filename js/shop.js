@@ -19,7 +19,7 @@ const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floo
 /* ---------- 저장 ---------- */
 const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4,st:{bake:1,serve:1,promo:0},bought:[]});
 let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);if(!save.st||typeof save.st!=='object')save.st=DEF().st;if(!Array.isArray(save.bought))save.bought=[];save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!save.dexS)save.dexS={}}}catch(e){}
-const store=()=>{try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}};
+const store=()=>{if(window.__noStore)return;/* 기록 옮겨 받는 중엔 덮어쓰지 않기 */try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}};
 /* 처음 가구: 새 가게(또는 업데이트 전 가게)에 탁자·의자 2개·화분을 놓아 드려요 */
 const starter=()=>{if(Array.isArray(save.fur))return;save.inv=Object.assign({chair:2,table:1,plant:1},save.inv);save.fur=[{k:'table',x:0,y:2,d:0},{k:'chair',x:0,y:3,d:1},{k:'chair',x:1,y:2,d:1},{k:'plant',x:0,y:1,d:0}];store()};starter();
 const gradeOf=n=>{let g=0;for(let i=0;i<GR.length;i++)if(n>=GR[i].at)g=i;return g};
@@ -379,7 +379,7 @@ function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵
 $('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst&&!save.tour)setTimeout(startTour,300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐'};
-$('sr').onclick=()=>openName(false);$('snw').onclick=()=>{show('hm');NEWS.open()};INSTALL.bind($('sin'));$('sc').onclick=()=>show('hm');
+$('sr').onclick=()=>openName(false);$('snw').onclick=()=>{show('hm');NEWS.open()};INSTALL.bind($('sin'));$('sxf').onclick=()=>{show('hm');INSTALL.xfer()};$('sc').onclick=()=>show('hm');
 $('rst').onclick=()=>ask($('rst'),'⚠️ 가게가 모두 사라져요! 한 번 더',()=>{const sn=save.snd;save=DEF();save.snd=sn;store();openName(true);toast('모두 지웠어요')});
 $('h1').onclick=()=>{au();if(BIZ.cafeOn(save))bzShow('🙋','어디를 도와줄까요?','<p style="text-align:center;margin:0">🐟 붕어빵: 틀에 넣고 뒤집어 굽기<br>☕ 음료: 컵 고르고 꾹 눌러 붓기</p>','🐟 붕어빵 굽기',()=>startDay(),'☕ 음료 만들기',()=>startCafe());else startDay()};$('h2').onclick=()=>{au();openDeco('home')};$('h3').onclick=()=>{au();openUp('home',0)};$('h4').onclick=()=>{au();renderCol();show('col')};
 const ckLabel=()=>{$('sck').textContent='🧑‍🍳 사장님: '+COOKS[save.cook|0].n+' (눌러서 바꾸기)'};
@@ -471,6 +471,6 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
 setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
 window.__shop={CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
-fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400)}else{NEWS.check(true);renderHome();openName(true)}}requestAnimationFrame(loop);
+fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400);INSTALL.nudge(true)}else{NEWS.check(true);renderHome();openName(true);INSTALL.nudge(false)}}requestAnimationFrame(loop);
 setTimeout(syncShop,1500);
 })();
