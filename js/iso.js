@@ -4,25 +4,49 @@
    items: [{k,x,y,d}] 바닥에 놓은 가구 */
 const ISO=(cx,A)=>{
 const {em,tx,rr,m2,lite,dark,animal}=A;const W=450;
-/* 가구 목록: p=가격, g=필요한 가게 등급, rot=돌릴 수 있음, seat=손님이 앉음, flat=바닥에 깔림 */
+/* 가구 목록: p=가격, g=필요한 가게 등급, rot=돌릴 수 있음, seat=손님이 앉음, flat=바닥에 깔림
+   c=분류(sit 의자·탁자 / plant 식물 / lit 조명 / deco 장식 / sp 특별), set=테마 세트, as=같은 모양으로 그리기(c1·c2 색) */
 const FUR=[
- {k:'chair',n:'의자',e:'🪑',p:600,g:0,rot:1,seat:1},{k:'table',n:'탁자',e:'🍽️',p:1500,g:0},{k:'plant',n:'화분',e:'🪴',p:800,g:0},
- {k:'rug',n:'러그',e:'🟥',p:1200,g:0,flat:1},{k:'bear',n:'곰 인형',e:'🧸',p:2000,g:0},{k:'stand',n:'붕어 입간판',e:'🐟',p:2500,g:1},
- {k:'lamp',n:'등불',e:'🏮',p:3000,g:1},{k:'sofa',n:'소파',e:'🛋️',p:6000,g:1,rot:1,seat:1},{k:'shelf',n:'빵 진열대',e:'🥐',p:9000,g:2,rot:1},
- {k:'tree',n:'나무 화분',e:'🌳',p:12000,g:2},{k:'tank',n:'어항',e:'🐠',p:25000,g:3},{k:'piano',n:'피아노',e:'🎹',p:60000,g:4,rot:1},
+ {k:'chair',n:'의자',e:'🪑',p:600,g:0,rot:1,seat:1,c:'sit'},{k:'table',n:'탁자',e:'🍽️',p:1500,g:0,c:'sit'},{k:'plant',n:'화분',e:'🪴',p:800,g:0,c:'plant'},
+ {k:'rug',n:'러그',e:'🟥',p:1200,g:0,flat:1,c:'deco'},{k:'bear',n:'곰 인형',e:'🧸',p:2000,g:0,c:'deco'},{k:'stand',n:'붕어 입간판',e:'🐟',p:2500,g:1,c:'deco'},
+ {k:'lamp',n:'등불',e:'🏮',p:3000,g:1,c:'lit'},{k:'sofa',n:'소파',e:'🛋️',p:6000,g:1,rot:1,seat:1,c:'sit'},{k:'shelf',n:'빵 진열대',e:'🥐',p:9000,g:2,rot:1,c:'deco'},
+ {k:'tree',n:'나무 화분',e:'🌳',p:12000,g:2,c:'plant'},{k:'tank',n:'어항',e:'🐠',p:25000,g:3,c:'sp'},{k:'piano',n:'피아노',e:'🎹',p:60000,g:4,rot:1,c:'sp'},
  /* 받침 위 장식 (emo: 받침색 b, 크기 z) */
- {k:'cactus',n:'선인장',e:'🌵',p:1000,g:0,emo:1,b:'#c8643a',z:.46},{k:'basket',n:'빵 바구니',e:'🧺',p:1500,g:0,emo:1,b:'#c89a64',z:.44},
- {k:'candle',n:'촛대',e:'🕯️',p:1800,g:0,emo:1,b:'#8a6a50',z:.42,glow:1},{k:'bench',n:'벤치',e:'🪑',p:4000,g:1,rot:1,seat:1},
- {k:'books',n:'책장',e:'📚',p:4500,g:1,emo:1,b:'#7a5030',z:.5,tall:.42},{k:'frame',n:'그림 이젤',e:'🖼️',p:5000,g:1,emo:1,b:'#6a4024',z:.52},
- {k:'koi',n:'잉어 깃발',e:'🎏',p:6500,g:1,emo:1,b:'#5a5048',z:.6,pole:1},{k:'pinata',n:'피냐타',e:'🪅',p:9000,g:2,emo:1,b:'#e8b04a',z:.52},
- {k:'cake',n:'디저트 진열장',e:'🍰',p:15000,g:2,emo:1,b:'#f0d8e0',z:.4,tall:.36,glass:1},{k:'coffee',n:'커피 머신',e:'☕',p:18000,g:2,emo:1,b:'#5a5a62',z:.42,tall:.3},
- {k:'sakura',n:'벚꽃 나무',e:'🌸',p:22000,g:2,emo:1,b:'#a85a34',z:.9,tree:1},{k:'vase',n:'도자기',e:'🏺',p:30000,g:3,emo:1,b:'#d8c8a8',z:.55},
- {k:'slide',n:'미끄럼틀',e:'🛝',p:40000,g:3,emo:1,b:'#7ec8ff',z:.7},{k:'moai',n:'돌 석상',e:'🗿',p:50000,g:3,emo:1,b:'#8a867c',z:.7},
- {k:'carousel',n:'미니 회전목마',e:'🎠',p:70000,g:4,emo:1,b:'#ff9ab0',z:.8},{k:'claw',n:'뽑기 기계',e:'🧸',p:90000,g:4,emo:1,b:'#ff6a8a',z:.4,tall:.6,glass:1},
- {k:'fountain',n:'분수대',e:'⛲',p:120000,g:4,emo:1,b:'#b8c8d8',z:.85},{k:'train',n:'기차 모형',e:'🚂',p:150000,g:4,emo:1,b:'#6a8a5a',z:.62},
- {k:'trophy',n:'황금 트로피',e:'🏆',p:300000,g:5,emo:1,b:'#3a2a3a',z:.62,glow:1},{k:'wheel',n:'미니 관람차',e:'🎡',p:500000,g:5,emo:1,b:'#7a8aa8',z:1},
- {k:'dragon',n:'용 조각상',e:'🐉',p:800000,g:5,emo:1,b:'#4a3a30',z:.86},{k:'throne',n:'왕좌',e:'👑',p:1500000,g:6,rot:1,seat:1},
- {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1}];
+ {k:'cactus',n:'선인장',e:'🌵',p:1000,g:0,emo:1,b:'#c8643a',z:.46,c:'plant'},{k:'basket',n:'빵 바구니',e:'🧺',p:1500,g:0,emo:1,b:'#c89a64',z:.44,c:'deco'},
+ {k:'candle',n:'촛대',e:'🕯️',p:1800,g:0,emo:1,b:'#8a6a50',z:.42,glow:1,c:'lit'},{k:'bench',n:'벤치',e:'🪑',p:4000,g:1,rot:1,seat:1,c:'sit'},
+ {k:'books',n:'책장',e:'📚',p:4500,g:1,emo:1,b:'#7a5030',z:.5,tall:.42,c:'deco'},{k:'frame',n:'그림 이젤',e:'🖼️',p:5000,g:1,emo:1,b:'#6a4024',z:.52,c:'deco'},
+ {k:'koi',n:'잉어 깃발',e:'🎏',p:6500,g:1,emo:1,b:'#5a5048',z:.6,pole:1,c:'deco'},{k:'pinata',n:'피냐타',e:'🪅',p:9000,g:2,emo:1,b:'#e8b04a',z:.52,c:'deco'},
+ {k:'cake',n:'디저트 진열장',e:'🍰',p:15000,g:2,emo:1,b:'#f0d8e0',z:.4,tall:.36,glass:1,c:'deco'},{k:'coffee',n:'커피 머신',e:'☕',p:18000,g:2,emo:1,b:'#5a5a62',z:.42,tall:.3,c:'deco'},
+ {k:'sakura',n:'벚꽃 나무',e:'🌸',p:22000,g:2,emo:1,b:'#a85a34',z:.9,tree:1,c:'plant'},{k:'vase',n:'도자기',e:'🏺',p:30000,g:3,emo:1,b:'#d8c8a8',z:.55,c:'deco'},
+ {k:'slide',n:'미끄럼틀',e:'🛝',p:40000,g:3,emo:1,b:'#7ec8ff',z:.7,c:'sp'},{k:'moai',n:'돌 석상',e:'🗿',p:50000,g:3,emo:1,b:'#8a867c',z:.7,c:'sp'},
+ {k:'carousel',n:'미니 회전목마',e:'🎠',p:70000,g:4,emo:1,b:'#ff9ab0',z:.8,c:'sp'},{k:'claw',n:'뽑기 기계',e:'🧸',p:90000,g:4,emo:1,b:'#ff6a8a',z:.4,tall:.6,glass:1,c:'sp'},
+ {k:'fountain',n:'분수대',e:'⛲',p:120000,g:4,emo:1,b:'#b8c8d8',z:.85,c:'sp'},{k:'train',n:'기차 모형',e:'🚂',p:150000,g:4,emo:1,b:'#6a8a5a',z:.62,c:'sp'},
+ {k:'trophy',n:'황금 트로피',e:'🏆',p:300000,g:5,emo:1,b:'#3a2a3a',z:.62,glow:1,c:'sp'},{k:'wheel',n:'미니 관람차',e:'🎡',p:500000,g:5,emo:1,b:'#7a8aa8',z:1,c:'sp'},
+ {k:'dragon',n:'용 조각상',e:'🐉',p:800000,g:5,emo:1,b:'#4a3a30',z:.86,c:'sp'},{k:'throne',n:'왕좌',e:'👑',p:1500000,g:6,rot:1,seat:1,c:'sit'},
+ {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
+ /* ---- 테마 세트 (다 놓으면 꾸미기 점수 보너스) ---- */
+ {k:'ctable',n:'카페 원탁',e:'☕',p:3500,g:1,as:'table',c1:'#f4efe6',c2:'#5a4a40',cup:1,set:'cafe',c:'sit'},
+ {k:'cchair',n:'카페 의자',e:'🪑',p:1800,g:1,rot:1,seat:1,as:'chair',c1:'#7fae6a',c2:'#5a8a4a',set:'cafe',c:'sit'},
+ {k:'cboard',n:'메뉴 칠판',e:'📋',p:4000,g:1,rot:1,as:'board',set:'cafe',c:'deco'},
+ {k:'csack',n:'원두 자루',e:'🫘',p:2500,g:1,emo:1,b:'#b8925a',z:.42,set:'cafe',c:'deco'},
+ {k:'ccup',n:'대형 커피잔',e:'☕',p:8000,g:2,emo:1,b:'#e8d8c8',z:.62,set:'cafe',c:'deco'},
+ {k:'skbench',n:'벚꽃 벤치',e:'🌸',p:5000,g:1,rot:1,seat:1,as:'bench',c1:'#ffb8cc',c2:'#e88aa8',set:'spring',c:'sit'},
+ {k:'tulip',n:'튤립 화단',e:'🌷',p:2500,g:0,emo:1,b:'#8a5a3a',z:.5,set:'spring',c:'plant'},
+ {k:'picnic',n:'피크닉 매트',e:'🧺',p:2000,g:0,flat:1,as:'rug',c1:'#ff9ab0',c2:'#fff4f8',chk:1,set:'spring',c:'deco'},
+ {k:'dango',n:'꽃경단 상',e:'🍡',p:3000,g:1,emo:1,b:'#f0d0dc',z:.44,set:'spring',c:'deco'},
+ {k:'pond',n:'연꽃 연못',e:'🪷',p:9000,g:2,flat:1,as:'pond',set:'spring',c:'plant'},
+ {k:'xtree',n:'크리스마스 트리',e:'🎄',p:12000,g:1,emo:1,b:'#a85a34',z:.9,tree:1,glow:1,set:'winter',c:'plant'},
+ {k:'snowman',n:'눈사람',e:'⛄',p:6000,g:1,emo:1,b:'#e8f0f8',z:.72,set:'winter',c:'deco'},
+ {k:'gifts',n:'선물 더미',e:'🎁',p:3000,g:0,emo:1,b:'#c8283c',z:.5,set:'winter',c:'deco'},
+ {k:'fire',n:'벽난로',e:'🔥',p:15000,g:2,as:'fire',set:'winter',c:'lit'},
+ {k:'knit',n:'니트 소파',e:'🛋️',p:7000,g:1,rot:1,seat:1,as:'sofa',c1:'#8cbce8',c2:'#6a9ccc',set:'winter',c:'sit'},
+ {k:'bcushion',n:'붕어빵 쿠션',e:'🐟',p:2500,g:0,seat:1,as:'cushion',set:'bungeo',c:'sit'},
+ {k:'bcart',n:'붕어빵 수레',e:'🛒',p:8000,g:1,as:'cart',set:'bungeo',c:'deco'},
+ {k:'bbag',n:'봉투 진열대',e:'🛍️',p:3500,g:1,emo:1,b:'#d8b890',z:.46,set:'bungeo',c:'deco'},
+ {k:'bflag',n:'붕어 깃발',e:'🎏',p:4500,g:1,as:'fflag',set:'bungeo',c:'deco'},
+ {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'}];
+const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'}];
+const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 넓히기: n칸, g=필요 등급, p=가격 */
 const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},{n:8,g:5,p:400000}];
@@ -38,34 +62,74 @@ const canPlace=(gx,gy,n=N)=>inRoom(gx,gy,n)&&!isCounter(gx,gy)&&!isPath(gx,gy,n)
 function poly(pts,fill,stroke,lw=1.5){cx.beginPath();pts.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y));cx.closePath();if(fill){cx.fillStyle=fill;cx.fill()}if(stroke){cx.strokeStyle=stroke;cx.lineWidth=lw;cx.stroke()}}
 const up=(p,h)=>({x:p.x,y:p.y-h});
 function box(gx,gy,m,h,col,o={}){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=iso(gx+1-m,gy+1-m),L=iso(gx+m,gy+1-m);const z=o.z||0;
- const T0=up(T,z),R0=up(Rr,z),B0=up(B,z),L0=up(L,z),T1=up(T,z+h),R1=up(Rr,z+h),B1=up(B,z+h),L1=up(L,z+h);const ln=o.line||dark(col,.45);
- poly([L0,B0,B1,L1],dark(col,.12),ln);poly([B0,R0,R1,B1],dark(col,.24),ln);poly([T1,R1,B1,L1],o.top||lite(col,.08),ln);return{T:T1,R:R1,B:B1,L:L1,c:{x:(T1.x+B1.x)/2,y:(T1.y+B1.y)/2}}}
+ const T0=up(T,z),R0=up(Rr,z),B0=up(B,z),L0=up(L,z),T1=up(T,z+h),R1=up(Rr,z+h),B1=up(B,z+h),L1=up(L,z+h);const ln=o.line||dark(col,.55),lw=Math.max(1.6,TW*.026);
+ poly([L0,B0,B1,L1],dark(col,.12),ln,lw);poly([B0,R0,R1,B1],dark(col,.24),ln,lw);poly([T1,R1,B1,L1],o.top||lite(col,.08),ln,lw);return{T:T1,R:R1,B:B1,L:L1,c:{x:(T1.x+B1.x)/2,y:(T1.y+B1.y)/2}}}
 function panel(gx,gy,d,m,z,h,col){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=iso(gx+1-m,gy+1-m),L=iso(gx+m,gy+1-m);const E=[[T,Rr],[L,T],[Rr,B],[B,L]][d];
- poly([up(E[0],z),up(E[1],z),up(E[1],z+h),up(E[0],z+h)],d>=2?dark(col,.1):col,dark(col,.45))}
+ poly([up(E[0],z),up(E[1],z),up(E[1],z+h),up(E[0],z+h)],d>=2?dark(col,.1):col,dark(col,.55),Math.max(1.6,TW*.026))}
 function shadow(x,y,w){cx.fillStyle='rgba(0,0,0,.16)';cx.beginPath();cx.ellipse(x,y,w,w*.45,0,0,7);cx.fill()}
 /* ---------- 가구 ---------- */
-function drawItem(it,t,sel){const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=TW/78;
- switch(it.k){
- case'table':{shadow(c.x,c.y+2,TW*.28);const p=box(gx,gy,.36,TW*.22,'#8a5a3a');cx.fillStyle='#c98a54';cx.strokeStyle='#6a4024';cx.lineWidth=1.5;cx.beginPath();cx.ellipse(p.c.x,p.c.y-2,TW*.32,TH*.32,0,0,7);cx.fill();cx.stroke();em('☕',p.c.x+6*s,p.c.y-8*s,16*s);em('🐟',p.c.x-8*s,p.c.y-4*s,13*s);break}
- case'chair':{shadow(c.x,c.y+2,TW*.2);const back=d<2;if(back)panel(gx,gy,d,.28,TW*.14,TW*.22,'#b0703f');box(gx,gy,.28,TW*.14,'#d08a4e');if(!back)panel(gx,gy,d,.28,TW*.14,TW*.18,'#b0703f');break}
- case'sofa':{shadow(c.x,c.y+2,TW*.34);if(d<2)panel(gx,gy,d,.1,TW*.12,TW*.2,'#d0607a');box(gx,gy,.12,TW*.13,'#e8788f');if(d>=2)panel(gx,gy,d,.1,TW*.12,TW*.14,'#d0607a');break}
- case'plant':{shadow(c.x,c.y+2,TW*.18);const p=box(gx,gy,.34,TW*.14,'#c8643a');em('🪴',p.c.x,p.c.y-TW*.22,TW*.5);break}
- case'tree':{shadow(c.x,c.y+2,TW*.24);const p=box(gx,gy,.3,TW*.16,'#a85a34');em('🌳',p.c.x,p.c.y-TW*.42+Math.sin(t*1.5+gx)*1,TW*.9);break}
- case'lamp':{shadow(c.x,c.y+2,TW*.14);cx.fillStyle='#5a4638';cx.fillRect(c.x-2,c.y-TW*.62,4,TW*.62);const gl=cx.createRadialGradient(c.x,c.y-TW*.7,2,c.x,c.y-TW*.7,TW*.6);gl.addColorStop(0,'rgba(255,220,140,'+(.45+.1*Math.sin(t*3))+')');gl.addColorStop(1,'rgba(255,220,140,0)');cx.fillStyle=gl;cx.beginPath();cx.arc(c.x,c.y-TW*.7,TW*.6,0,7);cx.fill();em('🏮',c.x,c.y-TW*.72,TW*.42);break}
- case'shelf':{shadow(c.x,c.y+2,TW*.34);box(gx,gy,.12,TW*.5,'#9a6a40',{top:'#b88456'});for(let r=0;r<2;r++)for(let q=0;q<3;q++){const u=(q+.5)/3,a=d%2?iso(gx+.12,gy+.12+u*.76):iso(gx+.12+u*.76,gy+.88);em(['🥐','🍞','🐟'][(q+r)%3],a.x+(d%2?TW*.1:-TW*.04),a.y-TW*(.14+r*.18),TW*.2)}break}
- case'tank':{shadow(c.x,c.y+2,TW*.3);box(gx,gy,.16,TW*.08,'#5a4a40');box(gx,gy,.18,TW*.36,'#9fd8f0',{z:TW*.08,top:'rgba(200,240,255,.9)',line:'#5a9ab8'});em('🐠',c.x+Math.sin(t*1.2+gx)*TW*.14,c.y-TW*.28,TW*.22);em('🐟',c.x-Math.sin(t*1.5)*TW*.1,c.y-TW*.18,TW*.16);break}
- case'piano':{shadow(c.x,c.y+2,TW*.34);const p=box(gx,gy,.12,TW*.34,'#2e2a2e',{top:'#3e3a40'});const E=[[p.T,p.R],[p.L,p.T],[p.R,p.B],[p.B,p.L]][d];cx.strokeStyle='#fff';cx.lineWidth=TW*.07;cx.beginPath();cx.moveTo((E[0].x*3+p.c.x)/4,(E[0].y*3+p.c.y)/4);cx.lineTo((E[1].x*3+p.c.x)/4,(E[1].y*3+p.c.y)/4);cx.stroke();em('🎵',p.c.x+Math.sin(t*2)*6,p.c.y-TW*.35-m2(t*20,14),TW*.18,.8);break}
- case'rug':{poly([iso(gx+.06,gy+.06),iso(gx+.94,gy+.06),iso(gx+.94,gy+.94),iso(gx+.06,gy+.94)],'#d85a5a','#a83a3a',2);poly([iso(gx+.22,gy+.22),iso(gx+.78,gy+.22),iso(gx+.78,gy+.78),iso(gx+.22,gy+.78)],'#f0b060');break}
- case'bear':{shadow(c.x,c.y+2,TW*.16);em('🧸',c.x,c.y-TW*.2,TW*.46);break}
- case'bench':{shadow(c.x,c.y+2,TW*.34);if(d<2)panel(gx,gy,d,.12,TW*.13,TW*.16,'#8a5a3a');box(gx,gy,.14,TW*.12,'#b07a4a');if(d>=2)panel(gx,gy,d,.12,TW*.12,TW*.12,'#8a5a3a');break}
- case'throne':{shadow(c.x,c.y+2,TW*.32);if(d<2)panel(gx,gy,d,.14,TW*.16,TW*.46,'#c8283c');box(gx,gy,.16,TW*.16,'#d4a020',{top:'#e84050'});if(d>=2)panel(gx,gy,d,.14,TW*.16,TW*.2,'#c8283c');em('👑',c.x,c.y-TW*.62,TW*.3);break}
- case'stand':{shadow(c.x,c.y+2,TW*.18);cx.fillStyle='#6a4024';cx.fillRect(c.x-TW*.16,c.y-TW*.2,3,TW*.2);cx.fillRect(c.x+TW*.14,c.y-TW*.2,3,TW*.2);rr(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44,8,'#fff3dc');cx.strokeStyle='#8a5a3a';cx.lineWidth=2;cx.strokeRect(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44);A.fish2(c.x,c.y-TW*.42,TW*.0042,'#f0b850',{plain:true});tx('붕어빵',c.x,c.y-TW*.26,Math.max(9,TW*.13),'#8a3a1a','center','#fff3dc');break}
+/* 스티커 이모지: 캐릭터 그림처럼 흰 테두리 + 그림자 (크기별로 한 번만 만들어 둬요) */
+const STK={};
+function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)return c;
+ const pad=Math.ceil(z*.14)+2,S=Math.ceil(z*1.4)+pad*2,a=document.createElement('canvas');a.width=a.height=S;const ax=a.getContext('2d');ax.font=z+'px '+A.E;ax.textAlign='center';ax.textBaseline='middle';ax.fillText(e,S/2,S/2);
+ c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),r=Math.max(2,z*.07);
+ for(let i=0;i<12;i++){const an=i/12*Math.PI*2;x.drawImage(a,Math.cos(an)*r,Math.sin(an)*r)}
+ x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,S,S);x.globalCompositeOperation='source-over';
+ x.globalAlpha=.18;x.drawImage(c,0,0);x.globalAlpha=1;x.drawImage(a,0,0);STK[k]=c;return c}
+function emS(e,x,y,z,al=1){const c=stk(e,z);cx.globalAlpha=al;cx.drawImage(c,x-c.width/2,y-c.height/2);cx.globalAlpha=1}
+const OL='#5a3a22';
+function drawItem(it,t,sel){const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=TW/78,F=FK[it.k]||{},kind=F.as||it.k,lw=Math.max(1.6,TW*.026);
+ switch(kind){
+ case'table':{shadow(c.x,c.y+2,TW*.28);const top=F.c1||'#d89a5e',base=F.c2||'#8a5a3a';const p=box(gx,gy,.38,TW*.22,base);cx.fillStyle=top;cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.ellipse(p.c.x,p.c.y-2,TW*.33,TH*.33,0,0,7);cx.fill();cx.stroke();
+  cx.fillStyle='rgba(255,255,255,.35)';cx.beginPath();cx.ellipse(p.c.x-TW*.08,p.c.y-5,TW*.12,TH*.08,0,0,7);cx.fill();
+  emS('☕',p.c.x+7*s,p.c.y-8*s,15*s);if(!F.cup)emS('🐟',p.c.x-9*s,p.c.y-4*s,13*s);break}
+ case'chair':{shadow(c.x,c.y+2,TW*.2);const sc=F.c1||'#e09a5a',bc=F.c2||'#b8743f',back=d<2;if(back)panel(gx,gy,d,.28,TW*.14,TW*.24,bc);box(gx,gy,.28,TW*.14,sc);if(!back)panel(gx,gy,d,.28,TW*.14,TW*.18,bc);break}
+ case'sofa':{shadow(c.x,c.y+2,TW*.34);const sc=F.c1||'#f08aa0',bc=F.c2||'#d8667e';if(d<2)panel(gx,gy,d,.1,TW*.12,TW*.22,bc);box(gx,gy,.12,TW*.14,sc);if(d>=2)panel(gx,gy,d,.1,TW*.12,TW*.14,bc);break}
+ case'bench':{shadow(c.x,c.y+2,TW*.34);const sc=F.c1||'#c08a56',bc=F.c2||'#9a6a3e';if(d<2)panel(gx,gy,d,.12,TW*.13,TW*.16,bc);box(gx,gy,.14,TW*.12,sc);if(d>=2)panel(gx,gy,d,.12,TW*.12,TW*.12,bc);if(F.set==='spring')emS('🌸',c.x,c.y-TW*.3,TW*.2);break}
+ case'plant':{shadow(c.x,c.y+2,TW*.18);const p=box(gx,gy,.34,TW*.14,'#d8744a');emS('🪴',p.c.x,p.c.y-TW*.22,TW*.5);break}
+ case'tree':{shadow(c.x,c.y+2,TW*.24);const p=box(gx,gy,.3,TW*.16,'#b8643c');emS('🌳',p.c.x,p.c.y-TW*.42+Math.sin(t*1.5+gx)*1,TW*.9);break}
+ case'lamp':{shadow(c.x,c.y+2,TW*.14);cx.fillStyle=OL;cx.fillRect(c.x-2.5,c.y-TW*.62,5,TW*.62);const gl=cx.createRadialGradient(c.x,c.y-TW*.7,2,c.x,c.y-TW*.7,TW*.6);gl.addColorStop(0,'rgba(255,220,140,'+(.45+.1*Math.sin(t*3))+')');gl.addColorStop(1,'rgba(255,220,140,0)');cx.fillStyle=gl;cx.beginPath();cx.arc(c.x,c.y-TW*.7,TW*.6,0,7);cx.fill();emS('🏮',c.x,c.y-TW*.72,TW*.42);break}
+ case'shelf':{shadow(c.x,c.y+2,TW*.34);box(gx,gy,.12,TW*.5,'#a8744a',{top:'#c8925e'});for(let r=0;r<2;r++)for(let q=0;q<3;q++){const u=(q+.5)/3,a=d%2?iso(gx+.12,gy+.12+u*.76):iso(gx+.12+u*.76,gy+.88);emS(['🥐','🍞','🐟'][(q+r)%3],a.x+(d%2?TW*.1:-TW*.04),a.y-TW*(.14+r*.18),TW*.2)}break}
+ case'tank':{shadow(c.x,c.y+2,TW*.3);box(gx,gy,.16,TW*.08,'#6a5a50');box(gx,gy,.18,TW*.36,'#9fd8f0',{z:TW*.08,top:'rgba(200,240,255,.9)',line:'#4a8aa8'});emS('🐠',c.x+Math.sin(t*1.2+gx)*TW*.14,c.y-TW*.28,TW*.22);emS('🐟',c.x-Math.sin(t*1.5)*TW*.1,c.y-TW*.18,TW*.16);break}
+ case'piano':{shadow(c.x,c.y+2,TW*.34);const p=box(gx,gy,.12,TW*.34,'#2e2a2e',{top:'#3e3a40',line:'#111'});const E=[[p.T,p.R],[p.L,p.T],[p.R,p.B],[p.B,p.L]][d];cx.strokeStyle='#fff';cx.lineWidth=TW*.07;cx.beginPath();cx.moveTo((E[0].x*3+p.c.x)/4,(E[0].y*3+p.c.y)/4);cx.lineTo((E[1].x*3+p.c.x)/4,(E[1].y*3+p.c.y)/4);cx.stroke();emS('🎵',p.c.x+Math.sin(t*2)*6,p.c.y-TW*.35-m2(t*20,14),TW*.18,.85);break}
+ case'rug':{const a1=F.c1||'#e06a6a',a2=F.c2||'#f6c070';poly([iso(gx+.06,gy+.06),iso(gx+.94,gy+.06),iso(gx+.94,gy+.94),iso(gx+.06,gy+.94)],a1,OL,lw);
+  if(F.chk){for(let i=0;i<4;i++)for(let j=0;j<4;j++)if((i+j)%2)poly([iso(gx+.06+i*.22,gy+.06+j*.22),iso(gx+.28+i*.22,gy+.06+j*.22),iso(gx+.28+i*.22,gy+.28+j*.22),iso(gx+.06+i*.22,gy+.28+j*.22)],a2)}
+  else poly([iso(gx+.22,gy+.22),iso(gx+.78,gy+.22),iso(gx+.78,gy+.78),iso(gx+.22,gy+.78)],a2);break}
+ case'bear':{shadow(c.x,c.y+2,TW*.16);emS('🧸',c.x,c.y-TW*.2,TW*.46);break}
+ case'throne':{shadow(c.x,c.y+2,TW*.32);if(d<2)panel(gx,gy,d,.14,TW*.16,TW*.46,'#d8304a');box(gx,gy,.16,TW*.16,'#e0b030',{top:'#f05060'});if(d>=2)panel(gx,gy,d,.14,TW*.16,TW*.2,'#d8304a');emS('👑',c.x,c.y-TW*.62,TW*.3);break}
+ case'stand':{shadow(c.x,c.y+2,TW*.18);cx.fillStyle=OL;cx.fillRect(c.x-TW*.16,c.y-TW*.2,3,TW*.2);cx.fillRect(c.x+TW*.14,c.y-TW*.2,3,TW*.2);rr(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44,8,'#fff3dc');cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.roundRect(c.x-TW*.24,c.y-TW*.62,TW*.48,TW*.44,8);cx.stroke();A.fish2(c.x,c.y-TW*.42,TW*.0042,'#f0b850',{plain:true});tx('붕어빵',c.x,c.y-TW*.26,Math.max(9,TW*.13),'#8a3a1a','center','#fff3dc');break}
+ /* ---- 세트 전용 모양 ---- */
+ case'board':{shadow(c.x,c.y+2,TW*.2);cx.strokeStyle=OL;cx.lineWidth=lw*1.4;cx.beginPath();cx.moveTo(c.x-TW*.18,c.y);cx.lineTo(c.x-TW*.1,c.y-TW*.66);cx.moveTo(c.x+TW*.18,c.y);cx.lineTo(c.x+TW*.1,c.y-TW*.66);cx.stroke();
+  const x0=c.x-TW*.25,y0=c.y-TW*.72,w=TW*.5,h=TW*.46;rr(x0,y0,w,h,6,'#2f4a3a');cx.strokeStyle='#a8744a';cx.lineWidth=lw*1.6;cx.beginPath();cx.roundRect(x0,y0,w,h,6);cx.stroke();
+  tx('오늘의',c.x,y0+h*.24,Math.max(8,TW*.1),'#fff','center','#2f4a3a');tx('커피 ☕',c.x,y0+h*.55,Math.max(9,TW*.12),'#ffe9a0','center','#2f4a3a');cx.strokeStyle='rgba(255,255,255,.5)';cx.lineWidth=1;cx.beginPath();cx.moveTo(x0+w*.2,y0+h*.8);cx.lineTo(x0+w*.8,y0+h*.8);cx.stroke();break}
+ case'pond':{const P=[iso(gx+.08,gy+.5),iso(gx+.5,gy+.08),iso(gx+.92,gy+.5),iso(gx+.5,gy+.92)];cx.fillStyle='#8a7a6a';cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.ellipse(c.x,c.y,TW*.44,TH*.44,0,0,7);cx.fill();cx.stroke();
+  const g=cx.createRadialGradient(c.x,c.y,2,c.x,c.y,TW*.4);g.addColorStop(0,'#bfe8ff');g.addColorStop(1,'#6ab0e0');cx.fillStyle=g;cx.beginPath();cx.ellipse(c.x,c.y,TW*.37,TH*.37,0,0,7);cx.fill();
+  cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=1.2;const rp=m2(t*.6,1);cx.globalAlpha=1-rp;cx.beginPath();cx.ellipse(c.x+TW*.08,c.y,TW*.08+rp*TW*.15,TH*.08+rp*TH*.15,0,0,7);cx.stroke();cx.globalAlpha=1;emS('🪷',c.x-TW*.1,c.y-TW*.06,TW*.26);emS('🪷',c.x+TW*.14,c.y+TW*.03,TW*.18);break}
+ case'fire':{shadow(c.x,c.y+2,TW*.32);const p=box(gx,gy,.14,TW*.46,'#c8664a',{top:'#8a4a3a'});const fx_=p.c.x,fy=p.c.y+TW*.12;rr(fx_-TW*.16,fy-TW*.12,TW*.32,TW*.24,TW*.1,'#2a1a14');
+  const g=cx.createRadialGradient(fx_,fy,2,fx_,fy,TW*.5);g.addColorStop(0,'rgba(255,170,60,'+(.5+.15*Math.sin(t*9))+')');g.addColorStop(1,'rgba(255,170,60,0)');cx.fillStyle=g;cx.beginPath();cx.arc(fx_,fy,TW*.5,0,7);cx.fill();
+  emS('🔥',fx_,fy-TW*.02+Math.sin(t*12)*1.2,TW*.24);emS('🧦',p.c.x-TW*.12,p.c.y-TW*.22,TW*.14);emS('🧦',p.c.x+TW*.12,p.c.y-TW*.22,TW*.14);break}
+ case'cushion':{shadow(c.x,c.y+2,TW*.28);cx.fillStyle='#e8a848';cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.ellipse(c.x,c.y-TW*.04,TW*.32,TH*.3,0,0,7);cx.fill();cx.stroke();
+  A.fish2(c.x,c.y-TW*.1,TW*.0048,'#f6c060',{plain:true});break}
+ case'cart':{shadow(c.x,c.y+2,TW*.34);const p=box(gx,gy,.14,TW*.3,'#c88a4e',{z:TW*.08});for(const q of [iso(gx+.2,gy+.85),iso(gx+.8,gy+.85),iso(gx+.85,gy+.2)]){cx.fillStyle='#5a4a40';cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.arc(q.x,q.y-TW*.06,TW*.09,0,7);cx.fill();cx.stroke()}
+  for(let i=0;i<3;i++)A.fish2(p.c.x-TW*.16+i*TW*.16,p.c.y-TW*.05,TW*.0028,'#f0b850',{plain:true});
+  const ty=p.c.y-TW*.62;for(let i=0;i<6;i++){cx.fillStyle=i%2?'#fff':'#e8584a';cx.fillRect(p.c.x-TW*.3+i*TW*.1,ty,TW*.1,TW*.1)}cx.strokeStyle=OL;cx.lineWidth=lw;cx.strokeRect(p.c.x-TW*.3,ty,TW*.6,TW*.1);cx.beginPath();cx.moveTo(p.c.x-TW*.28,ty+TW*.1);cx.lineTo(p.c.x-TW*.28,p.c.y-TW*.1);cx.moveTo(p.c.x+TW*.28,ty+TW*.1);cx.lineTo(p.c.x+TW*.28,p.c.y-TW*.1);cx.stroke();
+  for(let i=0;i<2;i++){const ph=m2(t*.8+i*.5,1);cx.fillStyle='rgba(255,255,255,'+(.5*(1-ph))+')';cx.beginPath();cx.ellipse(p.c.x-TW*.1+i*TW*.2,p.c.y-TW*.15-ph*TW*.3,3+ph*4,2+ph*3,0,0,7);cx.fill()}break}
+ case'fflag':{shadow(c.x,c.y+2,TW*.12);box(gx,gy,.38,TW*.06,'#8a7a6a');cx.fillStyle=OL;cx.fillRect(c.x-2,c.y-TW*1.05,4,TW*1.05);for(let i=0;i<3;i++){cx.save();cx.translate(c.x+TW*.16,c.y-TW*(.9-i*.22));cx.rotate(Math.sin(t*3+i)*.18);A.fish2(0,0,TW*.0034,['#ff8a6a','#ffcf3a','#6cc8ff'][i],{plain:true});cx.restore()}break}
+ case'statue':{shadow(c.x,c.y+2,TW*.3);const p=box(gx,gy,.2,TW*.26,'#b8b4ac',{top:'#d8d4cc'});const g=cx.createRadialGradient(p.c.x,p.c.y-TW*.4,2,p.c.x,p.c.y-TW*.4,TW*.6);g.addColorStop(0,'rgba(255,220,80,'+(.4+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,220,80,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.c.x,p.c.y-TW*.4,TW*.6,0,7);cx.fill();
+  A.fish2(p.c.x,p.c.y-TW*.38+Math.sin(t*1.6)*2,TW*.0075,'#ffcf3a',{glow:'rgba(255,220,80,.8)'});break}
  default:{const f=FK[it.k];if(!f||!f.emo)break;shadow(c.x,c.y+2,TW*.3);const h=TW*(f.tall||.1);const p=box(gx,gy,f.tall?.14:.3,h,f.b,f.glass?{top:'rgba(220,240,255,.85)'}:{});
-  if(f.pole){cx.fillStyle='#5a5048';cx.fillRect(c.x-2,c.y-TW*.9,4,TW*.9)}
+  if(f.pole){cx.fillStyle=OL;cx.fillRect(c.x-2,c.y-TW*.9,4,TW*.9)}
   if(f.glow){const g=cx.createRadialGradient(p.c.x,p.c.y-TW*.3,2,p.c.x,p.c.y-TW*.3,TW*.55);g.addColorStop(0,'rgba(255,230,150,'+(.4+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,230,150,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.c.x,p.c.y-TW*.3,TW*.55,0,7);cx.fill()}
-  const sway=f.tree||f.pole?Math.sin(t*1.5+gx)*1.2:0;em(f.e,p.c.x+sway,p.c.y-TW*f.z*.5-(f.pole?TW*.5:0)+(f.glass?TW*.12:0),TW*f.z)}
+  const sway=f.tree||f.pole?Math.sin(t*1.5+gx)*1.2:0;emS(f.e,p.c.x+sway,p.c.y-TW*f.z*.5-(f.pole?TW*.5:0)+(f.glass?TW*.12:0),TW*f.z)}
  }
  if(sel){cx.globalAlpha=.6+.4*Math.sin(t*6);poly([iso(gx,gy),iso(gx+1,gy),iso(gx+1,gy+1),iso(gx,gy+1)],null,'#ffc94a',3);cx.globalAlpha=1}}
+/* 꾸미기 카드용 작은 그림: 168×168 캔버스로 만든 ISO에서 불러요 (가구 하나를 타일 위에) */
+function thumb(k){const f=FK[k];if(!f)return'';const C=cx.canvas,S=C.width;cx.clearRect(0,0,S,S);
+ N=1;TW=Math.round(S*.6);TH=TW/2;WH=Math.round(TW*1.25);OX=S/2;OY=Math.round(S*.62);
+ drawItem({k,x:0,y:0,d:f.rot?1:0},0,false);
+ /* 그림이 있는 곳만 잘라서 카드에 꽉 차게 */
+ try{const D=cx.getImageData(0,0,S,S).data;let x0=S,y0=S,x1=-1,y1=-1;for(let y=0;y<S;y++)for(let x=0;x<S;x++)if(D[(y*S+x)*4+3]>10){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1<0)return C.toDataURL();const pd=4;x0=Math.max(0,x0-pd);y0=Math.max(0,y0-pd);x1=Math.min(S-1,x1+pd);y1=Math.min(S-1,y1+pd);const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(C,x0,y0,o.width,o.height,0,0,o.width,o.height);return o.toDataURL()}catch(e){return''}}
 /* ---------- 손님 (꾸밈용으로 걸어다녀요) ---------- */
 let cust=[],spawnT=1.5,nid=1,fx=[];const AN=BP2.R.an;
 function pathOut(){return[{x:N-.5,y:1.5},{x:N-.5,y:N-.5},{x:N+1.3,y:N-.5}]}
@@ -187,4 +251,4 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);poly([iso(g.x,g.y),iso(g.x+1,g.y),iso(g.x+1,g.y+1),iso(g.x,g.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{FUR,FK,ROOM,draw,tick,reset,toTile,inRoom,isPath,isCounter,canPlace,iso:(a,b)=>iso(a,b),get N(){return N}}};
+return{FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,tick,reset,toTile,inRoom,isPath,isCounter,canPlace,iso:(a,b)=>iso(a,b),get N(){return N}}};
