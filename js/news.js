@@ -4,6 +4,7 @@
 const NEWS=(()=>{
 const KEY='bpNewsSeen';
 const L=[
+ {v:'3.1',d:'10월 29일',t:['📲 웹에서는 첫 화면과 가게 화면에 앱 설치 버튼이 늘 보여요 · 새 소식은 최근 3개만 펼쳐 보여요']},
  {v:'3.0',d:'10월 29일',t:[
   '🏆 순위표: 30위 밖이어도 맨 아래에 내 순위와 위·아래 3명이 보여요. 단계를 넘길 때 보이는 내 순위도 정확한 숫자로 나와요',
   '⚡ 순위를 더 가볍게 불러와서 사람이 많아져도 순위표가 잘 버텨요']},
@@ -37,11 +38,16 @@ function open(){close();ov=document.createElement('div');ov.style.cssText='posit
  const c=document.createElement('div');c.style.cssText='background:#fff;border-radius:26px;width:100%;max-height:96%;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;text-align:left;color:#5a3a22';
  const h=document.createElement('div');h.style.cssText='font-size:26px;text-align:center;margin-bottom:8px';h.textContent='📢 새 소식';
  const b=document.createElement('div');b.style.cssText='overflow-y:auto;touch-action:pan-y;flex:1;min-height:0';
- L.forEach((n,i)=>{const s=document.createElement('div');s.style.cssText='background:'+(i===0?'#fff1b8':'#fff6e6')+';border-radius:16px;padding:10px 12px;margin-bottom:8px;font-size:15px;line-height:1.5';
+ /* 📲 앱 설치 칸은 웹에서 늘 맨 위에 (앱으로 열면 안 보여요) */
+ const I=typeof INSTALL!=='undefined'?INSTALL:null;let ap=null;if(I&&!I.standalone()){ap=document.createElement('button');ap.style.cssText='display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;border:0;border-radius:16px;padding:10px 12px;margin-bottom:10px;background:#d6f2e4;box-shadow:0 3px 0 #8fc8a8;font-family:inherit;color:#1f5a4a;text-align:left;cursor:pointer';
+  ap.innerHTML='<img src="img/icon-192.png" alt="" style="width:44px;height:44px;border-radius:12px"><span style="flex:1;font-size:15px;line-height:1.35"><b style="font-size:17px;font-weight:400">📲 앱으로 설치하기</b><br>홈 화면에서 바로 열어요 · 기록도 옮길 수 있어요</span><span style="font-size:20px">›</span>';ap.onclick=()=>{close();I.open()}}
+ const more=[];
+ L.forEach((n,i)=>{const s=document.createElement('div');if(i>=3){s.style.display='none';more.push(s)}s.style.cssText+=';background:'+(i===0?'#fff1b8':'#fff6e6')+';border-radius:16px;padding:10px 12px;margin-bottom:8px;font-size:15px;line-height:1.5';
   const t=document.createElement('b');t.style.cssText='display:block;font-size:17px;margin-bottom:2px';t.textContent=(i===0?'✨ ':'')+'v'+n.v+' · '+n.d;s.appendChild(t);
   n.t.forEach(x=>{const p=document.createElement('div');p.textContent='• '+x;s.appendChild(p)});b.appendChild(s)});
+ if(more.length){const mb=document.createElement('button');mb.textContent='🗂️ 지난 소식 더 보기 ('+more.length+'개)';mb.style.cssText='width:100%;height:42px;border:0;border-radius:14px;background:#fff6e6;color:#8a6a4a;font-family:inherit;font-size:15px;margin-bottom:6px';mb.onclick=()=>{more.forEach(m=>m.style.display='');mb.remove()};b.appendChild(mb)}
  const x=document.createElement('button');x.textContent='좋아요!';x.style.cssText='margin-top:10px;height:54px;font-size:21px;border:0;border-radius:18px;background:#ffc94a;box-shadow:0 4px 0 #d9a020;color:#5a3a22;font-family:inherit';x.onclick=close;
- c.append(h,b,x);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}
+ c.append(h,...(ap?[ap]:[]),b,x);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}
 function close(){if(ov){ov.remove();ov=null}}
 function seen(){try{localStorage.setItem(KEY,latest)}catch(e){}}
 /* isNew: 처음 온 사람은 띄우지 않고 '본 것'으로 */

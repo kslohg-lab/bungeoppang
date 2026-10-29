@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='2.5';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='3.1';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -282,6 +282,6 @@ addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeo
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();if(AC){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',pauseGame);
 window.__bp2={save,B,get run(){return run},get s(){return s},startRun,startDay,tap,drain,finishDay,get scr(){return scr}};
-$('snw').onclick=()=>{show('menu');NEWS.open()};INSTALL.bind($('sin'));$('sxf').onclick=()=>{show('menu');INSTALL.xfer()};
+$('snw').onclick=()=>{show('menu');NEWS.open()};INSTALL.bind($('sin'));INSTALL.bind($('mapp'));$('sxf').onclick=()=>{show('menu');INSTALL.xfer()};
 fit();renderMenu();show('menu');if(!save.nick){NEWS.check(true);openNick(true);INSTALL.nudge(false)}else if(showInvite()){}else if(oldRun){store();toast('규칙이 새로 바뀌어서 이번 판은 처음부터 해요')}else NEWS.check(false);INSTALL.nudge(!!save.nick);requestAnimationFrame(loop);
 })();
