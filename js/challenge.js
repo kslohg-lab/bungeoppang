@@ -78,9 +78,11 @@ $('rv1').onclick=()=>{if(!B.lateRevive(run)){toast('코인이 부족해요!');sn
 $('rv2').onclick=()=>ask($('rv2'),'⚠️ 정말 끝낼까요? 한 번 더!',()=>endRun(rvRes,'over'));
 /* 지금 내 순위 (순위표 위쪽 30명 안) */
 let lastRank='';
-function rankInto(id,pr,where){const lb=LB(),el=()=>$(id);if(!lb){if(el())el().textContent='';return}if(el())el().textContent=where==='over'?'🏆 순위 확인 중…':'🏆 …';
- Promise.resolve(pr).then(()=>{if(lb.bust)lb.bust();return lb.top(wid())}).then(rows=>{if(scr!==where)return;const i=rows.findIndex(r=>r.u===lb.uid);
-  lastRank=i<0?'30위 밖':(i+1)+'위'+(i<3?' '+['🥇','🥈','🥉'][i]:'');if(el())el().textContent='🏆 이번 주 '+lastRank}).catch(()=>{if(el())el().textContent=''})}
+const rkTxt=n=>n+'위'+(n<=3?' '+['🥇','🥈','🥉'][n-1]:'');
+const mySc=()=>save.sub&&save.sub.id===wid()?save.sub.stage*1000000000+save.sub.net:0;
+/* 내 순위: 순위표 전체 대신 '나보다 높은 사람 수'만 세요 (읽기 1번) */
+function rankInto(id,pr,where){const lb=LB(),el=()=>$(id);if(!lb||!lb.rank){if(el())el().textContent='';return}if(el())el().textContent=where==='over'?'🏆 순위 확인 중…':'🏆 …';
+ Promise.resolve(pr).then(()=>{const sc=mySc();if(!sc)throw 0;return lb.rank(wid(),sc)}).then(n=>{lastRank=rkTxt(n);if(scr!==where)return;if(el())el().textContent='🏆 이번 주 '+lastRank}).catch(()=>{if(el())el().textContent=''})}
 function sumHtml(res,kind){let h=(kind==='revive'?'🎫 <b>부활권을 썼어요!</b> 같은 날을 한 번 더 해요<br>':'')+'💰 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+(res.pass?' ✅':' ❌')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc;return h}
 let lastR=null;
 function goShop(res,kind){lastR=res;scr='shop';$('st').textContent=kind==='revive'?'🎫 한 번 더!':'🌙 '+(run.day-1)+'단계 통과!';$('ss').innerHTML=sumHtml(res,kind);renderShop();
@@ -156,7 +158,12 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='lr'+(r.u===me?' me':'');
   const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
   d.querySelector('.ln').textContent=r.n;d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)};L.appendChild(d)});
- const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명만 보여요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f)}
+ const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명이에요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f);
+ /* 30위 밖이면 내 순위 주변 (위·아래 3명) */
+ const sc=lbWk===0?mySc():0;if(rows.length>=30&&sc&&!rows.some(r=>r.u===me)&&lb.around){const h=document.createElement('p');h.className='ht';h.style.textAlign='center';h.textContent='⋯ 내 순위 주변 불러오는 중 ⋯';L.appendChild(h);
+  Promise.all([lb.rank(w,sc),lb.around(w,sc)]).then(([n,a])=>{if(scr==='game')return;h.innerHTML='<b>⋯ 내 순위 주변 ⋯</b>';lastRank=rkTxt(n);
+   const mk=(r,k,isMe)=>{const d=document.createElement('div');d.className='lr'+(isMe?' me':'');d.innerHTML='<b>'+k+'</b><span class="ln"></span><span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';d.querySelector('.ln').textContent=r.n;if(!isMe){d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)}}return d};
+   a.above.forEach((r,i)=>L.appendChild(mk(r,n-a.above.length+i,false)));L.appendChild(mk({n:save.nick,st:save.sub.stage,net:save.sub.net},n,true));a.below.forEach((r,i)=>L.appendChild(mk(r,n+1+i,false)))}).catch(()=>{h.textContent=''})}}
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
 /* 자랑하기: 그림 카드 + 링크 (js/share.js) */
@@ -167,7 +174,7 @@ function share(o){au();const wk=save.week.id===wid()?save.week:{stage:0,net:0},u
  const txt=st?'🔥 붕어빵 챌린지 이번 주 '+st+'단계'+(lastRank?' ('+lastRank+')':'')+'까지 갔어요! 내 기록 넘어 봐 😎':'🔥 붕어빵 챌린지 같이 해요! 이번 주 누가 제일 멀리 가는지 겨뤄요 🏆';
  if(!st){if(navigator.share){navigator.share({title:'붕어빵 챌린지',text:txt,url}).catch(()=>{});return}SHARE.copy(txt+'\n'+url).then(()=>toast('복사했어요! 카톡에 붙여넣기 하세요'));return}
  const go=()=>{const u=curl(),cv=SHARE.challenge({nick:save.nick||'붕어빵',stage:st,net,rank:lastRank,wk:wid(),url});SHARE.send(cv,txt.replace('단계(','단계 ('),u,'붕어빵 챌린지')};
- const lb=LB();if(lastRank||!lb){go();return}toast('카드 만드는 중…');Promise.race([lb.top(wid()),new Promise(r=>setTimeout(()=>r(null),2500))]).then(rows=>{if(rows){const i=rows.findIndex(r=>r.u===lb.uid);lastRank=i<0?'30위 밖':(i+1)+'위'+(i<3?' '+['🥇','🥈','🥉'][i]:'')}go()}).catch(go)}
+ const lb=LB();if(lastRank||!lb){go();return}toast('카드 만드는 중…');const sc=mySc();if(!sc||!lb.rank){go();return}Promise.race([lb.rank(wid(),sc),new Promise(r=>setTimeout(()=>r(null),2500))]).then(n=>{if(n)lastRank=rkTxt(n);go()}).catch(go)}
 function pauseGame(){if(scr!=='game'||!s||paused||s.ph!=='play')return;paused=true;$('pause').style.display='block'}
 function resumeGame(){if(!paused)return;paused=false;$('pause').style.display='none';last=0}
 $('home').onclick=pauseGame;$('p1').onclick=resumeGame;$('p2').onclick=()=>ask($('p2'),'⚠️ 판이 끝나요. 한 번 더!',giveUp);

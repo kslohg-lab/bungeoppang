@@ -93,6 +93,26 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
+    // 📊 운영자 통계용 접속 기록 (stats.html 에서 개수만 셈). 내 칸에만, p='c'(챌린지)/'s'(가게)
+    function okSeen(d) {
+      return d.keys().hasOnly(['p', 't']) && (d.p == 'c' || d.p == 's') && d.t == request.time;
+    }
+    match /stats_days/{d}/u/{uid} {
+      allow read: if true;
+      allow create, update: if mine(uid) && okSeen(request.resource.data);
+      allow delete: if false;
+    }
+    match /stats_new/{d}/u/{uid} {
+      allow read: if true;
+      allow create, update: if mine(uid) && okSeen(request.resource.data);
+      allow delete: if false;
+    }
+    match /stats_live/{uid} {
+      allow read: if true;
+      allow create, update: if mine(uid) && okSeen(request.resource.data);
+      allow delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
