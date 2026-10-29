@@ -5,7 +5,7 @@ const BIZ=(()=>{
 const B=typeof BP2!=='undefined'?BP2:require('./sim.js'),R=B.R;
 const CAP_H=8,TAX=.1,BPC=1.6; /* BPC: 손님 한 명이 사는 붕어빵 수(평균) */
 const STAFF=[
- {k:'bake',n:'굽기 알바',e:'🍞',an:'🐻',d:'붕어빵을 대신 구워요'},
+ {k:'bake',n:'굽기 알바',e:'🍞',an:'🐶',d:'붕어빵을 대신 구워요'},
  {k:'serve',n:'계산 알바',e:'🧾',an:'🐰',d:'손님 주문을 받고 계산해요'},
  {k:'promo',n:'홍보 알바',e:'📣',an:'🦊',d:'전단지를 돌려 손님을 불러와요'},
  {k:'barista',n:'바리스타',e:'☕',an:'🐼',d:'음료를 만들어요',cafe:1}];
