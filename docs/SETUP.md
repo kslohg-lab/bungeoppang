@@ -15,6 +15,10 @@ verify.html       운영자용 기록 검증 (순위표 위쪽 30명을 다시 �
 og.jpg            카톡 미리보기 사진 (1200×630)
 js/share.js       자랑 카드 만들기·공유 (챌린지·가게)
 js/news.js        📢 새 소식(패치 노트). 업데이트할 때 맨 위에 항목 추가
+js/install.js     📲 앱으로 설치(홈 화면에 추가) 안내 + 서비스 워커 등록
+manifest.webmanifest  앱 이름·아이콘 (이름: 붕어빵 가게)
+sw.js             서비스 워커: 항상 새 파일 먼저, 인터넷 끊기면 저장본
+img/icon-*.png    앱 아이콘 (192·512), img/apple-touch-icon.png (아이폰)
 js/filter.js      닉네임·가게 이름 욕설 거르기 (규칙 파일 clean()과 같은 목록)
 img/              AI 일러스트 (손님 an_*.webp, 사장님 cook*.webp)
 js/sim.js         굽기 엔진 (가게·챌린지가 함께 씀, 한 벌만!)

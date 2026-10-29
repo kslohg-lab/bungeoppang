@@ -264,6 +264,6 @@ addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeo
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();if(AC){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',pauseGame);
 window.__bp2={save,B,get run(){return run},get s(){return s},startRun,startDay,tap,drain,finishDay,get scr(){return scr}};
-$('snw').onclick=()=>{show('menu');NEWS.open()};
+$('snw').onclick=()=>{show('menu');NEWS.open()};INSTALL.bind($('sin'));
 fit();renderMenu();show('menu');if(!save.nick){NEWS.check(true);openNick(true)}else if(showInvite()){}else if(oldRun){store();toast('규칙이 새로 바뀌어서 이번 판은 처음부터 해요')}else NEWS.check(false);requestAnimationFrame(loop);
 })();

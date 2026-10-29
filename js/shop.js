@@ -379,7 +379,7 @@ function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵
 $('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst&&!save.tour)setTimeout(startTour,300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 $('sn').onclick=()=>{save.snd=!save.snd;store();$('sn').textContent=save.snd?'🔊 소리 켜짐':'🔇 소리 꺼짐'};
-$('sr').onclick=()=>openName(false);$('snw').onclick=()=>{show('hm');NEWS.open()};$('sc').onclick=()=>show('hm');
+$('sr').onclick=()=>openName(false);$('snw').onclick=()=>{show('hm');NEWS.open()};INSTALL.bind($('sin'));$('sc').onclick=()=>show('hm');
 $('rst').onclick=()=>ask($('rst'),'⚠️ 가게가 모두 사라져요! 한 번 더',()=>{const sn=save.snd;save=DEF();save.snd=sn;store();openName(true);toast('모두 지웠어요')});
 $('h1').onclick=()=>{au();if(BIZ.cafeOn(save))bzShow('🙋','어디를 도와줄까요?','<p style="text-align:center;margin:0">🐟 붕어빵: 틀에 넣고 뒤집어 굽기<br>☕ 음료: 컵 고르고 꾹 눌러 붓기</p>','🐟 붕어빵 굽기',()=>startDay(),'☕ 음료 만들기',()=>startCafe());else startDay()};$('h2').onclick=()=>{au();openDeco('home')};$('h3').onclick=()=>{au();openUp('home',0)};$('h4').onclick=()=>{au();renderCol();show('col')};
 const ckLabel=()=>{$('sck').textContent='🧑‍🍳 사장님: '+COOKS[save.cook|0].n+' (눌러서 바꾸기)'};

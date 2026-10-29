@@ -14,6 +14,12 @@
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#ffd9a0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="붕어빵 가게">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐟%3C/text%3E%3C/svg%3E">
 <style>
 :root{--bg:#fff1dc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -97,7 +103,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
  <div id="up" class="ov sh"><div class="card" style="top:14px;height:772px;padding:12px"><h2 id="ut" style="margin:0 0 4px;font-size:26px">💼 경영</h2><div id="utabs" class="rtabs" style="margin-bottom:6px"><button id="ut0">👥 직원</button><button id="ut1">🏠 가게</button><button id="ut3">☕ 카페</button><button id="ut2">🔥 굽기</button></div><div id="uw" style="margin-bottom:6px"></div><div id="um" class="sum" style="text-align:center"></div><div id="shl"></div><button id="ux" class="big" style="height:54px;margin-top:6px">✔ 돌아가기</button></div></div>
  <div id="res" class="ov sh"><div class="card" style="top:30px;padding:16px"><h2 id="rt"></h2><div id="rb" style="font-size:17px;line-height:1.5;text-align:left"></div><div style="display:flex;gap:8px"><button id="r1" class="big" style="flex:1.5">▶ 또 도와주기</button><button id="r4" class="big sm" style="flex:1;margin-top:10px;height:58px">🏠 가게로</button></div><div class="hmb"><button id="r2" style="height:48px;font-size:18px">🎨 꾸미기</button><button id="r3" style="height:48px;font-size:18px">💼 경영</button></div></div></div>
  <div id="pause" class="ov sh"><div class="card" style="top:200px"><h2>⏸️ 잠깐 멈췄어요</h2><button id="p1" class="big">▶ 계속하기</button><button id="p2" class="big sm">🏁 그만 도와주기 (지금까지 정산)</button></div></div>
- <div id="set" class="ov sh"><div class="card" style="top:150px"><h2>⚙️ 설정</h2><button id="sn" class="big sm"></button><button id="sr" class="big sm">✏️ 가게 이름 바꾸기</button><button id="sck" class="big sm"></button><button id="snw" class="big sm">📢 새 소식</button><button id="rst" class="big sm">🗑️ 저장 데이터 지우기</button><button id="sc" class="big sm">닫기</button></div></div>
+ <div id="set" class="ov sh"><div class="card" style="top:150px"><h2>⚙️ 설정</h2><button id="sn" class="big sm"></button><button id="sr" class="big sm">✏️ 가게 이름 바꾸기</button><button id="sck" class="big sm"></button><button id="sin" class="big sm">📲 앱으로 설치</button><button id="snw" class="big sm">📢 새 소식</button><button id="rst" class="big sm">🗑️ 저장 데이터 지우기</button><button id="sc" class="big sm">닫기</button></div></div>
  <div id="col" class="ov sh"><div class="card" style="top:24px;height:752px;padding:14px"><h2 style="margin:0 0 6px;font-size:26px">📖 도감 · ⭐</h2><div id="cb" style="height:630px;overflow-y:auto;touch-action:pan-y;text-align:left"></div><button id="cx" class="big sm" style="margin-top:6px;height:48px">닫기</button></div></div>
  <div id="nm" class="ov sh"><div class="card" style="top:140px"><div style="font-size:60px">🏪</div><h2 id="nmh" style="font-size:24px"></h2><input id="nmi" maxlength="8" autocomplete="off" spellcheck="false" placeholder="가게 이름 (8글자까지)"><div id="nme" class="err"></div><p style="font-size:14px;margin:4px 0 0;opacity:.75">간판에 이 이름이 걸려요. 나중에 바꿀 수 있어요.</p><button id="nm1" class="big">✅ 이걸로 열어요</button><button id="nmx" class="big sm">취소</button></div></div>
  <div id="rk" class="ov sh"><div class="card" style="top:24px;height:752px;padding:14px"><h2 style="margin:0 0 6px;font-size:26px">🏘️ 가게 순위</h2><div class="rtabs"><button id="rk0" class="on">✨ 꾸미기 점수</button><button id="rk1">❤️ 인기</button></div><div id="rkh" class="ht" style="text-align:center;margin:4px 0 6px"></div><div id="rkl"></div><div style="display:flex;gap:8px;margin-top:6px"><button id="rkr" class="big sm" style="width:35%;height:48px;margin:0">🔄</button><button id="rkx" class="big sm" style="flex:1;height:48px;margin:0">닫기</button></div></div></div>
@@ -114,7 +120,8 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 <script src="js/share.js?v=2"></script>
 <script src="js/biz.js?v=2"></script>
 <script src="js/cafe.js?v=1"></script>
-<script src="js/news.js?v=2"></script>
-<script src="js/shop.js?v=15"></script>
+<script src="js/news.js?v=3"></script>
+<script src="js/install.js?v=1"></script>
+<script src="js/shop.js?v=16"></script>
 <script type="module" src="js/net.js?v=1"></script>
 </body></html>
