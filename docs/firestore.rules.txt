@@ -93,6 +93,17 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
+    // 🚚 옮기기 완료 표시: 받는 쪽이 남기면 보낸 쪽이 자기 기록을 잠가요 ({번호}_{보낸 사람})
+    match /xfer_done/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null
+        && id.matches('[0-9]{6}_[A-Za-z0-9]{10,40}')
+        && request.resource.data.keys().hasOnly(['t'])
+        && request.resource.data.t == request.time;
+      allow update, delete: if false;
+    }
+
     // 📊 운영자 통계용 접속 기록 (stats.html 에서 개수만 셈). 내 칸에만, p='c'(챌린지)/'s'(가게)
     function okSeen(d) {
       return d.keys().hasOnly(['p', 't']) && (d.p == 'c' || d.p == 's') && d.t == request.time;
