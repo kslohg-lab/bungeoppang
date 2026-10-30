@@ -13,11 +13,13 @@ const LIT=[{n:'없음',e:'➖',p:0,g:0},{n:'전구줄',e:'💡',p:3200,g:1},{n:'
 const SKY=[{n:'맑은 낮',e:'☀️',p:0,g:0},{n:'노을',e:'🌇',p:3000,g:0},{n:'별밤',e:'🌙',p:10500,g:1},{n:'눈 내리는 거리',e:'❄️',p:36000,g:2},{n:'벚꽃 거리',e:'🌸',p:72000,g:3},{n:'단풍 거리',e:'🍁',p:72000,g:3},{n:'오로라 밤',e:'🌌',p:250000,g:5},{n:'무지개 낮',e:'🌈',p:0,g:0,st:40}];
 const TOP=[{n:'없음',e:'➖',p:0,g:0},{n:'잉어 깃발 줄',e:'🎏',p:2000,g:0},{n:'풍선 아치',e:'🎈',p:6500,g:1},{n:'대형 붕어 조형물',e:'🐟',p:24000,g:2},{n:'LED 전광판',e:'🪧',p:60000,g:3},{n:'황금 왕관 장식',e:'👑',p:200000,g:4},{n:'불꽃놀이',e:'🎆',p:450000,g:5}];
 const MSH=[{n:'붕어 틀',e:'🐟',p:0,g:0},{n:'동그라미 틀',e:'⚪',p:800,g:0},{n:'네모 틀',e:'🟧',p:1500,g:0},{n:'세모 틀',e:'🔺',p:2600,g:1},{n:'하트 틀',e:'💗',p:6000,g:1},{n:'별 틀',e:'⭐',p:14000,g:2},{n:'곰돌이 틀',e:'🐻',p:38000,g:3},{n:'구름 틀',e:'☁️',p:90000,g:4},{n:'왕관 틀',e:'👑',p:240000,g:5}];
-const SLOTS=[{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
+/* 🏠 외관 스킨: 붕어빵 거리에서 보이는 가게 겉모습 (그림은 street.js) */
+const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000,g:1},{n:'통나무 오두막',e:'🪵',p:150000,g:2},{n:'한옥',e:'🏯',p:350000,g:3},{n:'카페 테라스',e:'☕',p:700000,g:4},{n:'과자집',e:'🍭',p:1300000,g:5},{n:'성',e:'🏰',p:2500000,g:6}];
+const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
 /* ---------- 저장 ---------- */
-const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4,st:{bake:1,serve:1,promo:0},bought:[]});
+const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{skin:[0],shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{skin:0,shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4,st:{bake:1,serve:1,promo:0},bought:[]});
 let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);if(!save.st||typeof save.st!=='object')save.st=DEF().st;if(!Array.isArray(save.bought))save.bought=[];save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!save.dexS)save.dexS={}}}catch(e){}
 const store=()=>{if(window.__noStore)return;/* 기록 옮겨 받는 중엔 덮어쓰지 않기 */try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}};
 /* 처음 가구: 새 가게(또는 업데이트 전 가게)에 탁자·의자 2개·화분을 놓아 드려요 */
@@ -41,7 +43,7 @@ const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
 /* ---------- 상태 ---------- */
 let scr='home',paused=false,acc=0,last=0,run=null,s=null,ui={ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0},prev=null,dtab=0,goals=[],bg=null;
 const walk=[0,1,2,3].map(i=>({off:i*131,sp:22+i*7,an:R.an[(i*3+1)%12]}));
-const show=n=>{['hm','dc','up','res','pause','set','col','nm','rk','vs','led'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home2').style.display=scr==='game'||scr==='cafe'?'block':'none'};
+const show=n=>{['hm','dc','up','res','pause','set','col','nm','rk','vs','led','stv'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home2').style.display=scr==='game'||scr==='cafe'?'block':'none'};
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1800)}
 const esc=t=>String(t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 function ask(btn,label,fn){if(btn.dataset.a!=='1'){btn.dataset.a='1';btn.dataset.o=btn.textContent;btn.textContent=label;setTimeout(()=>{if(btn.dataset.a==='1'){btn.dataset.a='0';btn.textContent=btn.dataset.o}},3000)}else{btn.dataset.a='0';btn.textContent=btn.dataset.o;fn()}}
@@ -172,6 +174,7 @@ function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se=
 function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
+ if(deco&&dtabK()==='skin'){SV.preview(t,myD(prev),0,H-DPH+30);return}
  if(deco){const lk=look(prev);lk.staff={};IS.draw(t,lk,save.fur,{top:56,bottom:H-DPH,edit:dtabK()==='fur',sel:dsel,ghost:dghost,noCust:true});
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
  else{IS.draw(t,look(null),save.fur,{top:64,bottom:518});const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
@@ -303,7 +306,7 @@ $('l1').onclick=()=>openUp('led',0);$('lx').onclick=()=>toHome();$('biz').onclic
 let dback='home',dsel=null,dpick=null,dghost=null;
 /* 꾸미기 탭 4개: 가구 / 벽·바닥 / 간판·장식 / 넓히기 (벽·바닥·장식은 아래 작은 칸으로 고르기) */
 const DPH=324; /* 꾸미기 아래 판 높이 */
-const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 간판·장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'room',n:'📐 넓히기'}];
+const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'skin',n:'🏠 외관',sl:['skin']},{k:'room',n:'📐 넓히기'}];
 let dsub=0,fcat=0;
 const FCAT=[{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'}];
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
@@ -369,14 +372,14 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room
  const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};save.fur.push(nw);dsel=nw;store();snd('win');if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+IS.SET_BONUS);snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
 /* 가게 화면 손가락: 움직이면 끌어서 둘러보기, 제자리에서 떼면 톡(꾸미기에서 놓기·고르기) */
 let drg=null;const cvPt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}};
-const panScr=()=>scr==='home'||scr==='deco'||scr==='visit';
+const panScr=()=>scr==='home'||scr==='deco'||scr==='visit'||scr==='street';
 cv.addEventListener('pointerdown',e=>{if(!panScr())return;e.preventDefault();const p=cvPt(e);if(scr==='deco'&&(p.y>H-DPH||p.y<56))return;drg={id:e.pointerId,x:p.x,y:p.y,lx:p.x,ly:p.y,mv:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
-cv.addEventListener('pointermove',e=>{if(!drg||e.pointerId!==drg.id)return;const p=cvPt(e);if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv&&IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly);drg.lx=p.x;drg.ly=p.y});
-const endDrg=(e,ok)=>{if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y)};
+cv.addEventListener('pointermove',e=>{if(!drg||e.pointerId!==drg.id)return;const p=cvPt(e);if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv){if(scr==='street')stCam-=p.x-drg.lx;else if(IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly)}drg.lx=p.x;drg.ly=p.y});
+const endDrg=(e,ok)=>{if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
 cv.addEventListener('pointerup',e=>endDrg(e,true));cv.addEventListener('pointercancel',e=>endDrg(e,false));
 /* 🔍 전체 보기 ↔ 원래 크기 (큰 가게일 때만 보여요) */
 $('zf').onclick=()=>{IS.fit=!IS.fit;snd('tap');zfSync()};
-let zfK='';function zfSync(){const b=$('zf'),on=panScr()&&!(scr==='home'&&$('hm').style.display!=='block')&&(IS.canPan()||IS.fit),k=on?scr+IS.fit:'';if(k===zfK)return;zfK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:470)+'px'}
+let zfK='';function zfSync(){const b=$('zf'),on=panScr()&&scr!=='street'&&!(scr==='deco'&&dtabK()==='skin')&&!(scr==='home'&&$('hm').style.display!=='block')&&(IS.canPan()||IS.fit),k=on?scr+IS.fit+dtabK():'';if(k===zfK)return;zfK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:470)+'px'}
 $('dx').onclick=()=>{prev=null;dsel=null;dpick=null;syncShop();bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1];let h='<span class="pill">⭐ '+save.stars+'</span><span class="pill">'+GR[g].e+' '+GR[g].n+'</span><span class="pill">📖 '+Object.keys(save.dex).length+'/'+R.an.length+'</span>';
@@ -424,7 +427,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
-function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0}),fur:(save.fur||[]).slice(0,64).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
+function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0}),fur:(save.fur||[]).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
 function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(()=>{save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
@@ -448,7 +451,7 @@ function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();
   $('vmk').style.display=save.name?'none':'block';
   if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게'}else N.liked(uid).then(l=>{if(l){$('vlk').className='done';$('vlk').textContent='❤️ 눌렀어요'}}).catch(()=>{})}).catch(()=>{toast('불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
 function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
-function leaveVisit(){vd=null;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='rk'){openRank()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
+function leaveVisit(){vd=null;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='street'){openStreet()}else if(vFrom==='rk'){openRank()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
 $('vmk1').onclick=()=>{vFrom='home';leaveVisit()};
 /* 📤 내 가게 자랑: 가게 모습을 크게 다시 그려 카드로 */
@@ -470,12 +473,33 @@ function endTour(){document.querySelectorAll('.hl').forEach(e=>e.classList.remov
 $('tnx').onclick=()=>{if(ti>=TOUR.length){endTour();openDeco('home');toast('🪑 아래에서 가구를 고르고 바닥을 톡!');return}ti++;tourShow()};
 $('tsk').onclick=()=>endTour();
 /* ---------- 반복 ---------- */
+/* ---------- 🐟 붕어빵 거리 ---------- */
+const SV=STREET(cx,A);
+const myD=pv=>({room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
+const dD=r=>{const e=r.eq||{};return{room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
+let stRows=null,stCam=0,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpStreet',ST_MAX=5;
+const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
+function stBuild(){const rows=stRows||[],me={d:myD(null),me:true,u:'me'};const lo=rows.filter(r=>r.sc<=(r.ref|0)).sort((a,b)=>a.sc-b.sc),hi=rows.filter(r=>r.sc>(r.ref|0)).sort((a,b)=>a.sc-b.sc);
+ stList=[...lo.map(r=>({d:dD(r),u:r.u})),me,...hi.map(r=>({d:dD(r),u:r.u}))];const S=SV.scene;let x=0,mi=0;stList.forEach((it,i)=>{const w=(it.d.room<=4?96:SV.size(it.d.room).w)+58;if(it.me)mi=x+w/2;x+=w});stCam=mi-W/2}
+function stLeft(){const c=lsJ(ST_KEY+'N')||{};return c.d===dayKey()?Math.max(0,ST_MAX-(c.n|0)):ST_MAX}
+function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러봐요');const b=$('str'),n=stLeft();b.textContent='🔄 다른 거리 ('+n+')';b.className=n>0&&!stLoad?'':'dis'}
+function loadStreet(force){const c=lsJ(ST_KEY);if(!force&&c&&c.d===dayKey()&&Array.isArray(c.rows)){stRows=c.rows;stMsg='';stBuild();stUI();return}
+ if(force){if(stLeft()<=0){toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}}
+ stLoad=true;stUI();const sc=Math.min(3000000,decoScore());
+ whenNet(N=>{if(!N.near){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.near(sc,force,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(force){const c=lsJ(ST_KEY+'N')||{};lsJ(ST_KEY+'N',{d:dayKey(),n:(c.d===dayKey()?c.n|0:0)+1})}if(scr==='street'){stBuild();stUI()}})
+  .catch(e=>{console.warn('street',e&&e.code||e);stLoad=false;stMsg='이웃을 불러오지 못했어요';if(!stRows)stRows=[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
+function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet(false);stUI()}
+function drawStreet(t,dt){const tot=stList.reduce((a,it)=>a+(it.d.room<=4?96:SV.size(it.d.room).w)+58,0);stCam=tot<W?(tot-W)/2:Math.max(-60,Math.min(tot-W+60,stCam));
+ const r=SV.scene(t,stList,stCam,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
+function stTap(x,y){const h=stHits.find(q=>x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1);if(!h)return;const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}
+$('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');toHome()};$('str').onclick=()=>{if($('str').className==='dis'){if(stLeft()<=0)toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}snd('tap');loadStreet(true)};
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
  if(window.__gal){window.__gal(t);requestAnimationFrame(loop);return}
  if(scr==='game'&&s){if(!paused){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain();if(s.done)break}
   A.tickFx(dt);
   if(s.done){drawGame();finishDay();requestAnimationFrame(loop);return}}drawGame()}
  else if(scr==='cafe'){if(!paused)CF.step(dt);CF.draw(t);if(CF.done){finishCafe()}}
+ else if(scr==='street'){drawStreet(t,dt)}
  else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd);IS.tick(dt,vfur,1);IS.draw(t,lk,vfur,{top:60,bottom:640})}}
  else{IS.tick(dt,save.fur,1);drawHome(t,scr==='deco')}
  zfSync();requestAnimationFrame(loop)}

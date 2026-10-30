@@ -56,9 +56,9 @@ service cloud.firestore {
         && d.g is int && d.g >= 0 && d.g <= 6
         && d.sc is int && d.sc >= 0 && d.sc <= 3000000
         && d.lk is int && d.lk >= 0
-        && d.room is int && d.room >= 4 && d.room <= 8
+        && d.room is int && d.room >= 4 && d.room <= 10
         && d.eq is map && d.eq.size() <= 16
-        && d.fur is list && d.fur.size() <= 64
+        && d.fur is list && d.fur.size() <= 120
         && d.ts == request.time;
     }
     match /shops/{uid} {

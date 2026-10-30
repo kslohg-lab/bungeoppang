@@ -8,7 +8,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
    const [{initializeApp},{getAuth,signInAnonymously},F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
-   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment}=F;
+   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where}=F;
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
    let authP=null;const login=()=>authP||(authP=signInAnonymously(auth).then(c=>c.user.uid).catch(e=>{authP=null;throw e}));
    const cache=new Map();
@@ -20,6 +20,11 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const snap=await getDocs(query(collection(db,'shops'),orderBy(by==='lk'?'lk':'sc','desc'),limit(36)));
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
      const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(seen.has(k))continue;seen.add(k);v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
+    /* 🐟 붕어빵 거리 이웃: 꾸미기 점수가 비슷한 가게 위·아래 3곳씩 (읽기 8번). rnd면 점수 기준을 흔들어 다른 거리 */
+    async near(sc,rnd,me){const uid=await login().catch(()=>null);const ref=Math.round(rnd?sc*(.5+Math.random()):sc),col=collection(db,'shops');
+     const [a,b]=await Promise.all([getDocs(query(col,where('sc','>',ref),orderBy('sc','asc'),limit(4))),getDocs(query(col,where('sc','<=',ref),orderBy('sc','desc'),limit(4)))]);
+     const seen=new Set(me?[me]:[]),pick=(ds)=>{const o=[];for(const x of ds){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(x.id===uid||seen.has(k))continue;seen.add(k);o.push({u:x.id,n:d.n,nk:d.nk,g:d.g|0,sc:d.sc|0,room:d.room|0,eq:d.eq||{},ref});if(o.length>=3)break}return o};
+     return[...pick(b.docs),...pick(a.docs)]},
     async get(uid){const s=await getDoc(doc(db,'shops',uid));return s.exists()?s.data():null},
     async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()},
     async like(uid){const me=await login();N.uid=me;if(me===uid)return false;const b=writeBatch(db);
