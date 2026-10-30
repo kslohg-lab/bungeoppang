@@ -28,7 +28,9 @@ function css(k,v){const h='html[data-th="'+k+'"] ';return[
  h+'#menu{background:'+v.menu+'}',h+'#toast{background:'+v.tbg+';color:'+v.ttx+'}',
  h+'.thc{background:'+v.cd+'!important;color:'+v.tx+'!important}',h+'.ths{background:'+v.so+'!important;color:'+v.tx+'!important}',h+'.thh{background:'+v.hi+'!important;color:'+v.tx+'!important}',
  h+'.thb{background:'+v.cd+'!important;color:'+v.tx+'!important;box-shadow:0 4px 0 '+v.sh+'!important}',
- h+'.nk div{background:'+v.so+'}',h+'.nk div.on{background:'+v.hi+'}',
+ h+'.nk div{background:'+v.so+'}',
+ /* 새 UI 칸들 */
+ h+'.flow,'+h+'.prc,'+h+'.uc,'+h+'.srow,'+h+'.cur,'+h+'.lgb,'+h+'.gl3 div,'+h+'.chip{background:'+v.so+'}',h+'.flow .nd,'+h+'.inf{background:'+v.cd+';color:'+v.tx+'}',h+'.seg{background:'+v.so2+'}',h+'.uc.hot,'+h+'.flow .nd.red{background:'+v.hi+'}',h+'.gl3 div.ok,'+h+'.chip.ok{background:'+v.eq+';color:'+v.tx+'}',h+'.nx{border-color:'+v.so2+'}',h+'.dots i{background:'+v.so2+'}',h+'.lbar{background:'+v.so2+'}',h+'.hero{background:'+v.so+'}',h+'.more{background:transparent;box-shadow:none}',h+'.seg button{background:transparent;box-shadow:none}',h+'.seg button.on{background:#ffc94a;color:#4a3010}',h+'.ub{background:#ffc94a;box-shadow:0 3px 0 #d9a020;color:#4a3010}',h+'.ub.no{background:'+v.so2+';box-shadow:0 3px 0 '+v.sh+';color:#8a8a8a}',h+'.ub.done{background:'+v.eq+';box-shadow:0 3px 0 '+v.sh+';color:'+v.tx+'}',h+'.nk div.on{background:'+v.hi+'}',
  /* 연한 색 버튼(초록·분홍·노랑)은 바탕을 그대로 두고 글자만 진하게 */
  h+'#biz,'+h+'#happ,'+h+'#nbs,'+h+'#nst,'+h+'#str,'+h+'#vlk,'+h+'.big.alt,'+h+'#bk,'+h+'.debt{color:#4a3010}',
  h+'[data-thb]{box-shadow:0 3px 0 '+v.sh+'}'].join('\n')}

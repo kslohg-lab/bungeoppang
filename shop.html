@@ -61,6 +61,39 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 #nst{position:absolute;right:10px;top:470px;border-radius:19px;height:40px;padding:0 12px;font-size:16px;z-index:2;background:#ffe1ec;box-shadow:0 3px 0 #e8a8bc}
 #sttop{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:8px;align-items:center;pointer-events:auto}#stx{height:42px;padding:0 14px;font-size:17px}#stnm{flex:1;background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;font-size:19px;text-align:center}
 #stbot{position:absolute;left:14px;right:14px;bottom:20px;background:rgba(255,255,255,.95);border-radius:22px;padding:12px;display:flex;gap:10px;align-items:center;pointer-events:auto}#stinfo{flex:1;font-size:15px;line-height:1.45}#str{height:52px;padding:0 14px;font-size:17px;background:#ffe1ec;box-shadow:0 4px 0 #e8a8bc}#str.dis{opacity:.5}
+/* ---- 새 UI (경영·장부·결과·도감): 글 대신 숫자·아이콘·카드 ---- */
+.flow{display:flex;align-items:center;justify-content:space-between;background:#fff6e6;border-radius:16px;padding:8px 10px}
+.flow .nd{width:96px;height:54px;border-radius:12px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1.05;position:relative}.flow .nd b{font-size:18px;font-weight:400}.flow .nd small{font-size:10px;opacity:.6}
+.flow .nd.red{box-shadow:0 0 0 3px #ff7a5a;background:#ffe9e2}.flow .nd.red:after{content:'👆';position:absolute;bottom:-17px;font-size:16px}.flow .ar{font-size:15px;opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0 2px}.chip{display:inline-flex;align-items:center;gap:3px;background:#fff6e6;border-radius:10px;padding:3px 8px;font-size:13px;line-height:1.2}.chip.red{background:#ffe2da;color:#b03a20}.chip.ok{background:#dff5e3;color:#2a6a3a}
+.prc{position:relative;background:#fff6e6;border-radius:16px;padding:8px 10px;margin-top:14px}.prc .pt{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}.prc .pt b{font-size:19px;font-weight:400;color:#2a8a4a}.prc .pt b.neg{color:#d04a3a}
+.seg{display:flex;gap:3px;background:#f1e2c8;border-radius:13px;padding:3px;margin-top:5px}.seg button{flex:1;height:auto;padding:3px 0 2px;border-radius:10px;background:transparent;box-shadow:none;font-size:19px;line-height:1.05}.seg button small{display:block;font-size:10px;opacity:.75}.seg button i{display:block;font-style:normal;font-size:10px;color:#9a7a5a}.seg button i.dn{color:#d04a3a}.seg button i.up{color:#2a8a4a}
+.seg button.on{background:#ffc94a;box-shadow:0 2px 0 #d9a020;color:#4a3010}.seg button:active{transform:none}
+.gr2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:8px}
+.uc{background:#fff6e6;border-radius:16px;padding:8px 6px 7px;position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.uc.hot{box-shadow:0 0 0 3px #ff7a5a;background:#fff1ea}.uc.hot:before{content:'👆';position:absolute;top:-11px;right:-3px;font-size:20px}.uc.lk>*:not(.ub):not(.inf){opacity:.5}
+.uc .av{font-size:34px;line-height:1.05}.uc .nm{font-size:15px;margin-top:1px;white-space:nowrap;overflow:hidden;max-width:100%}.uc .st{font-size:13px;margin:2px 0 5px;line-height:1.25;min-height:16px}.uc .st b{color:#2a8a4a;font-weight:400}
+.gr3 .uc .av{font-size:30px}.gr3 .uc .nm{font-size:13px}
+.dots{display:flex;gap:2px;margin:3px 0 1px;flex-wrap:wrap;justify-content:center}.dots i{width:7px;height:7px;border-radius:50%;background:#e6d2b2}.dots i.f{background:#ffb02a}
+.stars{color:#ffb02a;font-size:14px;letter-spacing:1px}.stars s{color:#e6d2b2;text-decoration:none}
+.ub{width:100%;height:36px;border-radius:11px;background:#ffc94a;box-shadow:0 3px 0 #d9a020;font-size:14px;padding:0;color:#4a3010}.ub.no{background:#eee;box-shadow:0 3px 0 #d8d8d8;color:#aaa}.ub.done{background:#dff5e3;box-shadow:0 3px 0 #a8d8a8;color:#2a6a3a}
+.inf{position:absolute;top:5px;left:6px;width:20px;height:20px;border-radius:50%;background:#fff;font-size:11px;font-style:normal;display:flex;align-items:center;justify-content:center;color:#a08060;box-shadow:0 1px 0 #e0c4a0;cursor:pointer}
+.warn{position:absolute;top:4px;right:6px;font-size:15px}
+.srow{display:flex;justify-content:space-around;background:#fff6e6;border-radius:14px;padding:6px 8px;text-align:center;font-size:12px}.srow b{display:block;font-size:18px;font-weight:400}
+.cur{display:flex;align-items:center;gap:10px;background:#fff6e6;border-radius:16px;padding:10px 12px;margin-top:10px}.cur .av{font-size:42px}.cur .tx{flex:1;text-align:left}.cur .tx b{font-size:18px;font-weight:400}.cur .tx div{font-size:13px;opacity:.8}.cur .ub{width:104px}
+.nx{display:flex;align-items:center;gap:10px;border:3px dashed #e8c890;border-radius:16px;padding:9px 10px;margin-top:4px}.nx .av{font-size:38px}.nx .tx{flex:1;text-align:left}.nx .tx b{font-size:16px;font-weight:400}.nx .ub{width:100px}
+.dn2{text-align:center;opacity:.4;font-size:18px;margin:4px 0 0}
+.more{display:block;width:100%;margin-top:8px;height:38px;font-size:14px;background:transparent;box-shadow:none;color:#9a7a5a}
+.hero{background:linear-gradient(#fff1d6,#ffe0b0);border-radius:20px;padding:14px;text-align:center}.hero .av{font-size:56px;line-height:1}.hero h3{margin:2px 0 4px;font-size:22px;font-weight:400}.hero .ub{height:46px;font-size:18px;margin-top:8px}
+.tip{font-size:12px;opacity:.65;text-align:center;margin:8px 0 2px}
+/* 장부 막대 */
+.lgb{background:#fff6e6;border-radius:16px;padding:9px 12px;margin-bottom:8px}.lgb .tt{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}.lgb .tt b{font-size:22px;font-weight:400;color:#2a8a4a}.lgb .tt b.neg{color:#d04a3a}
+.lbar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:#eadcc4;margin:6px 0 5px}.lbar i{display:block;height:100%}
+.lgl{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:12px}.lgl span{white-space:nowrap}.lgl span:before{content:'';display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:3px;background:var(--c)}
+/* 결과 */
+.rbig{text-align:center;font-size:40px;line-height:1.1;margin:2px 0}.rbig small{display:block;font-size:13px;opacity:.7}
+.gl3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.gl3 div{background:#fff6e6;border-radius:12px;padding:6px 2px;text-align:center;font-size:12px;line-height:1.25}.gl3 div b{display:block;font-size:22px;font-weight:400}.gl3 div.ok{background:#dff5e3}.gl3 div.new{box-shadow:0 0 0 2px #ffc94a}
+#hg .gl3{margin:4px 0 0}#hg .ghd{display:flex;justify-content:space-between;font-size:14px}
 #dc{pointer-events:none}#dc>*{pointer-events:auto}
 #dc .pn{position:absolute;left:0;right:0;bottom:0;height:318px;box-sizing:border-box;background:#fff8ec;border-radius:26px 26px 0 0;padding:10px 12px 10px;box-shadow:0 -4px 14px rgba(0,0,0,.2)}
 #dtabs{display:flex;gap:6px;overflow-x:auto;touch-action:pan-x;padding:2px 0 8px;scrollbar-width:none}#dtabs::-webkit-scrollbar{display:none}
@@ -96,7 +129,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 #hc{flex:0 0 128px;margin-top:0;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;border-radius:18px;background:#ff7a45;box-shadow:0 4px 0 #c8501f;font-size:21px;text-shadow:0 1px 0 rgba(0,0,0,.2)}
 #hc:active{transform:translateY(3px);box-shadow:0 1px 0 #c8501f}
 </style>
-<script src="js/theme.js?v=1"></script></head><body>
+<script src="js/theme.js?v=2"></script></head><body>
 <div id="box">
  <canvas id="cv" width="450" height="800"></canvas><button id="zf">🔍 전체 보기</button>
  <button id="home2">⏸️</button>
@@ -127,9 +160,9 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 <script src="js/share.js?v=2"></script>
 <script src="js/biz.js?v=5"></script>
 <script src="js/cafe.js?v=2"></script>
-<script src="js/news.js?v=16"></script>
+<script src="js/news.js?v=17"></script>
 <script src="js/install.js?v=5"></script>
-<script src="js/shop.js?v=25"></script>
+<script src="js/shop.js?v=26"></script>
 <script type="module" src="js/net.js?v=5"></script>
 <script type="module" src="js/xfer.js?v=2"></script>
 </body></html>
