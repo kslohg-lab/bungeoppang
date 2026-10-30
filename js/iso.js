@@ -53,10 +53,11 @@ const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},
 let N=4,TW=96,TH=48,WH=120,OX=225,OY=320;
 /* 칸 크기 고정(5×5 기준 84) + 끌어서 둘러보기. 화면에 다 들어가면(작은 가게) 예전처럼 한눈에.
    FIT=true(🔍 전체 보기)면 작게 줄여서 한눈에. PAN = 끈 만큼 옮긴 거리(화면 밖으로 너무 못 가게 막음) */
-const FIX=84;let PAN={x:0,y:0},FIT=false,CAN=false;
-function layout(n,top,bottom,fit){N=n;const ft=Math.min(96,420/N,(bottom-top-40)/(N*.5+1.3));
- if(fit||FIT||ft>=FIX){TW=ft;TH=TW/2;WH=Math.round(TW*1.25);OX=225;OY=Math.round(bottom-N*TH-8);if(OY-WH<top+30)OY=top+30+WH;CAN=false;return}
- TW=FIX;TH=TW/2;WH=Math.round(TW*1.25);CAN=true;
+const FIX=84,ZMAX=140;let PAN={x:0,y:0},FIT=false,CAN=false,ZM=FIX,LFT=84;
+function layout(n,top,bottom,fit){N=n;const ft=Math.min(96,420/N,(bottom-top-40)/(N*.5+1.3));LFT=ft;
+ const tw=FIT?ft:Math.max(ft,Math.min(ZMAX,ZM));
+ if(fit||tw<=ft+.5){TW=ft;TH=TW/2;WH=Math.round(TW*1.25);OX=225;OY=Math.round(bottom-N*TH-8);if(OY-WH<top+30)OY=top+30+WH;CAN=false;return}
+ TW=tw;TH=TW/2;WH=Math.round(TW*1.25);CAN=true;
  /* 처음엔 카운터가 가운데 */
  const cy=(top+bottom)/2+TW*.3;OX=225-TW*.5;OY=Math.round(cy-TH*1.1);
  /* 가게(+양옆 장식·지붕 장식)가 차지하는 칸 → 화면 밖으로 못 나가게 */
@@ -311,4 +312,6 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);poly([iso(g.x,g.y),iso(g.x+1,g.y),iso(g.x+1,g.y+1),iso(g.x,g.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
+return{FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+ /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
+ zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};

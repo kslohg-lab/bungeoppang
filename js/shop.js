@@ -370,16 +370,28 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room
  const f=IS.FK[dpick];
  if(spare(dpick)<=0){if(save.coins<f.p){toast('코인이 부족해요! (🪙'+fmt(f.p)+')');snd('no');return}save.coins-=f.p;save.inv[dpick]=(save.inv[dpick]||0)+1;toast(f.n+' 구입! -🪙'+fmt(f.p))}
  const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};save.fur.push(nw);dsel=nw;store();snd('win');if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+IS.SET_BONUS);snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
-/* 가게 화면 손가락: 움직이면 끌어서 둘러보기, 제자리에서 떼면 톡(꾸미기에서 놓기·고르기) */
-let drg=null;const cvPt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}};
+/* 가게 화면 손가락: 움직이면 끌어서 둘러보기, 제자리에서 떼면 톡(꾸미기에서 놓기·고르기), 두 손가락 = 확대·축소(핀치)
+   가게에서 다 줄인 상태에서 더 줄이면 🏙️ 거리로, 거리에서 다 키운 상태에서 더 키우면 내 가게로 */
+let drg=null,pin=null;const pts=new Map();const cvPt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}};
 const panScr=()=>scr==='home'||scr==='deco'||scr==='visit'||scr==='street';
-cv.addEventListener('pointerdown',e=>{if(!panScr())return;e.preventDefault();const p=cvPt(e);if(scr==='deco'&&(p.y>H-DPH||p.y<56))return;drg={id:e.pointerId,x:p.x,y:p.y,lx:p.x,ly:p.y,mv:false};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
-cv.addEventListener('pointermove',e=>{if(!drg||e.pointerId!==drg.id)return;const p=cvPt(e);if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv){if(scr==='street')stCam-=p.x-drg.lx;else if(IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly)}drg.lx=p.x;drg.ly=p.y});
-const endDrg=(e,ok)=>{if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
+function zoomBy(f){if(scr==='street'){const t0=SV.T;SV.zoom(f);if(f>1&&SV.T>=72&&t0>=72){pinAcc*=f;if(pinAcc>1.4){pinAcc=1;toHome()}}else pinAcc=1;return}
+ const z=IS.zoom(f);if(scr==='home'&&f<1&&z.atMin){pinAcc*=f;if(pinAcc<.72){pinAcc=1;openStreet()}}else pinAcc=1}
+let pinAcc=1;
+cv.addEventListener('pointerdown',e=>{if(!panScr())return;e.preventDefault();const p=cvPt(e);if(scr==='deco'&&(p.y>H-DPH||p.y<56))return;pts.set(e.pointerId,p);try{cv.setPointerCapture(e.pointerId)}catch(_){}
+ if(pts.size===2){const [a,b]=[...pts.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)};drg=null;pinAcc=1;return}
+ if(pts.size===1)drg={id:e.pointerId,x:p.x,y:p.y,lx:p.x,ly:p.y,mv:false}});
+cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const p=cvPt(e);pts.set(e.pointerId,p);
+ if(pin&&pts.size>=2){const [a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>10&&pin.d>10)zoomBy(d/pin.d);pin.d=d;return}
+ if(!drg||e.pointerId!==drg.id)return;if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv){if(scr==='street')SV.drag(p.x-drg.lx,p.y-drg.ly);else if(IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly)}drg.lx=p.x;drg.ly=p.y});
+const endDrg=(e,ok)=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
 cv.addEventListener('pointerup',e=>endDrg(e,true));cv.addEventListener('pointercancel',e=>endDrg(e,false));
-/* 🔍 전체 보기 ↔ 원래 크기 (큰 가게일 때만 보여요) */
-$('zf').onclick=()=>{IS.fit=!IS.fit;snd('tap');zfSync()};
-let zfK='';function zfSync(){const b=$('zf'),on=panScr()&&scr!=='street'&&!(scr==='deco'&&dtabK()==='skin')&&!(scr==='home'&&$('hm').style.display!=='block')&&(IS.canPan()||IS.fit),k=on?scr+IS.fit+dtabK():'';if(k===zfK)return;zfK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:470)+'px'}
+/* 아이폰 사파리: 화면 전체가 확대되지 않게 */try{document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false})}catch(_){}
+/* 컴퓨터: 마우스 휠로 확대·축소 */
+cv.addEventListener('wheel',e=>{if(!panScr())return;e.preventDefault();zoomBy(Math.exp(-e.deltaY*.0015))},{passive:false});
+/* 🔍 전체 보기 ↔ 크게 보기 (큰 가게이거나 확대했을 때) · 🏙️ 거리 버튼(홈) */
+$('zf').onclick=()=>{IS.fit=!IS.fit;snd('tap');zfK='';zfSync()};
+let zfK='';function zfSync(){const b=$('zf'),hm=scr==='home'&&$('hm').style.display==='block',on=panScr()&&scr!=='street'&&!(scr==='deco'&&dtabK()==='skin')&&!(scr==='home'&&!hm)&&(IS.canPan()||IS.fit),k=(on?scr+IS.fit+dtabK():'')+hm;if(k===zfK)return;zfK=k;
+ $('nst').style.display=hm?'block':'none';b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 $('dx').onclick=()=>{prev=null;dsel=null;dpick=null;syncShop();bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1];let h='<span class="pill">⭐ '+save.stars+'</span><span class="pill">'+GR[g].e+' '+GR[g].n+'</span><span class="pill">📖 '+Object.keys(save.dex).length+'/'+R.an.length+'</span>';
@@ -477,21 +489,20 @@ $('tsk').onclick=()=>endTour();
 const SV=STREET(cx,A);
 const myD=pv=>({room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
 const dD=r=>{const e=r.eq||{};return{room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
-let stRows=null,stCam=0,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpStreet',ST_MAX=5;
+let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpStreet',ST_MAX=5;
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 function stBuild(){const rows=stRows||[],me={d:myD(null),me:true,u:'me'};const lo=rows.filter(r=>r.sc<=(r.ref|0)).sort((a,b)=>a.sc-b.sc),hi=rows.filter(r=>r.sc>(r.ref|0)).sort((a,b)=>a.sc-b.sc);
- stList=[...lo.map(r=>({d:dD(r),u:r.u})),me,...hi.map(r=>({d:dD(r),u:r.u}))];const S=SV.scene;let x=0,mi=0;stList.forEach((it,i)=>{const w=(it.d.room<=4?96:SV.size(it.d.room).w)+58;if(it.me)mi=x+w/2;x+=w});stCam=mi-W/2}
+ stList=[...lo.map(r=>({d:dD(r),u:r.u})),me,...hi.map(r=>({d:dD(r),u:r.u}))];SV.focusList(stList,lo.length)}
 function stLeft(){const c=lsJ(ST_KEY+'N')||{};return c.d===dayKey()?Math.max(0,ST_MAX-(c.n|0)):ST_MAX}
-function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러봐요');const b=$('str'),n=stLeft();b.textContent='🔄 다른 거리 ('+n+')';b.className=n>0&&!stLoad?'':'dis'}
+function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러보고 🤏 두 손가락으로 확대');const b=$('str'),n=stLeft();b.textContent='🔄 다른 거리 ('+n+')';b.className=n>0&&!stLoad?'':'dis'}
 function loadStreet(force){const c=lsJ(ST_KEY);if(!force&&c&&c.d===dayKey()&&Array.isArray(c.rows)){stRows=c.rows;stMsg='';stBuild();stUI();return}
  if(force){if(stLeft()<=0){toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}}
  stLoad=true;stUI();const sc=Math.min(3000000,decoScore());
  whenNet(N=>{if(!N.near){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.near(sc,force,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(force){const c=lsJ(ST_KEY+'N')||{};lsJ(ST_KEY+'N',{d:dayKey(),n:(c.d===dayKey()?c.n|0:0)+1})}if(scr==='street'){stBuild();stUI()}})
   .catch(e=>{console.warn('street',e&&e.code||e);stLoad=false;stMsg='이웃을 불러오지 못했어요';if(!stRows)stRows=[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
 function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet(false);stUI()}
-function drawStreet(t,dt){const tot=stList.reduce((a,it)=>a+(it.d.room<=4?96:SV.size(it.d.room).w)+58,0);stCam=tot<W?(tot-W)/2:Math.max(-60,Math.min(tot-W+60,stCam));
- const r=SV.scene(t,stList,stCam,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
-function stTap(x,y){const h=stHits.find(q=>x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1);if(!h)return;const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}
+function drawStreet(t,dt){stList[stList.findIndex(x=>x.me)].d=myD(null);const r=SV.scene(t,stList,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
+function stTap(x,y){const h=SV.hit(stHits,x,y);if(!h)return;const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}
 $('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');toHome()};$('str').onclick=()=>{if($('str').className==='dis'){if(stLeft()<=0)toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}snd('tap');loadStreet(true)};
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
  if(window.__gal){window.__gal(t);requestAnimationFrame(loop);return}
