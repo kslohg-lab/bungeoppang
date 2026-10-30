@@ -207,19 +207,25 @@ const DXT=[10,30];
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
 function renderHome(){starDot();const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
  $('hg').innerHTML='<b>📋 오늘의 목표</b> (하루 한 번씩 ⭐) · '+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' <b>'+R.ev[w.ev].n+'</b>':' '+w.wea.n)+'<br>'+goals.map((g,i)=>(gd.done[i]?'✅ <s>':'• ')+g.p.t(g.n)+(gd.done[i]?'</s>':'')).join('<br>');
- $('h1').textContent='🙋 도와주기';bizBtn()}
+ {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm')}
 /* ---------- 하루 ---------- */
 const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:charmBonus()/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
 function startDay(){au();if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=run0();s=B.newDay(run);{const w=todayWx();s.wea=w.wea;s.ev=w.ev}ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
+/* 🎁 도와주기 하루 보너스: 처음 10판 100% · 11~20판 50% · 21판부터 20% (매일 초기화. 폰 시계를 뒤로 돌려도 다시 채워지지 않아요) */
+const HB1=10,HB2=20;
+function hbNow(){const d=BIZ.dayKey(Date.now());if(!save.hb||typeof save.hb!=='object')save.hb={d,n:0};if(d>save.hb.d)save.hb={d,n:0};return save.hb}
+const hbMul=n=>n<HB1?1:n<HB2?.5:.2;
+function hbUse(){const h=hbNow(),m=hbMul(h.n);h.n++;return m}
+function hbTxt(m){const h=hbNow(),left=Math.max(0,HB1-h.n);return m<1?'🎁 오늘 보너스 판을 다 써서 <b>'+Math.round(m*100)+'%</b>만 받아요 · 내일 다시 100%!':'🎁 오늘 보너스 판 <b>'+left+'/'+HB1+'</b> 남았어요'+(left?'':' · 다음 판부터 50%')}
 function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl=goals.map((g,i)=>({g,ok:g.p.ok(res,g.n),was:gd.done[i]}));let star=0,bonus=0;const g0=grade();
  gl.forEach((x,i)=>{if(x.ok&&!x.was){gd.done[i]=1;star++}});const got=gd.done.filter(Boolean).length;if(got===3&&!gd.all){gd.all=1;bonus=500+lv*250}
- const tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.max(0,res.net)-tax+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
+ const hm=hbUse(),tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.round((Math.max(0,res.net)-tax)*hm)+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
  save.bestNet=Math.max(save.bestNet,res.net);save.bestCombo=Math.max(save.bestCombo,res.bc);
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
  lastHelp='bread';save.lr={full:res.full|0,lost:res.lost,idle:res.idle,net:res.net};const nd=s.dxNew||[];store();
- const g1=grade();let h='<div class="sum"><b>'+(res.net>=0?'💰 순수익 '+fmt(res.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(res.net)+'원)')+'</b>'+(res.net<0?'<br>(손해는 없던 걸로 해 드려요!)':tax?'<br>🏛️ 세금 −'+fmt(tax)+' → 🪙 +'+fmt(res.net-tax):'')+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc+'</div>';
+ const g1=grade();let h='<div class="sum"><b>'+(res.net>=0?'💰 순수익 '+fmt(res.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(res.net)+'원)')+'</b>'+(res.net<0?'<br>(손해는 없던 걸로 해 드려요!)':tax?'<br>🏛️ 세금 −'+fmt(tax)+' → 🪙 +'+fmt(Math.round((res.net-tax)*hm)):'')+'<br>'+hbTxt(hm)+'<br>🐾 손님 '+res.served+'명 · 😡 놓침 '+res.lost+' · ✨ PERFECT '+res.perf+' · 👍 GREAT '+(res.good|0)+' · 😵 BURNT '+res.burnt+' · 🔥 콤보 '+res.bc+'</div>';
  h+='<div class="sum"><b>📋 오늘의 목표</b><br>'+gl.map((x,i)=>(gd.done[i]?'✅ ':'⬜ ')+x.g.p.t(x.g.n)+(x.ok&&!x.was?' <b>⭐+1</b>':'')).join('<br>')+(star?'<br>⭐ +'+star:'')+(bonus?' · 🎁 오늘 목표 모두 달성! 보너스 🪙 '+fmt(bonus):'')+(got===3&&!bonus?'<br>오늘 목표는 다 했어요. 내일 새 목표가 나와요!':'')+'</div>';
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
  if(g1>g0)h+='<div class="sum" style="background:#ffeaa8"><b>🎉 가게 등급이 올랐어요!</b><br>'+GR[g1].e+' <b>'+GR[g1].n+'</b> · 새 꾸미기 상품이 열렸어요</div>';
@@ -228,10 +234,10 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
 /* ---------- ☕ 음료 도와주기 (js/cafe.js) ---------- */
 let lastHelp='bread';
 const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
-function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save,mul:BIZ.beanMul(save),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
-function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.max(0,r.net)-tax;
+function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save,mul:BIZ.beanMul(save),dp:d=>BIZ.dPrice(save,d),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
+function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=hbUse(),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm);
  save.coins+=gain;save.served+=r.served;save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
- let h='<div class="sum"><b>'+(r.net>=0?'💰 순수익 '+fmt(r.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(r.net)+'원)')+'</b>'+(r.net<0?'<br>(손해는 없던 걸로 해 드려요!)':tax?'<br>🏛️ 세금 −'+fmt(tax)+' → 🪙 +'+fmt(gain):'')+'<br>☕ 음료 '+r.served+'잔 · ✨ PERFECT '+r.perf+' · 👍 GREAT '+r.great+' · 🙂 GOOD '+r.good+'<br>😡 놓침 '+r.lost+' · 😣 잘못 만듦 '+r.wrong+' · 💦 넘침 '+r.spill+' · 🔥 콤보 '+r.bc+'</div>';
+ let h='<div class="sum"><b>'+(r.net>=0?'💰 순수익 '+fmt(r.net)+'원':'📉 재료비가 더 들었어요 ('+fmt(r.net)+'원)')+'</b>'+(r.net<0?'<br>(손해는 없던 걸로 해 드려요!)':tax?'<br>🏛️ 세금 −'+fmt(tax)+' → 🪙 +'+fmt(gain):'')+'<br>'+hbTxt(hm)+'<br>☕ 음료 '+r.served+'잔 · ✨ PERFECT '+r.perf+' · 👍 GREAT '+r.great+' · 🙂 GOOD '+r.good+'<br>😡 놓침 '+r.lost+' · 😣 잘못 만듦 '+r.wrong+' · 💦 넘침 '+r.spill+' · 🔥 콤보 '+r.bc+'</div>';
  h+='<div class="sum">💡 점선에 딱 맞추면 PERFECT! 값을 1.5배 받아요<br>🫘 원두 등급을 올리면 음료 값이 올라가요</div>';
  h+='<div style="text-align:center;font-size:16px">🪙 '+fmt(save.coins)+' · 최고 '+fmt(save.cafeBest|0)+'원</div>';
  $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;scr='res';snd('win');show('res')}
@@ -253,10 +259,16 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
  $('uw').innerHTML='<span class="pill">🪙 '+fmt(save.coins)+'</span><span class="pill">💼 '+(r.net>=0?'+':'−')+fmt(Math.abs(Math.round(r.net)))+'/시간</span>';
  if(utab===0){
   note(nkBox(r)+'<span style="color:#c0601a">'+NKT[r.neck]+'</span>');
+  /* 💰 가격 정하기: 고를 때마다 시간당 손님·수익을 미리 보여 줘요 */
+  {const pr=save.pr||{b:1,d:1},cx_=bctx(),prev=(k,i)=>{const t=JSON.parse(JSON.stringify(save));t.pr=Object.assign({b:1,d:1},pr);t.pr[k]=i;return BIZ.rates(t,cx_)};
+   const box=document.createElement('div');box.className='sum';box.style.margin='0 0 8px';
+   const line=(k,lab)=>{const cur=(pr[k]!=null?pr[k]:1);let h='<b>'+lab+'</b><div style="display:flex;gap:4px;margin:4px 0 2px">';BIZ.PRICE.forEach((q,i)=>{const z=prev(k,i);h+='<button data-pk="'+k+'" data-pi="'+i+'" style="flex:1;height:auto;min-height:54px;padding:4px 0;font-size:13px;line-height:1.25;border-radius:12px;'+(i===cur?'background:#ffc94a;box-shadow:0 3px 0 #d9a020;color:#4a3010':'')+'">'+q.e+' '+q.n+'<br><small style="font-size:11px">'+(z.net>=0?'+':'−')+fmt(Math.abs(Math.round(z.net)))+'/시간</small></button>'});return h+'</div>'};
+   box.innerHTML='💰 <b>가격 정하기</b> <small style="opacity:.75">'+(r.neck==='arrive'?'손님이 모자라요 → 값을 내리면 더 와요':'손님이 넘쳐요 → 값을 올려도 손님이 와요')+'</small>'+line('b','🐟 붕어빵')+(BIZ.cafeOn(save)?line('d','☕ 음료'):'');
+   box.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{BIZ.setPrice(save,b.dataset.pk,+b.dataset.pi);store();snd('tap');renderUp();bizBtn()});L.appendChild(box)}
   const rk=r.neck==='arrive'?['promo']:r.neck==='both'?['bake','serve']:[r.neck];if(r.dNeck){rk.push('barista');note('<span style="color:#c0601a">☕ 음료가 밀려요 ('+n1(r.dCap)+'/'+n1(r.dWant)+'잔) → 바리스타를 키워요</span>')}
   BIZ.STAFF.forEach(x=>{const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k);if(!BIZ.canHire(save,x.k)){row(x.an,'<span>'+x.e+' '+x.n+'</span>','음료를 만들어요<br>☕ 카페를 열면 뽑을 수 있어요','☕ 카페 탭',true,()=>{utab=3;renderUp(true)});return}
    const eff={bake:'굽기 '+n1(4+2.5*lv)+' → '+n1(4+2.5*(lv+1))+'명/시간',serve:'계산 '+n1(4+2.5*lv)+' → '+n1(4+2.5*(lv+1))+'명/시간',promo:'오는 손님 +'+15*lv+'% → +'+15*(lv+1)+'%',barista:'음료 '+n1(2+3*lv)+' → '+n1(2+3*(lv+1))+'잔/시간'}[x.k];
-   row(x.an,'<span>'+x.e+' '+x.n+'</span> <small>Lv '+lv+'/'+BIZ.SMAX+'</small>',x.d+'<br>'+(c==null?'최고 레벨이에요!':eff)+'<br>💵 월급 '+fmt(BIZ.wageOf(lv))+(c==null?'':' → '+fmt(BIZ.wageOf(lv+1)))+'원/시간'+(rk.includes(x.k)&&c!=null?'<br><b class="why">👍 지금 여기가 막혀요</b>':''),
+   row(x.an,'<span>'+x.e+' '+x.n+'</span> <small>Lv '+lv+'/'+BIZ.SMAX+'</small>',x.d+'<br>'+(c==null?'최고 레벨이에요!':eff)+(x.k==='promo'&&r.neck!=='arrive'?'<br><b class="why" style="color:#d03030">⚠️ 지금은 굽기·계산이 막혀서 홍보해도 손님이 안 늘어요</b>':'')+'<br>💵 월급 '+fmt(BIZ.wageOf(lv))+(c==null?'':' → '+fmt(BIZ.wageOf(lv+1)))+'원/시간'+(rk.includes(x.k)&&c!=null?'<br><b class="why">👍 지금 여기가 막혀요</b>':''),
     c==null?'완료 ✅':(lv?'레벨업 ':'고용 ')+fmt(c)+'🪙',c!=null&&save.coins>=c,()=>{if(c==null)return;if(!BIZ.hire(save,x.k)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast(x.e+' '+x.n+' Lv'+(lv+1)+'!');renderUp();bizBtn()},rk.includes(x.k)&&c!=null)});
   note('💡 알바가 많아도 손님이 안 오면 월급만 나가요. 빨간 칸(막히는 곳)부터 키워요!<br>🪑 의자·소파·벤치를 놓으면 손님이 더 많이 사요 (지금 +'+Math.round(r.seatB*100)+'%)'+debtTxt())}
  else if(utab===1){const p=BIZ.place(save),own=BIZ.owned(save);
@@ -265,7 +277,7 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
   else if(own)row(p.e,'<span>'+p.n+'</span> <small>'+save.room+'×'+save.room+'</small>','✅ 내가 산 가게 · 월세 0원','내 가게 🏠',false,()=>{});
   else row(p.e,'<span>'+p.n+'</span> <small>'+save.room+'×'+save.room+'</small>','월세 '+fmt(p.rent)+'원/시간 → 사면 0원<br><small>'+Math.round(p.buy/p.rent)+'시간 영업하면 본전이에요</small>','사기 '+fmt(p.buy)+'🪙',save.coins>=p.buy,()=>{if(!BIZ.buyPlace(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast('🎉 '+p.n+'이 내 가게가 됐어요! 월세 0원');renderUp();bizBtn()},true);
   sec('📐 가게 크기별');
-  [4,5,6,7,8].forEach(n=>{const q=BIZ.PLACE[n],cur=save.room===n,bo=save.bought.includes(n);
+  [4,5,6,7,8,9,10].forEach(n=>{const q=BIZ.PLACE[n],cur=save.room===n,bo=save.bought.includes(n);
    row(q.e,'<span>'+q.n+'</span> <small>'+n+'×'+n+'</small>',(q.rent?'월세 '+fmt(q.rent)+'원/시간 · 사면 '+fmt(q.buy)+'🪙':'월세 없음')+'<br>오는 손님 +'+Math.round((q.mul-1)*100)+'%',cur?'지금 여기':n<save.room?'✅':bo?'✅ 산 가게':'📐 넓히기',n>save.room,()=>{if(n>save.room)openDeco('up',true)})});
   note('더 넓은 가게로 가려면 🎨 꾸미기 → 📐 넓히기 (보증금을 내요). 넓을수록 손님이 많이 오고 가구도 많이 놓을 수 있어요.')}
  else if(utab===3){const cf=BIZ.cafe(save);
@@ -273,7 +285,11 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
    sec('☕ 카페를 열면 팔 수 있는 음료');BIZ.DRINKS.forEach(d=>row(d.e,'<span>'+d.n+'</span>','판매가 '+fmt(d.p)+'원 · '+(d.cup==='ice'?'🧊 차갑게':'🔥 따뜻하게'),d.un?fmt(d.un)+'🪙':'기본',false,()=>{}));}
   else{note('<div class="sum" style="margin:0">☕ 직원 장사: 1시간에 음료 <b>'+n1(r.drk)+'잔</b> (원하는 손님 '+n1(r.dWant)+'잔) · 한 잔 '+fmt(Math.round(r.dPer))+'원'+(r.dNeck?'<br><span style="color:#c0601a">☕ 음료가 밀려요 → 👥 바리스타를 키워요</span>':'')+'</div>');
    sec('☕ 음료 메뉴 (종류가 많을수록 음료를 사는 손님이 늘어요)');
-   BIZ.DRINKS.forEach(d=>{const own=cf.dr.includes(d.k),pr=Math.round(d.p*BIZ.beanMul(save));row(d.e,'<span>'+d.n+'</span>','판매가 '+fmt(pr)+'원 · '+(d.cup==='ice'?'🧊 아이스 컵':'🔥 따뜻한 컵')+'<br><small>'+d.st.map(q=>CAFE_ING[q[0]].e+CAFE_ING[q[0]].n).join(' → ')+'</small>',own?'✅ 팔아요':'배우기 '+fmt(d.un)+'🪙',!own&&save.coins>=d.un,()=>{if(own)return;if(!BIZ.buyDrink(save,d.k)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast(d.e+' '+d.n+' 메뉴 추가!');renderUp();bizBtn()})});
+   BIZ.DRINKS.forEach(d=>{const own=cf.dr.includes(d.k),pr=Math.round(BIZ.dPrice(save,d)*BIZ.beanMul(save));row(d.e,'<span>'+d.n+'</span>','판매가 '+fmt(pr)+'원 · '+(d.cup==='ice'?'🧊 아이스 컵':'🔥 따뜻한 컵')+'<br><small>'+d.st.map(q=>CAFE_ING[q[0]].e+CAFE_ING[q[0]].n).join(' → ')+'</small>',own?'✅ 팔아요':'배우기 '+fmt(d.un)+'🪙',!own&&save.coins>=d.un,()=>{if(own)return;if(!BIZ.buyDrink(save,d.k)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast(d.e+' '+d.n+' 메뉴 추가!');renderUp();bizBtn()})});
+   {const own=BIZ.DRINKS.filter(d=>cf.dr.includes(d.k));if(own.length){sec('🧪 재료 업그레이드 (그 음료 값 +8% · +16% · +25%)');
+    own.forEach(d=>{const ig=BIZ.ING[d.k],lv=BIZ.ingLv(save,d.k),c=BIZ.ingCost(save,d.k),star='★'.repeat(lv)+'☆'.repeat(3-lv);
+     row(ig.e,'<span>'+ig.n+'</span> <small>'+star+'</small>',d.e+' '+d.n+' 값 +'+Math.round(BIZ.ING_MUL[lv]*100)+'%'+(c==null?'':' → +'+Math.round(BIZ.ING_MUL[lv+1]*100)+'%'),c==null?'완료 ✅':fmt(c)+'🪙',c!=null&&save.coins>=c,()=>{if(c==null)return;if(!BIZ.buyIng(save,d.k)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast(ig.e+' '+ig.n+' '+'★'.repeat(lv+1)+'!');renderUp();bizBtn()})})}}
+   sec('🎁 세트 메뉴');row('🎁','<span>붕어빵 + 음료 세트</span>','음료를 같이 사는 손님이 늘어요 (+10%p)',cf.set?'✅ 팔아요':fmt(BIZ.SET_COST)+'🪙',!cf.set&&save.coins>=BIZ.SET_COST,()=>{if(cf.set)return;if(!BIZ.buySet(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');toast('🎁 세트 메뉴 시작!');renderUp();bizBtn()});
    sec('🫘 원두 등급');const bc=BIZ.beanCost(save),bl=cf.bean|0;
    row('🫘','<span>원두 등급</span> <small>Lv '+bl+'/'+BIZ.BEAN.length+'</small>',bc==null?'최고 원두예요! 음료 값 ×'+BIZ.beanMul(save).toFixed(2):'음료 값 ×'+BIZ.beanMul(save).toFixed(2)+' → ×'+(1+.15*(bl+1)).toFixed(2),bc==null?'완료 ✅':fmt(bc)+'🪙',bc!=null&&save.coins>=bc,()=>{if(!BIZ.buyBean(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');renderUp();bizBtn()});
    note('☕ 바리스타는 👥 직원 탭에서 뽑아요 · 음료 직접 만들기는 🙋 도와주기에서!')}}

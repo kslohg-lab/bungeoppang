@@ -18,6 +18,20 @@ const DRINKS=[
  {k:'straw',n:'딸기라떼',s:'딸기',e:'🍓',cup:'ice',p:2200,c:600,un:30000,st:[['straw',.28],['milk',.85]]},
  {k:'matcha',n:'녹차라떼',s:'녹차',e:'🍵',cup:'ice',p:2400,c:650,un:50000,st:[['matcha',.22],['milk',.85]]}];
 const DK={};DRINKS.forEach(d=>DK[d.k]=d);
+/* 💰 가격: p = 값 배율, a = 오는 손님 배율. 손님이 넘칠 때(막힘) 올리면 이득, 모자랄 때 내리면 이득 */
+const PRICE=[{n:'싸게',e:'🏷️',p:.85,a:1.25},{n:'보통',e:'🪙',p:1,a:1},{n:'비싸게',e:'💰',p:1.2,a:.78},{n:'아주 비싸게',e:'💎',p:1.45,a:.55}];
+const prB=save=>PRICE[(save.pr&&save.pr.b!=null)?save.pr.b:1]||PRICE[1],prD=save=>PRICE[(save.pr&&save.pr.d!=null)?save.pr.d:1]||PRICE[1];
+function setPrice(save,k,i){if(!PRICE[i]||(k!=='b'&&k!=='d'))return false;if(!save.pr||typeof save.pr!=='object')save.pr={b:1,d:1};save.pr[k]=i;return true}
+/* ☕ 음료 재료 3단계: 값 +8% · +16% · +25%. 비용 = [2만, 6만, 15만] × (1 + 음료 순서×0.25) */
+const ING={ame:{e:'🫘',n:'스페셜티 원두'},latte:{e:'🥛',n:'목장 우유'},van:{e:'🍦',n:'바닐라 빈 시럽'},choco:{e:'🍫',n:'벨기에 초콜릿'},straw:{e:'🍓',n:'생딸기 청'},matcha:{e:'🍵',n:'제주 말차'}};
+const ING_MUL=[0,.08,.16,.25],ING_C=[20000,60000,150000];
+const ingLv=(save,k)=>{const c=cafe(save);return(c.ing&&c.ing[k])|0};
+const ingCost=(save,k)=>{const l=ingLv(save,k),i=DRINKS.findIndex(d=>d.k===k);return l>=3||i<0?null:Math.round(ING_C[l]*(1+i*.25))};
+function buyIng(save,k){const c=cafe(save),cost=ingCost(save,k);if(!c.on||!c.dr.includes(k)||cost==null||save.coins<cost)return false;save.coins-=cost;if(!c.ing||typeof c.ing!=='object')c.ing={};c.ing[k]=ingLv(save,k)+1;return true}
+const dPrice=(save,d)=>d.p*(1+ING_MUL[ingLv(save,d.k)]);
+/* 🎁 세트 메뉴(붕어빵+음료): 음료 사는 손님 +10%p */
+const SET_COST=80000;
+function buySet(save){const c=cafe(save);if(!c.on||c.set||save.coins<SET_COST)return false;save.coins-=SET_COST;c.set=1;return true}
 const MACHINE=15000,BEAN=[10000,30000,80000,200000,500000];
 const cafe=save=>{if(!save.cafe||typeof save.cafe!=='object')save.cafe={on:0,dr:[],bean:0};if(!Array.isArray(save.cafe.dr))save.cafe.dr=[];return save.cafe};
 const cafeOn=save=>!!cafe(save).on;
@@ -27,7 +41,7 @@ const beanCost=save=>{const b=cafe(save).bean|0;return b>=BEAN.length?null:BEAN[
 function buyMachine(save){const c=cafe(save);if(c.on||save.coins<MACHINE)return false;save.coins-=MACHINE;c.on=1;c.dr=['ame','latte'];return true}
 function buyDrink(save,k){const c=cafe(save),d=DK[k];if(!c.on||!d||c.dr.includes(k)||save.coins<d.un)return false;save.coins-=d.un;c.dr.push(k);return true}
 function buyBean(save){const c=cafe(save),cost=beanCost(save);if(!c.on||cost==null||save.coins<cost)return false;save.coins-=cost;c.bean=(c.bean|0)+1;return true}
-const SMAX=8,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000],WAGE=[0,100,250,500,900,1600,2800,4800,8000];
+const SMAX=12,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000],WAGE=[0,100,250,500,900,1600,2800,4800,8000,10000,11500,13000,14500];
 /* 가게 크기 = 꾸미기의 넓히기와 같은 칸 수. 사면 그 크기 월세가 0원 */
 const PLACE={4:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},5:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},6:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},7:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},8:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6},9:{n:'대형 매장',e:'🏬',rent:8000,buy:1600000,mul:1.7},10:{n:'붕어빵 본점',e:'🏰',rent:12000,buy:4000000,mul:1.8}};
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
@@ -40,15 +54,15 @@ const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
 function rates(save,ctx){ctx=ctx||{};const s=st(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
- const co=cafeOn(save),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1);
+ const co=cafeOn(save),pb=prB(save),pd=prD(save),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1)*pb.a;
  const bake=4+2.5*(s.bake|0)*debt,serve=4+2.5*(s.serve|0)*debt;
  const cust=Math.min(arrive,bake,serve);
  const nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));let p=0,c=0;for(let f=0;f<nu;f++){p+=B.price(save,f);c+=R.menu[f].c}p/=nu;c/=nu;
  const seatB=Math.min(.3,(ctx.seats|0)*.03);
- const perCust=BPC*p*loc.pm*(1+seatB);
+ const perCust=BPC*p*loc.pm*(1+seatB)*pb.p;
  /* 카페: 손님 중 일부가 음료도 사요 (음료 종류가 많을수록 많이). 바리스타가 만들 수 있는 만큼만 */
  const md=myDrinks(save);let drk=0,dPer=0,dMat=0,dWant=0,dCap=0;
- if(md.length){const dr=Math.min(.5,.25+.04*md.length);dWant=cust*dr;dCap=(2+3*(s.barista|0)*debt);drk=Math.min(dWant,dCap);dPer=md.reduce((a,d)=>a+d.p,0)/md.length*beanMul(save)*loc.pm;dMat=md.reduce((a,d)=>a+d.c,0)/md.length}
+ if(md.length){const dr=Math.min(.6,Math.min(.5,.25+.04*md.length)+(cafe(save).set?.1:0))*Math.min(1.2,pd.a);dWant=cust*dr;dCap=(2+3*(s.barista|0)*debt);drk=Math.min(dWant,dCap);dPer=md.reduce((a,d)=>a+dPrice(save,d),0)/md.length*beanMul(save)*loc.pm*pd.p;dMat=md.reduce((a,d)=>a+d.c,0)/md.length}
  const rev=cust*perCust+drk*dPer,mat=cust*BPC*c+drk*dMat,tax=Math.max(0,(rev-mat)*TAX);
  const rent=rentOf(save),wage=STAFF.reduce((a,x)=>a+wageOf(s[x.k]),0)*debt; /* 밀린 돈이 있으면 알바가 절반만 일하고 월급도 절반 */
  const neck=cust>=arrive-1e-9?'arrive':Math.abs(bake-serve)<1e-9?'both':bake<serve?'bake':'serve';
@@ -66,5 +80,5 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
 function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;
