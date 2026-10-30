@@ -49,9 +49,20 @@ const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세�
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 넓히기: n칸, g=필요 등급, p=가격 */
-const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},{n:8,g:5,p:400000}];
+const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},{n:8,g:5,p:400000},{n:9,g:6,p:1200000},{n:10,g:6,p:3000000}];
 let N=4,TW=96,TH=48,WH=120,OX=225,OY=320;
-function layout(n,top,bottom){N=n;TW=Math.min(96,420/N,(bottom-top-40)/(N*.5+1.3));TH=TW/2;WH=Math.round(TW*1.25);OY=Math.round(bottom-N*TH-8);if(OY-WH<top+30)OY=top+30+WH}
+/* 칸 크기 고정(5×5 기준 84) + 끌어서 둘러보기. 화면에 다 들어가면(작은 가게) 예전처럼 한눈에.
+   FIT=true(🔍 전체 보기)면 작게 줄여서 한눈에. PAN = 끈 만큼 옮긴 거리(화면 밖으로 너무 못 가게 막음) */
+const FIX=84;let PAN={x:0,y:0},FIT=false,CAN=false;
+function layout(n,top,bottom,fit){N=n;const ft=Math.min(96,420/N,(bottom-top-40)/(N*.5+1.3));
+ if(fit||FIT||ft>=FIX){TW=ft;TH=TW/2;WH=Math.round(TW*1.25);OX=225;OY=Math.round(bottom-N*TH-8);if(OY-WH<top+30)OY=top+30+WH;CAN=false;return}
+ TW=FIX;TH=TW/2;WH=Math.round(TW*1.25);CAN=true;
+ /* 처음엔 카운터가 가운데 */
+ const cy=(top+bottom)/2+TW*.3;OX=225-TW*.5;OY=Math.round(cy-TH*1.1);
+ /* 가게(+양옆 장식·지붕 장식)가 차지하는 칸 → 화면 밖으로 못 나가게 */
+ const xL=OX-(N+.6)*TW/2,xR=OX+(N+.4)*TW/2,yT=OY-WH-60,yB=OY+N*TH+TW*.5;
+ const cl=(v,a,b)=>a>b?(a+b)/2:Math.max(a,Math.min(b,v));
+ PAN.x=cl(PAN.x,450-xR,-xL);PAN.y=cl(PAN.y,bottom-yB,top-yT);OX+=PAN.x;OY+=PAN.y}
 const iso=(gx,gy)=>({x:OX+(gx-gy)*TW/2,y:OY+(gx+gy)*TH/2});
 const toTile=(x,y)=>{const a=(x-OX)/(TW/2),b=(y-OY)/(TH/2);return{gx:Math.floor((a+b)/2),gy:Math.floor((b-a)/2)}};
 const inRoom=(gx,gy,n=N)=>gx>=0&&gy>=0&&gx<n&&gy<n;
@@ -262,15 +273,36 @@ function staffFront(t,look,L){const S=look.staff||{};
  if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal('🦊',p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});apron(p.x,y,s,SCOL.promo);
   cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore();badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
-function drawCounter(t,look){const S=(look&&look.staff)||{},cq=behind(S.bake>0||(look&&look.cafe&&S.barista>0)?2.08:2,.35,.44);staffBack(t,look||{});staffBack2(t,look||{});animal('cook',cq.x,cq.y,cq.s,{t,ph:0,mood:'h',shirt:'#ffffff'});
- box(1,0,.06,TW*.34,'#b97d4a',{top:'#d9a06a'});box(2,0,.06,TW*.34,'#b97d4a',{top:'#d9a06a'});
- const p=iso(2,.5);for(let i=0;i<3;i++)A.bread(p.x-TW*.32+i*TW*.3,p.y-TW*.36,TW*.0032,'#e8a840',{plain:true});
- for(let i=0;i<2;i++){const ph=m2(t*.9+i*.5,1);cx.fillStyle='rgba(255,255,255,'+(.5*(1-ph))+')';cx.beginPath();cx.ellipse(p.x-TW*.2+i*TW*.4,p.y-TW*.5-ph*TW*.4,4+ph*5,3+ph*4,0,0,7);cx.fill()}
- /* ☕ 카페를 열면 왼쪽 카운터에 커피머신 */
- if(look&&look.cafe){const q=iso(1.12,.62),w=TW*.3,h=TW*.32,x=q.x-w/2,y=q.y-TW*.34-h;A.rr(x,y,w,h,5,'#4a4a52');A.rr(x+3,y+3,w-6,h*.3,3,'#8a8a96');A.rr(x+w*.3,y+h*.45,w*.4,h*.22,2,'#2a2a30');A.rr(x+w*.34,y+h*.72,w*.32,h*.22,3,'#fff');const ph=m2(t*.8,1);cx.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';cx.beginPath();cx.ellipse(q.x,y-4-ph*TW*.3,3+ph*4,2+ph*3,0,0,7);cx.fill()}}
+function drawCounter(t,look){const S=(look&&look.staff)||{},cafe=!!(look&&look.cafe),cq=behind(S.bake>0||(cafe&&S.barista>0)?2.08:2,.35,.44);staffBack(t,look||{});staffBack2(t,look||{});animal('cook',cq.x,cq.y,cq.s,{t,ph:0,mood:'h',shirt:'#ffffff'});
+ const H0=TW*.34,lw=Math.max(1.6,TW*.026);
+ /* 매대 앞면 이름표 (비스듬한 면에 맞춰 기울여 그려요) */
+ const plate=(b,txt,bg,fg)=>{const L=b.L,B=b.B,c={x:(L.x+B.x)/2,y:(L.y+B.y)/2+H0*.5};cx.save();cx.translate(c.x,c.y);cx.transform(1,.5,0,1,0,0);const w=TW*.36,h=TW*.15;
+  rr(-w/2,-h/2,w,h,h*.35,bg);cx.strokeStyle=OL;cx.lineWidth=lw*.8;cx.beginPath();cx.roundRect(-w/2,-h/2,w,h,h*.35);cx.stroke();tx(txt,0,1,Math.max(8,TW*.076),fg,'center',bg);cx.restore()};
+ /* ☕ 왼쪽: 카페를 열면 커피 매대(초록), 아니면 주문대 */
+ const bL=box(1,0,.06,H0,cafe?'#5a8a64':'#b97d4a',{top:cafe?'#efe6d6':'#d9a06a'});
+ if(cafe){/* 에스프레소 머신 */const q=iso(1.2,.42),w=TW*.34,h=TW*.3,x=q.x-w/2,y=q.y-H0-h;
+  rr(x,y,w,h,6,'#c9ccd2');cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.roundRect(x,y,w,h,6);cx.stroke();rr(x+3,y+3,w-6,h*.22,3,'#8a8e98');
+  cx.fillStyle='#e8584a';cx.beginPath();cx.arc(x+w*.82,y+h*.14,TW*.022,0,7);cx.fill();
+  for(const u of[.3,.7]){rr(x+w*u-TW*.04,y+h*.42,TW*.08,h*.14,2,'#3a3a40')}
+  rr(x+w*.12,y+h*.86,w*.76,h*.1,2,'#5a5e68');
+  rr(x+w*.22,y+h*.6,TW*.07,h*.24,2,'#fff');rr(x+w*.62,y+h*.6,TW*.07,h*.24,2,'#fff');
+  const ph=m2(t*.8,1);cx.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';cx.beginPath();cx.ellipse(x+w*.3,y-4-ph*TW*.3,3+ph*4,2+ph*3,0,0,7);cx.fill();
+  /* 컵 쌓기 */const c=iso(1.74,.66);for(let i=0;i<3;i++){const cy=c.y-H0-TW*.07*(i+1);rr(c.x-TW*.055,cy,TW*.11,TW*.08,2,'#fff');cx.strokeStyle='rgba(90,58,34,.6)';cx.lineWidth=1;cx.beginPath();cx.roundRect(c.x-TW*.055,cy,TW*.11,TW*.08,2);cx.stroke();rr(c.x-TW*.055,cy+TW*.03,TW*.11,TW*.025,0,'#a8744a')}
+  plate(bL,'☕ 커피','#2f4a3a','#ffe9a0')}
+ else{const q=iso(1.5,.5);em('🧺',q.x,q.y-H0-TW*.08,TW*.26);plate(bL,'🧾 주문','#fff3dc','#8a3a1a')}
+ /* 🐟 오른쪽: 유리 진열장 붕어빵 매대 */
+ const bR=box(2,0,.06,H0,'#b97d4a',{top:'#d9a06a'});
+ const gT=TW*.2,m=.12,P=(a,b,h)=>up(iso(2+a,b),H0+h);
+ poly([P(m,m,0),P(1-m,m,0),P(1-m,1-m,0),P(m,1-m,0)],'#f6e2c0');
+ for(const r of[.36,.66])for(let i=0;i<3;i++){const p=P(.24+i*.26,r,TW*.03);A.bread(p.x,p.y,TW*.0026,'#e8a840',{plain:true})}
+ cx.globalAlpha=.32;poly([P(m,1-m,0),P(1-m,1-m,0),P(1-m,1-m,gT),P(m,1-m,gT)],'#cfefff');poly([P(1-m,1-m,0),P(1-m,m,0),P(1-m,m,gT),P(1-m,1-m,gT)],'#b8e2f8');poly([P(m,m,gT),P(1-m,m,gT),P(1-m,1-m,gT),P(m,1-m,gT)],'#e8f8ff');cx.globalAlpha=1;
+ cx.strokeStyle='rgba(255,255,255,.9)';cx.lineWidth=lw;for(const [a,b] of [[P(m,1-m,gT),P(1-m,1-m,gT)],[P(1-m,1-m,gT),P(1-m,m,gT)],[P(m,m,gT),P(1-m,m,gT)],[P(m,m,gT),P(m,1-m,gT)],[P(m,1-m,0),P(m,1-m,gT)],[P(1-m,1-m,0),P(1-m,1-m,gT)],[P(1-m,m,0),P(1-m,m,gT)]]){cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
+ {const a=P(.3,1-m,gT*.85),b=P(.45,1-m,gT*.2);cx.strokeStyle='rgba(255,255,255,.75)';cx.lineWidth=2;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
+ const st=P(.5,.5,gT);for(let i=0;i<2;i++){const ph=m2(t*.9+i*.5,1);cx.fillStyle='rgba(255,255,255,'+(.55*(1-ph))+')';cx.beginPath();cx.ellipse(st.x-TW*.14+i*TW*.28,st.y-TW*.08-ph*TW*.38,4+ph*5,3+ph*4,0,0,7);cx.fill()}
+ plate(bR,'🐟 붕어빵','#8a3a1a','#fff3c0')}
 function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);const y=c.y-WH*.95;cx.strokeStyle='#c89010';cx.lineWidth=2;cx.beginPath();cx.moveTo(c.x,y-30);cx.lineTo(c.x,y);cx.stroke();const g=cx.createRadialGradient(c.x,y,4,c.x,y,TW*1.2);g.addColorStop(0,'rgba(255,240,170,.5)');g.addColorStop(1,'rgba(255,240,170,0)');cx.fillStyle=g;cx.beginPath();cx.arc(c.x,y,TW*1.2,0,7);cx.fill();em('🔮',c.x,y+8,TW*.36)}
 /* ---------- 전체 ---------- */
-function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520);
+function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawItem(it,t,o.sel===it)});
  L.push({z:1.4,f:()=>drawCounter(t,look)});staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
@@ -279,4 +311,4 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);poly([iso(g.x,g.y),iso(g.x+1,g.y),iso(g.x+1,g.y+1),iso(g.x,g.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
+return{FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};

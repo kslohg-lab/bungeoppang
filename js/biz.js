@@ -29,7 +29,7 @@ function buyDrink(save,k){const c=cafe(save),d=DK[k];if(!c.on||!d||c.dr.includes
 function buyBean(save){const c=cafe(save),cost=beanCost(save);if(!c.on||cost==null||save.coins<cost)return false;save.coins-=cost;c.bean=(c.bean|0)+1;return true}
 const SMAX=8,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000],WAGE=[0,100,250,500,900,1600,2800,4800,8000];
 /* 가게 크기 = 꾸미기의 넓히기와 같은 칸 수. 사면 그 크기 월세가 0원 */
-const PLACE={4:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},5:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},6:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},7:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},8:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6}};
+const PLACE={4:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},5:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},6:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},7:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},8:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6},9:{n:'대형 매장',e:'🏬',rent:8000,buy:1600000,mul:1.7},10:{n:'붕어빵 본점',e:'🏰',rent:12000,buy:4000000,mul:1.8}};
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
 const lvOf=(save,k)=>st(save)[k]|0;
 const hireCost=(save,k)=>{const l=lvOf(save,k);return l>=SMAX?null:SCOST[l]};
