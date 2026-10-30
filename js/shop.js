@@ -485,25 +485,31 @@ function endTour(){document.querySelectorAll('.hl').forEach(e=>e.classList.remov
 $('tnx').onclick=()=>{if(ti>=TOUR.length){endTour();openDeco('home');toast('🪑 아래에서 가구를 고르고 바닥을 톡!');return}ti++;tourShow()};
 $('tsk').onclick=()=>endTour();
 /* ---------- 반복 ---------- */
-/* ---------- 🐟 붕어빵 거리 ---------- */
+/* ---------- 🐟 붕어빵 동네 ----------
+   하루 한 번 가게 40곳쯤(비슷한 가게·큰 가게·상위권)을 불러와 저장(bpTown) → '🔄 다른 동네'는 그 안에서 새로 섞어요(서버 안 읽음, 제한 없음).
+   한 동네 = 내 가게 + 11곳: 가까운 자리엔 비슷한 가게 6, 그다음 큰 가게 3, 끝에 상위권 2 */
 const SV=STREET(cx,A);
 const myD=pv=>({room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
 const dD=r=>{const e=r.eq||{};return{room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
-let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpStreet',ST_MAX=5;
+let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown';
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
-function stBuild(){const rows=stRows||[],me={d:myD(null),me:true,u:'me'};const lo=rows.filter(r=>r.sc<=(r.ref|0)).sort((a,b)=>a.sc-b.sc),hi=rows.filter(r=>r.sc>(r.ref|0)).sort((a,b)=>a.sc-b.sc);
- stList=[...lo.map(r=>({d:dD(r),u:r.u})),me,...hi.map(r=>({d:dD(r),u:r.u}))];SV.focusList(stList,lo.length)}
-function stLeft(){const c=lsJ(ST_KEY+'N')||{};return c.d===dayKey()?Math.max(0,ST_MAX-(c.n|0)):ST_MAX}
-function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러보고 🤏 두 손가락으로 확대');const b=$('str'),n=stLeft();b.textContent='🔄 다른 거리 ('+n+')';b.className=n>0&&!stLoad?'':'dis'}
-function loadStreet(force){const c=lsJ(ST_KEY);if(!force&&c&&c.d===dayKey()&&Array.isArray(c.rows)){stRows=c.rows;stMsg='';stBuild();stUI();return}
- if(force){if(stLeft()<=0){toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}}
- stLoad=true;stUI();const sc=Math.min(3000000,decoScore());
- whenNet(N=>{if(!N.near){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.near(sc,force,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(force){const c=lsJ(ST_KEY+'N')||{};lsJ(ST_KEY+'N',{d:dayKey(),n:(c.d===dayKey()?c.n|0:0)+1})}if(scr==='street'){stBuild();stUI()}})
-  .catch(e=>{console.warn('street',e&&e.code||e);stLoad=false;stMsg='이웃을 불러오지 못했어요';if(!stRows)stRows=[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
-function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet(false);stUI()}
-function drawStreet(t,dt){stList[stList.findIndex(x=>x.me)].d=myD(null);const r=SV.scene(t,stList,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function stBuild(){const rows=(stRows||[]).slice(),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
+ const near=take(shuf(rows.slice().sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my)).slice(0,14)),6).sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my));
+ const big=take(shuf(rows.filter(r=>r.sc>my*1.5&&!r.top)),3).sort((a,b)=>a.sc-b.sc);
+ const top=take(shuf(rows.filter(r=>r.top)),2).sort((a,b)=>a.sc-b.sc);
+ const rest=take(shuf(rows.slice()),11-near.length-big.length-top.length);
+ stList=[{d:myD(null),me:true,u:'me'},...[...near,...rest,...big,...top].map(r=>({d:dD(r),u:r.u}))].slice(0,SV.LOTS.length);SV.center(0)}
+function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러보고 🤏 두 손가락으로 확대');const b=$('str');b.textContent='🔄 다른 동네';b.className=stLoad?'dis':''}
+function loadStreet(){const c=lsJ(ST_KEY);if(c&&c.d===dayKey()&&Array.isArray(c.rows)&&c.rows.length){stRows=c.rows;stMsg='';stBuild();stUI();return}
+ const tries=lsJ(ST_KEY+'T')||{};if(tries.d===dayKey()&&(tries.n|0)>=3){stRows=stRows||(c&&c.rows)||[];stMsg=stRows.length?'':'아직 이웃 가게가 없어요';stBuild();stUI();return}
+ stLoad=true;stUI();lsJ(ST_KEY+'T',{d:dayKey(),n:(tries.d===dayKey()?tries.n|0:0)+1});const sc=Math.min(3000000,decoScore());
+ whenNet(N=>{if(!N.pool){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.pool(sc,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(scr==='street'){stBuild();stUI()}})
+  .catch(e=>{console.warn('town',e&&e.code||e);stLoad=false;stMsg='이웃을 불러오지 못했어요';stRows=stRows||(c&&c.rows)||[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||(c&&c.rows)||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
+function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet();stUI()}
+function drawStreet(t,dt){const m=stList.find(x=>x.me);if(m)m.d=myD(null);const r=SV.scene(t,stList,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
 function stTap(x,y){const h=SV.hit(stHits,x,y);if(!h)return;const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}
-$('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');toHome()};$('str').onclick=()=>{if($('str').className==='dis'){if(stLeft()<=0)toast('오늘은 다른 거리를 다 봤어요. 내일 또 와요!');return}snd('tap');loadStreet(true)};
+$('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');toHome()};$('str').onclick=()=>{if(stLoad)return;snd('tap');if(!stRows||!stRows.length){loadStreet();return}stBuild();toast('🔄 새 동네로 왔어요!')};
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
  if(window.__gal){window.__gal(t);requestAnimationFrame(loop);return}
  if(scr==='game'&&s){if(!paused){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain();if(s.done)break}
@@ -520,7 +526,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(fa
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
 setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
-window.__shop={CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 fit();{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400);INSTALL.nudge(true)}else{NEWS.check(true);renderHome();openName(true);INSTALL.nudge(false)}}requestAnimationFrame(loop);
 setTimeout(syncShop,1500);
 })();

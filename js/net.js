@@ -20,11 +20,12 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const snap=await getDocs(query(collection(db,'shops'),orderBy(by==='lk'?'lk':'sc','desc'),limit(36)));
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
      const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(seen.has(k))continue;seen.add(k);v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
-    /* 🐟 붕어빵 거리 이웃: 꾸미기 점수가 비슷한 가게 위·아래 3곳씩 (읽기 8번). rnd면 점수 기준을 흔들어 다른 거리 */
-    async near(sc,rnd,me){const uid=await login().catch(()=>null);const ref=Math.round(rnd?sc*(.5+Math.random()):sc),col=collection(db,'shops');
-     const [a,b]=await Promise.all([getDocs(query(col,where('sc','>',ref),orderBy('sc','asc'),limit(4))),getDocs(query(col,where('sc','<=',ref),orderBy('sc','desc'),limit(4)))]);
-     const seen=new Set(me?[me]:[]),pick=(ds)=>{const o=[];for(const x of ds){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(x.id===uid||seen.has(k))continue;seen.add(k);o.push({u:x.id,n:d.n,nk:d.nk,g:d.g|0,sc:d.sc|0,room:d.room|0,eq:d.eq||{},ref});if(o.length>=3)break}return o};
-     return[...pick(b.docs),...pick(a.docs)]},
+    /* 🐟 붕어빵 동네 후보: 비슷한 가게(위·아래 12씩) + 큰 가게(내 점수 3배 이상 8) + 상위권 8 → 최대 읽기 40, 하루 한 번 */
+    async pool(sc,me){const uid=await login().catch(()=>null),col=collection(db,'shops'),big=Math.max(sc*3,sc+5000);
+     const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(12))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(12))),
+      getDocs(query(col,where('sc','>=',big),orderBy('sc','asc'),limit(8))),getDocs(query(col,orderBy('sc','desc'),limit(8)))]);
+     const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},top:top?1:0})}};
+     add(d.docs,1);add(a.docs);add(b.docs);add(c.docs);return o},
     async get(uid){const s=await getDoc(doc(db,'shops',uid));return s.exists()?s.data():null},
     async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()},
     async like(uid){const me=await login();N.uid=me;if(me===uid)return false;const b=writeBatch(db);
