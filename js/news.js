@@ -1,14 +1,20 @@
 /* ===== 📢 새 소식 (패치 노트) — 챌린지·가게 공용 =====
    새 버전으로 처음 들어오면 한 번 떠요. 설정의 '📢 새 소식'에서 다시 볼 수 있어요.
-   업데이트할 때 맨 위에 새 항목을 더하고 v를 올려요. */
+   업데이트할 때 맨 위에 새 항목을 더하고 v를 올려요.
+   ✍️ 이용자가 알아야 할 것만 써요(내부 수정·속도 개선 같은 건 빼요). q:1 = 목록에만 두고 창은 안 띄움.
+   '🔕 일주일간 안 보기'를 누르면 7일 동안 창이 안 떠요(그 뒤 최신 소식 한 번). */
 const NEWS=(()=>{
-const KEY='bpNewsSeen';
+const KEY='bpNewsSeen',MUTE='bpNewsMute';
 const L=[
+ {v:'3.3',d:'10월 30일',t:[
+  '🎨 꾸미기가 자유로워졌어요: 흰 길 칸이 없어지고, 손님이 가구를 피해서 걸어요. 🚪 문 앞과 🧾 카운터 앞만 비워 두면 돼요 (길을 막는 자리는 알려 줘요)',
+  '⭐ 별 보상을 📖 도감에서 바로 받아요. 받을 게 있으면 도감 버튼에 숫자가 떠요',
+  '🦊 홍보 알바가 가게 앞에 서서 옆 장식과 겹치지 않아요',
+  '📲 아이폰 설치 안내가 새 iOS(아래 ⋯ 메뉴)에 맞게 바뀌었어요']},
  {v:'3.2',d:'10월 29일',t:['🚚 기록 옮기기가 "이사"로 바뀌었어요: 옮긴 뒤엔 보낸 쪽 기록이 잠기고, 받은 곳에서만 이어져요. 번호는 한 번에 하나만 만들 수 있어요']},
- {v:'3.1',d:'10월 29일',t:['📲 웹에서는 첫 화면과 가게 화면에 앱 설치 버튼이 늘 보여요 · 새 소식은 최근 3개만 펼쳐 보여요']},
+ {v:'3.1',d:'10월 29일',q:1,t:['📲 웹에서는 첫 화면과 가게 화면에 앱 설치 버튼이 늘 보여요']},
  {v:'3.0',d:'10월 29일',t:[
-  '🏆 순위표: 30위 밖이어도 맨 아래에 내 순위와 위·아래 3명이 보여요. 단계를 넘길 때 보이는 내 순위도 정확한 숫자로 나와요',
-  '⚡ 순위를 더 가볍게 불러와서 사람이 많아져도 순위표가 잘 버텨요']},
+  '🏆 순위표: 30위 밖이어도 맨 아래에 내 순위와 위·아래 3명이 보여요. 단계를 넘길 때 보이는 내 순위도 정확한 숫자로 나와요']},
  {v:'2.9',d:'10월 29일',t:[
   '🃏 카드 선택 (🔥 챌린지, 11월 2일 월요일 새 판부터): 5단계를 넘길 때마다 카드 3장 중 1장을 골라요. 이번 주엔 모두 같은 카드가 나오고, 같은 카드는 겹쳐요. 어떤 조합이 셀지 친구들과 겨뤄 보세요!',
   '🐶 굽기 알바가 강아지로 바뀌었어요 (곰 사장님과 안 헷갈리게)',
@@ -48,9 +54,12 @@ function open(){close();ov=document.createElement('div');ov.style.cssText='posit
   n.t.forEach(x=>{const p=document.createElement('div');p.textContent='• '+x;s.appendChild(p)});b.appendChild(s)});
  if(more.length){const mb=document.createElement('button');mb.textContent='🗂️ 지난 소식 더 보기 ('+more.length+'개)';mb.style.cssText='width:100%;height:42px;border:0;border-radius:14px;background:#fff6e6;color:#8a6a4a;font-family:inherit;font-size:15px;margin-bottom:6px';mb.onclick=()=>{more.forEach(m=>m.style.display='');mb.remove()};b.appendChild(mb)}
  const x=document.createElement('button');x.textContent='좋아요!';x.style.cssText='margin-top:10px;height:54px;font-size:21px;border:0;border-radius:18px;background:#ffc94a;box-shadow:0 4px 0 #d9a020;color:#5a3a22;font-family:inherit';x.onclick=close;
- c.append(h,...(ap?[ap]:[]),b,x);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}
+ const mu=document.createElement('button');mu.textContent='🔕 일주일간 안 보기';mu.style.cssText='margin-top:6px;height:38px;font-size:15px;border:0;background:none;box-shadow:none;color:#a08060;font-family:inherit;text-decoration:underline';mu.onclick=()=>{try{localStorage.setItem(MUTE,String(Date.now()+7*864e5))}catch(e){}close()};
+ c.append(h,...(ap?[ap]:[]),b,x,mu);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}
 function close(){if(ov){ov.remove();ov=null}}
 function seen(){try{localStorage.setItem(KEY,latest)}catch(e){}}
 /* isNew: 처음 온 사람은 띄우지 않고 '본 것'으로 */
-function check(isNew){let v=null;try{v=localStorage.getItem(KEY)}catch(e){}if(v===latest)return false;if(isNew){seen();return false}open();return true}
+function check(isNew){let v=null,m=0;try{v=localStorage.getItem(KEY);m=+localStorage.getItem(MUTE)||0}catch(e){}if(v===latest)return false;if(isNew){seen();return false}
+ /* 안 본 소식이 모두 조용한 것(q)이면 창 없이 본 걸로 */const i=L.findIndex(n=>n.v===v),un=i<0?L:L.slice(0,i);if(!un.some(n=>!n.q)){seen();return false}
+ if(Date.now()<m)return false;open();return true}
 return{L,latest,open,close,check}})();

@@ -1,5 +1,5 @@
 /* ===== 📲 앱으로 설치 (홈 화면에 추가) — 챌린지·가게 공용 =====
-   안드로이드 크롬: 바로 설치 창 / 아이폰 사파리: '공유 → 홈 화면에 추가' 안내 / 카톡 안: 다른 브라우저로 열기 */
+   안드로이드 크롬: 바로 설치 창 / 아이폰 사파리: '(iOS 26: ⋯ →) 공유 → 홈 화면에 추가' 안내 / 카톡 안: 다른 브라우저로 열기 */
 const INSTALL=(()=>{
 const ua=navigator.userAgent||'',kakao=/KAKAOTALK/i.test(ua),ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),
  iosOther=ios&&/CriOS|FxiOS|EdgiOS|NAVER|Whale|DaumApps/i.test(ua),android=/Android/i.test(ua);
@@ -21,14 +21,19 @@ function card(title,html,btn){close();ov=document.createElement('div');ov.style.
 const step=(n,t)=>'<div style="display:flex;gap:10px;align-items:flex-start;margin:6px 0"><b style="flex:0 0 28px;height:28px;border-radius:14px;background:#ffc94a;text-align:center;font-weight:400">'+n+'</b><span>'+t+'</span></div>';
 const NOTE=t=>'<div style="background:#fff1e0;border-radius:14px;padding:8px 12px;margin-top:10px;font-size:14px;line-height:1.45">'+t+'</div>';
 const IOSNOTE=NOTE('📦 아이폰은 앱의 기록이 사파리와 <b>따로</b>예요. 설치 전에 ⚙️ 설정 → <b>📦 기록 옮기기</b>에서 번호를 받아 두고, 앱을 처음 열 때 넣으면 그대로 이어져요.');
+const SAFE='<div style="background:#e6f6ee;border-radius:14px;padding:8px 12px;margin-top:10px;font-size:14px;line-height:1.45;color:#1f5a4a">🛡️ 권한을 <b>하나도</b> 받지 않아요 (연락처·사진·위치·알림 X). 홈 화면에 바로가기를 만드는 거예요.</div>';
+/* 아이폰 사파리 버전: 26부터 공유 버튼이 ⋯ 메뉴 안으로 들어갔어요 */
+const sv=(()=>{const m=ua.match(/Version\/(\d+)/);return m?+m[1]:0})();
 const ANDNOTE=NOTE('📦 크롬에서 하던 기록은 그대로 이어져요. <b>카톡·삼성 인터넷</b>에서 하던 기록은 ⚙️ 설정 → <b>📦 기록 옮기기</b>로 번호를 받아 앱에서 넣어 주세요.');
 function open(){
  if(standalone()){card('이미 앱으로 쓰고 있어요! 🎉','<p style="margin:0;text-align:center">홈 화면의 🐟 붕어빵 가게 아이콘으로 열면 돼요.</p>');return}
  if(deferred){const d=deferred;deferred=null;d.prompt();(d.userChoice||Promise.resolve()).then(()=>sync()).catch(()=>{});return}
- if(kakao){card('카톡 안에서는 설치가 안 돼요','<p style="margin:0 0 6px">크롬이나 사파리로 열면 홈 화면에 앱으로 설치할 수 있어요.</p>'+step(1,'아래 버튼을 눌러 다른 브라우저로 열어요')+step(2,'열린 화면에서 ⚙️ 설정 → 📲 앱으로 설치')+NOTE('📦 지금 카톡에서 하던 기록은 먼저 ⚙️ 설정 → <b>📦 기록 옮기기</b>에서 번호를 받아 두세요. 앱에서 넣으면 그대로 이어져요.'),['🌐 크롬/사파리로 열기',()=>{location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(location.href)}]);return}
- if(ios&&iosOther){card('사파리에서 설치할 수 있어요','<p style="margin:0">아이폰은 <b>사파리</b>에서만 홈 화면에 추가할 수 있어요. 주소를 복사해서 사파리에 붙여 넣어 주세요.</p>'+IOSNOTE,['🔗 주소 복사',()=>{try{navigator.clipboard.writeText(location.origin+'/')}catch(e){}close()}]);return}
- if(ios){card('홈 화면에 추가해요','<p style="margin:0 0 6px">사파리에서 세 번만 누르면 앱처럼 쓸 수 있어요.</p>'+step(1,'화면 아래 가운데 <b>공유 버튼</b> (네모에 위 화살표 ⬆️)')+step(2,'목록을 내려서 <b>홈 화면에 추가</b>')+step(3,'오른쪽 위 <b>추가</b>')+IOSNOTE);return}
- if(android){card('앱으로 설치해요','<p style="margin:0 0 6px">크롬에서 이렇게 하면 돼요.</p>'+step(1,'오른쪽 위 <b>⋮</b> 메뉴')+step(2,'<b>앱 설치</b> 또는 <b>홈 화면에 추가</b>')+ANDNOTE);return}
+ if(kakao){card('카톡 안에서는 설치가 안 돼요','<p style="margin:0 0 6px">크롬이나 사파리로 열면 홈 화면에 앱으로 설치할 수 있어요.</p>'+step(1,'아래 버튼을 눌러 다른 브라우저로 열어요')+step(2,'열린 화면에서 ⚙️ 설정 → 📲 앱으로 설치')+NOTE('📦 지금 카톡에서 하던 기록은 먼저 ⚙️ 설정 → <b>📦 기록 옮기기</b>에서 번호를 받아 두세요. 앱에서 넣으면 그대로 이어져요.')+SAFE,['🌐 크롬/사파리로 열기',()=>{location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(location.href)}]);return}
+ if(ios&&iosOther){card('홈 화면에 추가해요','<p style="margin:0 0 6px">아이폰 크롬이면 이렇게 해요.</p>'+step(1,'주소창 오른쪽 <b>공유 버튼</b> ⬆️')+step(2,'<b>홈 화면에 추가</b> → <b>추가</b>')+'<p style="margin:6px 0 0;font-size:15px">메뉴가 안 보이면 주소를 복사해서 <b>사파리</b>에서 열어 주세요.</p>'+IOSNOTE+SAFE,['🔗 주소 복사',()=>{try{navigator.clipboard.writeText(location.origin+'/')}catch(e){}close()}]);return}
+ if(ios){const nw=sv>=26,old=sv&&sv<26;card('홈 화면에 추가해요','<p style="margin:0 0 6px">사파리에서 몇 번만 누르면 앱처럼 쓸 수 있어요.</p>'+
+   (old?step(1,'화면 아래 가운데 <b>공유 버튼</b> (네모에 위 화살표 ⬆️)')+step(2,'목록을 내려서 <b>홈 화면에 추가</b>')+step(3,'오른쪽 위 <b>추가</b>')
+   :step(1,'화면 아래 오른쪽 <b>⋯</b> (점 세 개)')+step(2,'<b>공유</b> ⬆️')+step(3,'<b>홈 화면에 추가</b> (안 보이면 아래로 내리거나 <b>더 보기</b>)')+step(4,'<b>웹 앱으로 열기</b> 켜고 <b>추가</b>')+(nw?'':'<p style="margin:4px 0 0;font-size:14px;color:#8a6a4a">⋯ 버튼이 없으면: 아래 가운데 <b>공유 버튼</b> ⬆️ → 홈 화면에 추가</p>'))+IOSNOTE+SAFE);return}
+ if(android){card('앱으로 설치해요','<p style="margin:0 0 6px">크롬에서 이렇게 하면 돼요.</p>'+step(1,'오른쪽 위 <b>⋮</b> 메뉴')+step(2,'<b>앱 설치</b> 또는 <b>홈 화면에 추가</b>')+ANDNOTE+SAFE);return}
  card('앱으로 설치해요','<p style="margin:0">컴퓨터 크롬이면 주소창 오른쪽의 <b>설치</b> 아이콘을 눌러요. 폰에서는 크롬(안드로이드)이나 사파리(아이폰)로 열어 주세요.</p>')}
 /* ---------- 📦 기록 옮기기 ---------- */
 const X=()=>window.XFER&&!window.XFER.off?window.XFER:null;
