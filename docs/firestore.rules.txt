@@ -106,7 +106,8 @@ service cloud.firestore {
 
     // 📊 운영자 통계용 접속 기록 (stats.html 에서 개수만 셈). 내 칸에만, p='c'(챌린지)/'s'(가게)
     function okSeen(d) {
-      return d.keys().hasOnly(['p', 't']) && (d.p == 'c' || d.p == 's') && d.t == request.time;
+      return d.keys().hasOnly(['p', 't', 'f']) && (d.p == 'c' || d.p == 's') && d.t == request.time
+        && (!('f' in d) || (d.f is int && d.f > 20000 && d.f < 40000));
     }
     match /stats_days/{d}/u/{uid} {
       allow read: if true;

@@ -32,6 +32,9 @@ button{font:inherit;border:0;border-radius:12px;padding:8px 14px;background:var(
 </div>
 <h2>최근 14일</h2>
 <div class="chart"><div class="bars" id="bars"></div><div class="lg"><i></i>접속한 사람 <i class="n"></i>처음 온 사람</div></div>
+<h2>🔁 다시 온 비율 (리텐션)</h2>
+<div class="chart" style="overflow-x:auto"><table id="ret" style="width:100%;border-collapse:collapse;font-size:15px;text-align:center"></table>
+<div class="sub" style="margin-top:6px">처음 온 날 기준 · 다음 날(1일) · 3일 뒤 · 7일 뒤에도 들어온 사람 비율 · 10/31부터 정확해요<br>참고: 캐주얼 게임은 보통 1일 30~40%, 7일 10~15%면 괜찮은 편</div></div>
 <h2>🔥 챌린지</h2>
 <div class="grid">
  <div class="k"><small>이번 주 참가</small><b id="cw">–</b></div>
@@ -64,5 +67,10 @@ async function load(){$('when').textContent='불러오는 중…';const D=day(),
  show('cw',cw);show('c60',c60);show('clive',clive);show('cl',cl);show('shops',shops);
  const mx=Math.max(1,...act.map(v=>v||0));$('bars').innerHTML=days.map((d,i)=>'<div class="bar"><em>'+(act[i]||0)+'</em><div style="display:flex;gap:2px;width:100%;align-items:flex-end;height:120px"><i style="height:'+((act[i]||0)/mx*100)+'%"></i><i class="n" style="height:'+((nw[i]||0)/mx*100)+'%"></i></div><span>'+lab(d)+'</span></div>').join('');
  $('when').textContent='한국 시간 '+new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' 기준 · 이번 주 판 #'+W}
-$('re').onclick=load;load().catch(e=>{$('when').innerHTML='<span class="err">불러오지 못했어요: '+(e&&e.message||e)+'</span>'});
+/* 리텐션: stats_days/{d+k}/u 중 f==d 인 사람 수 ÷ stats_new/{d}/u (개수 세기만 → 읽기 몇 번) */
+async function loadRet(){const D=day(),C=[...Array(8)].map((_,i)=>D-8+i);
+ const rows=await Promise.all(C.map(async d=>{const n=await cnt(collection(db,'stats_new',String(d),'u'));const k=await Promise.all([1,3,7].map(o=>d+o<=D?cnt(query(collection(db,'stats_days',String(d+o),'u'),where('f','==',d))):Promise.resolve(null)));return{d,n,k}}));
+ const pc=(v,n)=>v==null||!n?'<td style="opacity:.35">–</td>':'<td><b>'+Math.round(v/n*100)+'%</b><br><small style="opacity:.6">'+v+'</small></td>';
+ $('ret').innerHTML='<tr style="opacity:.7"><td>처음 온 날</td><td>신규</td><td>1일</td><td>3일</td><td>7일</td></tr>'+rows.reverse().map(r=>'<tr style="border-top:1px solid rgba(0,0,0,.08)"><td>'+lab(r.d)+'</td><td>'+(r.n??'?')+'</td>'+r.k.map(v=>pc(v,r.n)).join('')+'</tr>').join('')}
+$('re').onclick=()=>{load();loadRet()};loadRet().catch(e=>console.warn(e));load().catch(e=>{$('when').innerHTML='<span class="err">불러오지 못했어요: '+(e&&e.message||e)+'</span>'});
 </script></body></html>

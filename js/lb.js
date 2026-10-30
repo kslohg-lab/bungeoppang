@@ -1,6 +1,6 @@
 /* 순위표 연결 (Firebase 익명 로그인 + Firestore). 설정이 비어 있으면 꺼진 채로 둡니다. */
 import {CFG} from './firebase-config.js';
-import {presence} from './stat.js?v=1';
+import {presence} from './stat.js?v=2';
 const SIMV=typeof BP2!=='undefined'?BP2.SIMV:1;
 
 if(!CFG||!CFG.apiKey||!CFG.projectId){window.LB={off:true}}

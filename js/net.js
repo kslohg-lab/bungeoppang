@@ -1,7 +1,7 @@
 /* 가게 순위·구경 연결 (Firebase 익명 로그인 + Firestore). 챌린지와 같은 익명 사용자예요.
    shops/{uid}: 가게 모습 요약 + 꾸미기 점수(sc) + 좋아요 수(lk). 좋아요는 shops/{uid}/likes/{방문자}로 한 사람 한 번 */
 import {CFG} from './firebase-config.js';
-import {presence} from './stat.js?v=1';
+import {presence} from './stat.js?v=2';
 window.NET={off:true};
 if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
  (async()=>{
