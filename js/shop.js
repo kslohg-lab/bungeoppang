@@ -490,7 +490,7 @@ $('nb').onclick=()=>{au();syncShop();openRank('sc')};$('rk0').onclick=()=>openRa
 /* 구경 */
 let vd=null,vuid=null,vfur=[],vFrom='home';
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');
- return{n:Math.max(4,Math.min(8,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
+ return{n:Math.max(4,Math.min(10,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
   vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.FK[it.k]);
