@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='3.7';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='3.8';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -42,9 +42,9 @@ function startRun(mode){au();run=B.newRun(mode==='week'?weekSeed():(Math.random(
 let cdo=null;
 function openCards(then){const offer=B.cardOffer(run);if(!offer.length){then&&then();return}const st=B.cardStage(run);scr='cards';
  if(!cdo){cdo=document.createElement('div');cdo.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.72);z-index:30;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box';$('box').appendChild(cdo)}
- cdo.style.display='flex';cdo.innerHTML='';const c=document.createElement('div');c.style.cssText='background:#fff8ec;border-radius:28px;width:100%;box-sizing:border-box;padding:16px;text-align:center;color:#5a3a22';
+ cdo.style.display='flex';cdo.innerHTML='';const c=document.createElement('div');c.className='thc';c.style.cssText='background:#fff8ec;border-radius:28px;width:100%;box-sizing:border-box;padding:16px;text-align:center;color:#5a3a22';
  c.innerHTML='<div style="font-size:15px;opacity:.75">'+st+'단계 통과 보상</div><div style="font-size:27px;margin:2px 0 4px">🃏 카드 한 장 고르기</div><div style="font-size:14px;opacity:.7;margin-bottom:10px">이번 주엔 모두 같은 카드가 나와요 · 같은 카드는 겹쳐요</div>';
- offer.forEach((k,i)=>{const d=B.CK[k],have=B.cn(run,k),b=document.createElement('button');b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #e0c4a0;font-family:inherit;color:#5a3a22;border:3px solid #ffe2a8';
+ offer.forEach((k,i)=>{const d=B.CK[k],have=B.cn(run,k),b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #e0c4a0;font-family:inherit;color:#5a3a22;border:3px solid #ffe2a8';
   b.innerHTML='<span style="font-size:42px;line-height:1">'+d.e+'</span><span style="flex:1"><b style="font-weight:400;font-size:21px">'+d.n+(have?' <small style="font-size:13px;color:#2a8a3a">보유 '+have+' → '+(have+1)+'</small>':'')+'</b><br><span style="font-size:15px;opacity:.85">'+d.d+(k==='flav'?' ('+R.menu[run.nf-1].e+' '+R.menu[run.nf-1].n+')':'')+'</span></span>';
   b.onclick=()=>{if(!B.pickCard(run,k))return;save.run={run};store();snd('win');cdo.style.display='none';toast(d.e+' '+d.n+' 카드를 얻었어요!');if(then)then()};c.appendChild(b)});
  cdo.appendChild(c)}

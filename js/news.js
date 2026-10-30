@@ -6,6 +6,7 @@
 const NEWS=(()=>{
 const KEY='bpNewsSeen',MUTE='bpNewsMute';
 const L=[
+ {v:'3.8',d:'10월 30일',t:['🎨 테마를 고를 수 있어요: ⚙️ 설정 → 🎨 테마에서 🍞 기본 · 🤍 화이트 · 🖤 블랙 (챌린지·가게 모두 같이 바뀌어요)']},
  {v:'3.7',d:'10월 30일',t:[
   '🏘️ 붕어빵 거리가 붕어빵 동네가 됐어요! 바둑판 길과 블록 4개에 가게 12곳 · 공원 · 횡단보도 · 가로등',
   '🏠 내 가게 근처엔 비슷한 가게, 조금 멀리엔 큰 가게와 상위권 가게가 있어요. 내 가게를 가리는 건물은 살짝 투명해져요',
@@ -58,17 +59,17 @@ const L=[
 const latest=L[0].v;
 let ov=null;
 function open(){close();ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box';
- const c=document.createElement('div');c.style.cssText='background:#fff;border-radius:26px;width:100%;max-height:96%;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;text-align:left;color:#5a3a22';
+ const c=document.createElement('div');c.className='thc';c.style.cssText='background:#fff;border-radius:26px;width:100%;max-height:96%;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;text-align:left;color:#5a3a22';
  const h=document.createElement('div');h.style.cssText='font-size:26px;text-align:center;margin-bottom:8px';h.textContent='📢 새 소식';
  const b=document.createElement('div');b.style.cssText='overflow-y:auto;touch-action:pan-y;flex:1;min-height:0';
  /* 📲 앱 설치 칸은 웹에서 늘 맨 위에 (앱으로 열면 안 보여요) */
  const I=typeof INSTALL!=='undefined'?INSTALL:null;let ap=null;if(I&&!I.standalone()){ap=document.createElement('button');ap.style.cssText='display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;border:0;border-radius:16px;padding:10px 12px;margin-bottom:10px;background:#d6f2e4;box-shadow:0 3px 0 #8fc8a8;font-family:inherit;color:#1f5a4a;text-align:left;cursor:pointer';
   ap.innerHTML='<img src="img/icon-192.png" alt="" style="width:44px;height:44px;border-radius:12px"><span style="flex:1;font-size:15px;line-height:1.35"><b style="font-size:17px;font-weight:400">📲 앱으로 설치하기</b><br>홈 화면에서 바로 열어요 · 기록도 옮길 수 있어요</span><span style="font-size:20px">›</span>';ap.onclick=()=>{close();I.open()}}
  const more=[];
- L.forEach((n,i)=>{const s=document.createElement('div');if(i>=3){s.style.display='none';more.push(s)}s.style.cssText+=';background:'+(i===0?'#fff1b8':'#fff6e6')+';border-radius:16px;padding:10px 12px;margin-bottom:8px;font-size:15px;line-height:1.5';
+ L.forEach((n,i)=>{const s=document.createElement('div');s.className=i===0?'thh':'ths';if(i>=3){s.style.display='none';more.push(s)}s.style.cssText+=';background:'+(i===0?'#fff1b8':'#fff6e6')+';border-radius:16px;padding:10px 12px;margin-bottom:8px;font-size:15px;line-height:1.5';
   const t=document.createElement('b');t.style.cssText='display:block;font-size:17px;margin-bottom:2px';t.textContent=(i===0?'✨ ':'')+'v'+n.v+' · '+n.d;s.appendChild(t);
   n.t.forEach(x=>{const p=document.createElement('div');p.textContent='• '+x;s.appendChild(p)});b.appendChild(s)});
- if(more.length){const mb=document.createElement('button');mb.textContent='🗂️ 지난 소식 더 보기 ('+more.length+'개)';mb.style.cssText='width:100%;height:42px;border:0;border-radius:14px;background:#fff6e6;color:#8a6a4a;font-family:inherit;font-size:15px;margin-bottom:6px';mb.onclick=()=>{more.forEach(m=>m.style.display='');mb.remove()};b.appendChild(mb)}
+ if(more.length){const mb=document.createElement('button');mb.className='ths';mb.textContent='🗂️ 지난 소식 더 보기 ('+more.length+'개)';mb.style.cssText='width:100%;height:42px;border:0;border-radius:14px;background:#fff6e6;color:#8a6a4a;font-family:inherit;font-size:15px;margin-bottom:6px';mb.onclick=()=>{more.forEach(m=>m.style.display='');mb.remove()};b.appendChild(mb)}
  const x=document.createElement('button');x.textContent='좋아요!';x.style.cssText='margin-top:10px;height:54px;font-size:21px;border:0;border-radius:18px;background:#ffc94a;box-shadow:0 4px 0 #d9a020;color:#5a3a22;font-family:inherit';x.onclick=close;
  const mu=document.createElement('button');mu.textContent='🔕 일주일간 안 보기';mu.style.cssText='margin-top:6px;height:38px;font-size:15px;border:0;background:none;box-shadow:none;color:#a08060;font-family:inherit;text-decoration:underline';mu.onclick=()=>{try{localStorage.setItem(MUTE,String(Date.now()+7*864e5))}catch(e){}close()};
  c.append(h,...(ap?[ap]:[]),b,x,mu);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov);seen()}

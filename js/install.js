@@ -13,13 +13,13 @@ function bind(el){if(!el)return;btns.push(el);el.onclick=open;sync()}
 let ov=null;
 function close(){if(ov){ov.remove();ov=null}}
 function card(title,html,btn){close();ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.6);z-index:45;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
- const c=document.createElement('div');c.style.cssText='background:#fff;border-radius:26px;width:100%;box-sizing:border-box;padding:18px;text-align:left;color:#5a3a22;font-size:17px;line-height:1.55';
+ const c=document.createElement('div');c.className='thc';c.style.cssText='background:#fff;border-radius:26px;width:100%;box-sizing:border-box;padding:18px;text-align:left;color:#5a3a22;font-size:17px;line-height:1.55';
  c.innerHTML='<div style="text-align:center"><img src="img/icon-192.png" alt="" style="width:72px;height:72px;border-radius:18px;box-shadow:0 3px 10px rgba(0,0,0,.2)"></div><div style="font-size:24px;text-align:center;margin:8px 0 10px">'+title+'</div>'+html;
  const bs=document.createElement('div');bs.className='icb';bs.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:12px';
- const mk=(t,fn,main)=>{const b=document.createElement('button');b.textContent=t;b.style.cssText='height:52px;font-size:19px;border:0;border-radius:18px;font-family:inherit;color:#5a3a22;'+(main?'background:#ffc94a;box-shadow:0 4px 0 #d9a020':'background:#fff6e6;box-shadow:0 4px 0 #e0c4a0');b.onclick=fn;bs.appendChild(b)};
+ const mk=(t,fn,main)=>{const b=document.createElement('button');b.textContent=t;if(!main)b.className='ths';b.style.cssText='height:52px;font-size:19px;border:0;border-radius:18px;font-family:inherit;color:#5a3a22;'+(main?'background:#ffc94a;box-shadow:0 4px 0 #d9a020':'background:#fff6e6;box-shadow:0 4px 0 #e0c4a0');b.onclick=fn;bs.appendChild(b)};
  if(btn)mk(btn[0],btn[1],true);mk('닫기',close);c.appendChild(bs);ov.appendChild(c);(document.getElementById('box')||document.body).appendChild(ov)}
 const step=(n,t)=>'<div style="display:flex;gap:10px;align-items:flex-start;margin:6px 0"><b style="flex:0 0 28px;height:28px;border-radius:14px;background:#ffc94a;text-align:center;font-weight:400">'+n+'</b><span>'+t+'</span></div>';
-const NOTE=t=>'<div style="background:#fff1e0;border-radius:14px;padding:8px 12px;margin-top:10px;font-size:14px;line-height:1.45">'+t+'</div>';
+const NOTE=t=>'<div class="ths" style="background:#fff1e0;border-radius:14px;padding:8px 12px;margin-top:10px;font-size:14px;line-height:1.45">'+t+'</div>';
 const IOSNOTE=NOTE('📦 아이폰은 앱의 기록이 사파리와 <b>따로</b>예요. 설치 전에 ⚙️ 설정 → <b>📦 기록 옮기기</b>에서 번호를 받아 두고, 앱을 처음 열 때 넣으면 그대로 이어져요.');
 const SAFE='<div style="background:#e6f6ee;border-radius:14px;padding:8px 12px;margin-top:10px;font-size:14px;line-height:1.45;color:#1f5a4a">🛡️ 권한을 <b>하나도</b> 받지 않아요 (연락처·사진·위치·알림 X). 홈 화면에 바로가기를 만드는 거예요.</div>';
 /* 아이폰 사파리 버전: 26부터 공유 버튼이 ⋯ 메뉴 안으로 들어갔어요 */
@@ -43,7 +43,7 @@ function xfer(){card('📦 기록 옮기기','<p style="margin:0 0 6px">카톡·
 function xsend(){card('번호 만드는 중…','<p style="margin:0;text-align:center">잠깐만요 ⏳</p>');whenX(x=>{x.send().then(code=>{
   card('옮기기 번호','<div style="font-size:52px;letter-spacing:8px;text-align:center;font-weight:400;margin:4px 0;color:#c0601a">'+code.slice(0,3)+' '+code.slice(3)+'</div><p style="margin:0;text-align:center">옮길 곳(앱)에서 ⚙️ 설정 → 📦 기록 옮기기 →<br><b>📥 번호 넣어서 받아오기</b>에 넣어 주세요.</p>'+NOTE('⏰ 15분 안에, 한 번만 쓸 수 있어요.<br>🚚 옮기면 <b>이 기기의 기록은 잠기고</b> 새로 시작해요. 번호를 받은 뒤엔 여기서 더 하지 마세요 (번호 받은 때까지의 기록이 넘어가요).'),['🔢 번호 복사',()=>{try{navigator.clipboard.writeText(code)}catch(e){}}])})
  .catch(e=>{if(e&&e.message==='moved')return;card('번호를 만들지 못했어요','<p style="margin:0;text-align:center">'+(e&&e.message==='empty'?'이 기기에는 옮길 기록이 없어요.':'잠시 뒤에 다시 해 주세요.')+'</p>')})})}
-function xrecv(){card('📥 번호 넣기','<input id="xin" inputmode="numeric" maxlength="7" placeholder="6자리 번호" style="width:100%;box-sizing:border-box;height:62px;border:3px solid #f0c890;border-radius:16px;font:inherit;font-size:32px;letter-spacing:6px;text-align:center;color:#5a3a22;background:#fffaf0;user-select:text;-webkit-user-select:text;outline:none"><div id="xer" style="color:#d03030;min-height:22px;font-size:15px;text-align:center;margin-top:4px"></div>'+NOTE('⚠️ 이 기기의 지금 기록은 받아 온 기록으로 <b>바뀌어요</b>.'),['📥 받아오기',()=>{}]);
+function xrecv(){card('📥 번호 넣기','<input id="xin" class="ths" inputmode="numeric" maxlength="7" placeholder="6자리 번호" style="width:100%;box-sizing:border-box;height:62px;border:3px solid #f0c890;border-radius:16px;font:inherit;font-size:32px;letter-spacing:6px;text-align:center;color:#5a3a22;background:#fffaf0;user-select:text;-webkit-user-select:text;outline:none"><div id="xer" style="color:#d03030;min-height:22px;font-size:15px;text-align:center;margin-top:4px"></div>'+NOTE('⚠️ 이 기기의 지금 기록은 받아 온 기록으로 <b>바뀌어요</b>.'),['📥 받아오기',()=>{}]);
  const inp=ov.querySelector('#xin'),er=ov.querySelector('#xer'),go=ov.querySelector('.icb button');let armed=false;
  setTimeout(()=>{try{inp.focus()}catch(e){}},50);
  go.onclick=()=>{const v=inp.value.replace(/\D/g,'');if(v.length!==6){er.textContent='6자리 숫자를 넣어 주세요';return}
