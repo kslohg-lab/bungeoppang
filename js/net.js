@@ -17,8 +17,9 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      /* 처음 한 번만 있는지 확인 (그다음부턴 읽지 않고 바로 저장) */let ex=made;if(!made){ex=(await getDoc(r)).exists();try{localStorage.setItem(mk,'1')}catch(e){}}
      const body=Object.assign({},d,{ts:serverTimestamp()});if(!ex)body.lk=0;await setDoc(r,body,{merge:true});cache.clear();return true},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<120000)return c.v;
-     const snap=await getDocs(query(collection(db,'shops'),orderBy(by==='lk'?'lk':'sc','desc'),limit(30)));
-     const v=snap.docs.map(x=>{const d=x.data();return{u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room}});cache.set(k,{t:Date.now(),v});return v},
+     const snap=await getDocs(query(collection(db,'shops'),orderBy(by==='lk'?'lk':'sc','desc'),limit(36)));
+     /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
+     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(seen.has(k))continue;seen.add(k);v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
     async get(uid){const s=await getDoc(doc(db,'shops',uid));return s.exists()?s.data():null},
     async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()},
     async like(uid){const me=await login();N.uid=me;if(me===uid)return false;const b=writeBatch(db);

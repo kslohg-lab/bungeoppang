@@ -25,8 +25,10 @@ else{
     bust(){cache.clear()},
     /* 이번 주(또는 지난 주) 위쪽 30명 */
     async top(w){const c=cache.get(w);if(c&&Date.now()-c.t<120000)return c.rows; /* 2분 동안은 다시 안 읽어요 */
-     const q=query(collection(db,'weeks',String(w),'scores'),orderBy('sc','desc'),limit(30));
-     const snap=await getDocs(q);const rows=snap.docs.map(d=>{const x=d.data();return{u:d.id,n:x.n,st:x.st,net:x.net,live:x.live===true,ts:x.ts&&x.ts.toMillis?x.ts.toMillis():0}});
+     const q=query(collection(db,'weeks',String(w),'scores'),orderBy('sc','desc'),limit(36));
+     const snap=await getDocs(q);
+     /* 같은 닉네임(같은 사람이 여러 기기에서 한 기록)은 제일 높은 것 하나만 */
+     const seen=new Set(),rows=[];for(const d of snap.docs){const x=d.data(),k=String(x.n||'').trim();if(k&&seen.has(k))continue;seen.add(k);rows.push({u:d.id,n:x.n,st:x.st,net:x.net,live:x.live===true,ts:x.ts&&x.ts.toMillis?x.ts.toMillis():0});if(rows.length>=30)break}
      cache.set(w,{t:Date.now(),rows});return rows},
     /* 점수 보내기 (한 번에 하나씩 순서대로). live=판 진행 중. 점수를 먼저 올리고, lg 가 있으면 검증 기록은 따로(실패해도 점수는 남음) */
     submit(e){chain=chain.then(async()=>{let ok=false;try{
