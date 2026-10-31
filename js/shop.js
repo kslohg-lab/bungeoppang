@@ -179,7 +179,7 @@ function lvWatch(){if(vd)return;const lv=shopLv(),g=grade();if(lvWatch.l==null){
 function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ✨+'+Math.round(charmBonus()*100)+'%',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#8fcdff','#e6f4ff'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
-function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
+function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
  if(deco&&dtabK()==='skin'){SV.preview(t,myD(prev),0,H-DPH+30);return}
@@ -502,7 +502,7 @@ $('nb').onclick=()=>{au();syncShop();openRank('sc')};$('rk0').onclick=()=>openRa
 /* 구경 */
 let vd=null,vuid=null,vfur=[],vFrom='home';
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');
- return{n:Math.max(4,Math.min(10,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
+ return{g:d.g|0,n:Math.max(4,Math.min(10,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
   vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.FK[it.k]);
@@ -565,7 +565,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
   if(s.done){drawGame();finishDay();requestAnimationFrame(loop);return}}drawGame()}
  else if(scr==='cafe'){if(!paused)CF.step(dt);CF.draw(t);if(CF.done){finishCafe()}}
  else if(scr==='street'){drawStreet(t,dt)}
- else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd);IS.tick(dt,vfur,1);IS.draw(t,lk,vfur,{top:60,bottom:640})}}
+ else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd);IS.tick(dt,vfur,1);IS.draw(t,lk,vfur,{top:60,bottom:600})}}
  else{IS.tick(dt,save.fur,1);drawHome(t,scr==='deco')}
  zfSync();requestAnimationFrame(loop)}
 function fit(){const b=document.body,sc=Math.min(b.clientWidth/W,b.clientHeight/H);$('box').style.transform='translate('+(b.clientWidth-W*sc)/2+'px,'+(b.clientHeight-H*sc)/2+'px) scale('+sc+')'}

@@ -174,8 +174,10 @@ function queuePts(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().
 function qLine(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().reverse().map(ctr),{x:N+1.6,y:N-.5}]:[{x:2,y:1.5},{x:N-.5,y:1.5},{x:N-.5,y:N-.5},{x:N+1.6,y:N-.5}],C=[0];
  for(let j=0;j<P.length-1;j++)C.push(C[j]+Math.hypot(P[j+1].x-P[j].x,P[j+1].y-P[j].y));return{P,C,L:C[C.length-1]}}
 function qAt(q,d){d=Math.max(0,Math.min(q.L,d));for(let j=0;j<q.P.length-1;j++){if(d<=q.C[j+1]||j===q.P.length-2){const L=q.C[j+1]-q.C[j]||1,u=Math.max(0,Math.min(1,(d-q.C[j])/L)),a=q.P[j],b=q.P[j+1];return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}}return q.P[0]}
+/* 손님 수: 가게가 클수록 북적 (4×4 4명 → 10×10 12명) */
+const CAP=()=>N<=4?4:Math.min(12,4+Math.round((N-4)*1.35));
 function say(c,t){c.bub=t;c.bt=2}
-function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<(N<=4?4:6))cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:N-.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=2.6+Math.random()*2.6}
+function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:N-.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())}
  /* 빈 자리 중 무작위 (방금 누가 일어난 자리는 덜 골라요) */
  const seats=items.filter(it=>FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y));const free=()=>{const L=seats.filter(ch=>!cust.some(c=>c.seat===ch)&&seatOk(items,ch));if(!L.length)return undefined;const now=performance.now(),w=L.map(ch=>{const u=LASTS.get(ch);return u&&now-u<20000?.25:1}),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[L.length-1]};
  const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
@@ -205,7 +207,12 @@ const WP=[null,null,null,null,'brick','plank','tile','marble','gold'];
 const FLR=[['#cfc9bd','#c4beb2',0],['#f6f0e4','#d2a46a',1],['#d8a86c','#c99a5e',2],['#9ed27a','#8cc46a',3],['#bdb7aa','#a8a296',4],['#c8283c','#b01e30',5],['#9ad0ff','#c8a8ff',6]];
 const AWC=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
 const RB=['#ff5a5a','#ff9a3a','#ffd93a','#6ccf5a','#4aa8ff','#a85aff'];
-function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorStop(0,look.sky[0]);g.addColorStop(1,look.sky[1]);cx.fillStyle=g;cx.fillRect(0,0,W,800);
+/* 먼 동네 (하늘이 비어 보이지 않게): 언덕 + 건물 실루엣, 밤엔 창문 불빛 */
+function skyline(look,t){const Lc=iso(0,N),hz=OY+(Lc.y-OY)*.2,nt=look.night;
+ cx.fillStyle=nt?'rgba(60,80,120,.55)':'rgba(170,215,160,.55)';cx.beginPath();cx.ellipse(90,hz+8,190,46,0,Math.PI,0);cx.ellipse(380,hz+10,170,38,0,Math.PI,0);cx.fill();
+ for(let i=0;i<14;i++){const w=22+(i*37)%26,h=26+(i*53)%58,x=-8+i*34+(i%3)*4,y=hz-h;cx.fillStyle=nt?'rgba(40,52,90,.8)':'rgba(255,255,255,'+(.32+(i%3)*.08)+')';cx.beginPath();cx.roundRect(x,y,w,h+12,[5,5,0,0]);cx.fill();
+  if(nt){cx.fillStyle='rgba(255,220,120,.85)';for(let r=0;r<Math.floor(h/14);r++)for(let q=0;q<2;q++)if((i+r*3+q)%3)cx.fillRect(x+5+q*(w-14),y+6+r*14,4,5)}}}
+function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorStop(0,look.sky[0]);g.addColorStop(1,look.sky[1]);cx.fillStyle=g;cx.fillRect(0,0,W,800);skyline(look,t);
  if(look.night){cx.fillStyle='#fff';for(let i=0;i<30;i++){cx.globalAlpha=.4+.6*Math.abs(Math.sin(t*1.5+i));cx.beginPath();cx.arc((i*97)%W,(i*53)%Math.max(60,OY-WH-20)+60,1.4,0,7);cx.fill()}cx.globalAlpha=1;em('🌙',380,110,34)}
  else{em('☀️',385,120,46);cx.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<4;i++){const x=m2(t*5+i*130,560)-60;cx.beginPath();cx.ellipse(x,100+i*16,30,9,0,0,7);cx.fill()}}
  if(look.lit===5){for(let b=0;b<3;b++){const g2=cx.createLinearGradient(0,60,0,OY);const c=['120,255,200','180,120,255','120,200,255'][b];g2.addColorStop(0,'rgba('+c+',0)');g2.addColorStop(.5,'rgba('+c+','+(.18+.08*Math.sin(t+b))+')');g2.addColorStop(1,'rgba('+c+',0)');cx.fillStyle=g2;const x=60+b*130+Math.sin(t*.7+b)*30;cx.beginPath();cx.moveTo(x,60);cx.lineTo(x+70,60);cx.lineTo(x+120,OY);cx.lineTo(x+20,OY);cx.closePath();cx.fill()}}
@@ -285,6 +292,16 @@ function staffFront(t,look,L){const S=look.staff||{};
  if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal('🦊',p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});apron(p.x,y,s,SCOL.promo);
   cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore();badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
+/* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어 */
+function counterUp(t,look){const g=(look&&look.g)|0,lw=Math.max(1.4,TW*.024);if(g<1)return;
+ if(g>=1){const a=up(iso(1.1,0),WH*.92),b=up(iso(2.9,0),WH*.92),c=up(iso(2.9,0),WH*.55),d=up(iso(1.1,0),WH*.55);poly([a,b,c,d],g>=5?'#2a3a2e':'#3e3228',g>=5?'#d4a020':OL,lw);
+  const m={x:(a.x+c.x)/2,y:(a.y+c.y)/2},h=(d.y-a.y);cx.save();cx.translate(m.x,m.y);cx.transform(1,.5,0,1,0,0);tx('MENU',0,-h*.28,Math.max(7,TW*.1),'#fff6d0','center','#3e3228');
+  const L=['🫘','🍮','🧀','🍠','🍫','🌟'].slice(0,Math.min(6,2+g));L.forEach((e,i)=>em(e,(i-(L.length-1)/2)*TW*.17,h*.12,Math.max(7,TW*.11)));cx.restore()}
+ if(g>=3)for(const gx of[1.5,2.5]){const top=up(iso(gx,.45),WH*1.02),lp=up(iso(gx,.45),WH*.68);cx.strokeStyle='#3a2a1a';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(top.x,top.y);cx.lineTo(lp.x,lp.y);cx.stroke();
+  cx.fillStyle='rgba(255,230,150,.28)';cx.beginPath();cx.arc(lp.x,lp.y+TW*.05,TW*.22,0,7);cx.fill();cx.fillStyle=g>=5?'#d4a020':'#e8584a';cx.beginPath();cx.moveTo(lp.x-TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.04,lp.y-TW*.03);cx.lineTo(lp.x-TW*.04,lp.y-TW*.03);cx.closePath();cx.fill();cx.fillStyle='#fff6c0';cx.beginPath();cx.arc(lp.x,lp.y+TW*.06,TW*.03,0,7);cx.fill()}
+ if(g>=4){const C=['#ff6a5a','#ffd23a','#5ad07a','#5ab4ff','#ff9ad0'];for(let i=0;i<=16;i++){const u=i/16,p=up(iso(.2+u*Math.min(N-.4,5.6),0),WH*.99-Math.sin(u*Math.PI*4)*WH*.04);cx.globalAlpha=.55+.45*Math.abs(Math.sin(t*2+i));cx.fillStyle=C[i%5];cx.beginPath();cx.arc(p.x,p.y,Math.max(1.6,TW*.028),0,7);cx.fill()}cx.globalAlpha=1}
+ if(g>=5){const p=iso(3.25,.35);em('🧺',p.x,p.y-TW*.12,TW*.3);em('🥖',p.x+TW*.05,p.y-TW*.24,TW*.18)}
+ if(g>=6){const p=up(iso(Math.min(N-.55,3.6),0),WH*.74),gl=.6+.4*Math.sin(t*3);cx.fillStyle='rgba(255,120,200,'+(.22*gl)+')';cx.beginPath();cx.arc(p.x,p.y,TW*.38,0,7);cx.fill();em('🐟',p.x,p.y,TW*.42,.85+.15*gl)}}
 function drawCounter(t,look){const S=(look&&look.staff)||{},cafe=!!(look&&look.cafe),cq=behind(S.bake>0||(cafe&&S.barista>0)?2.08:2,.35,.44);staffBack(t,look||{});staffBack2(t,look||{});animal('cook',cq.x,cq.y,cq.s,{t,ph:0,mood:'h',shirt:'#ffffff'});
  const H0=TW*.34,lw=Math.max(1.6,TW*.026);
  /* 매대 앞면 이름표 (비스듬한 면에 맞춰 기울여 그려요) */
@@ -317,7 +334,7 @@ function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
- L.push({z:1.4,f:()=>drawCounter(t,look)});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
+ L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
