@@ -107,6 +107,9 @@ function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)
  x.globalAlpha=.18;x.drawImage(c,0,0);x.globalAlpha=1;x.drawImage(a,0,0);STK[k]=c;return c}
 function emS(e,x,y,z,al=1){const c=stk(e,z);cx.globalAlpha=al;cx.drawImage(c,x-c.width/2,y-c.height/2);cx.globalAlpha=1}
 const OL='#5a3a22';
+/* 가구 놓을 때 통통 (보이기만, 저장 안 해요) */
+const BNC=new WeakMap();function bounce(it){if(it)BNC.set(it,performance.now())}
+function drawB(it,t,sel){const b=BNC.get(it);if(b!=null){const u=(performance.now()-b)/480;if(u<1){const c=iso(it.x+.5,it.y+.5),sy=1+Math.sin(u*Math.PI*3)*.2*(1-u),sx=1-(sy-1)*.6,dy=-Math.max(0,Math.sin(u*Math.PI*1.5))*TH*.5*(1-u);cx.save();cx.translate(c.x,c.y+TH*.25);cx.scale(sx,sy);cx.translate(-c.x,-c.y-TH*.25+dy);drawItem(it,t,sel);cx.restore();return}BNC.delete(it)}drawItem(it,t,sel)}
 function drawItem(it,t,sel){const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=TW/78,F=FK[it.k]||{},kind=F.as||it.k,lw=Math.max(1.6,TW*.026);
  switch(kind){
  case'table':{shadow(c.x,c.y+2,TW*.28);const top=F.c1||'#d89a5e',base=F.c2||'#8a5a3a';const p=box(gx,gy,.38,TW*.22,base);cx.fillStyle=top;cx.strokeStyle=OL;cx.lineWidth=lw;cx.beginPath();cx.ellipse(p.c.x,p.c.y-2,TW*.33,TH*.33,0,0,7);cx.fill();cx.stroke();
@@ -310,13 +313,13 @@ function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);
 /* ---------- 전체 ---------- */
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
- const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawItem(it,t,o.sel===it)});
+ const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
  L.push({z:1.4,f:()=>drawCounter(t,look)});staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);poly([iso(g.x,g.y),iso(g.x+1,g.y),iso(g.x+1,g.y+1),iso(g.x,g.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+return{bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
  zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};

@@ -89,8 +89,12 @@ function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];if((d.room|0)<=4)return ca
  if(st.roof==='flat'){poly(top,st.r,OL);const e=.12;poly([Q(-e,-e,h),Q(Wd+e,-e,h),Q(Wd+e,-e,h+4*s),Q(-e,-e,h+4*s)],dark(st.r,.25),OL,1.4);
   if(st.terrace){for(let i=0;i<3;i++){const q=Q(.5+i*(Wd-1)/2,D*.5,h);em('🌿',q.x,q.y-6*s,16*s)}}}
  else if(st.roof==='gable'||st.roof==='candy'||st.roof==='hanok'){const rh=(st.roof==='hanok'?.9:1.15)*T,o=st.roof==='hanok'?.45:.25,og=st.roof==='hanok'?.2:.12;
-  const rL=Q(-o,D/2,h+rh),rR=Q(Wd+o,D/2,h+rh),eL=Q(-o,-og,h-2*s),eR=Q(Wd+o,-og,h-2*s);
-  poly([Q(aS,0,h),Q(aS,D,h),Q(aS,D/2,h+rh)],dark(st.w,.24),OL);
+  const HK=st.roof==='hanok',ri=HK?Math.min(Wd*.28,D*.45):0,rL=Q(-o+ri,D/2,h+rh),rR=Q(Wd+o-ri,D/2,h+rh),eL=Q(-o,-og,h-2*s),eR=Q(Wd+o,-og,h-2*s);
+  /* 한옥: 네 면이 모두 덮이는 기와지붕 (뒤 → 안 보이는 옆 → 보이는 옆 → 앞 순서) */
+  if(HK){const lf=10*s,up=p=>({x:p.x,y:p.y-lf}),bL=up(Q(-o,D+og,h-2*s)),bR=up(Q(Wd+o,D+og,h-2*s)),fL=up(eL),fR=up(eR),far=aS?0:Wd;
+   poly([rL,rR,bR,bL],dark(st.r,.2),OL);
+   const side=(x,c)=>x?poly([rR,fR,bR],c,OL):poly([rL,bL,fL],c,OL);side(far,dark(st.r,.25));side(aS,dark(st.r,.12))}
+  else poly([Q(aS,0,h),Q(aS,D,h),Q(aS,D/2,h+rh)],dark(st.w,.24),OL);
   if(st.roof==='hanok'){const lift=10*s,mid={x:(eL.x+eR.x)/2,y:(eL.y+eR.y)/2+3*s},sx=F?6:-6;cx.beginPath();cx.moveTo(rL.x,rL.y);cx.lineTo(rR.x,rR.y);cx.lineTo(eR.x+sx*s,eR.y-lift);cx.quadraticCurveTo(mid.x,mid.y,eL.x-sx*s,eL.y-lift);cx.closePath();cx.fillStyle=st.r;cx.fill();cx.strokeStyle=OL;cx.lineWidth=2;cx.stroke();
    cx.strokeStyle='rgba(255,255,255,.16)';cx.lineWidth=1.2;for(let i=1;i<12;i++){const u=i/12,a={x:rL.x+(rR.x-rL.x)*u,y:rL.y+(rR.y-rL.y)*u},b={x:eL.x+(eR.x-eL.x)*u,y:eL.y+(eR.y-eL.y)*u+Math.sin(u*Math.PI)*3*s-lift*(1-Math.sin(u*Math.PI))};cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
    cx.strokeStyle='#2a2a32';cx.lineWidth=4*s;cx.beginPath();cx.moveTo(rL.x,rL.y);cx.lineTo(rR.x,rR.y);cx.stroke()}

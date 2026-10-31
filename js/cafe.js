@@ -45,7 +45,7 @@ function serve(){const c=selC();if(!c){O.toast('기다리는 손님이 없어요
  const ok=g.cup===d.cup&&m.length===d.st.length&&m.every((l,j)=>l.k===d.st[j][0]);
  if(!ok){g.wrong++;g.combo=0;c.pat=Math.max(1,c.pat-6);g.shake=.4;fx('주문이랑 달라요! 😣',SX[i],150,'#ffb0b0');O.snd('no');resetCup(150);return}
  let cum=0,err=0;m.forEach((l,j)=>{cum+=l.a;err=Math.max(err,Math.abs(cum-d.st[j][1]))});
- const q=err<=.035?['PERFECT',1.5,'#ffe066']:err<=.08?['GREAT',1.2,'#9fe0ff']:err<=.15?['GOOD',1,'#c8f0b0']:['아쉬워요',.6,'#ffd0c0'];
+ const q=err<=.035?['PERFECT',1.5,'#8dffa0']:err<=.08?['GREAT',1.2,'#9fe0ff']:err<=.15?['GOOD',1,'#c8f0b0']:['아쉬워요',.6,'#ffd0c0'];
  if(q[1]>=1){g.combo++;g.bc=Math.max(g.bc,g.combo)}else g.combo=0;if(q[0]==='PERFECT')g.perf++;else if(q[0]==='GREAT')g.great++;else if(q[0]==='GOOD')g.good++;
  const pay=Math.round((g.o.dp?g.o.dp(d):d.p)*g.o.mul*g.o.pm*q[1]*(1+Math.min(.5,g.combo*.05)));g.rev+=pay;g.mat+=d.c;g.served++;
  c.leave=.9;c.happy=1;fx(q[0]+'! +'+BP2.fmt(pay),SX[i],140,q[2],1.4);if(g.combo>=3)fx('🔥 '+g.combo+' 콤보',SX[i],112,'#ffb060',1.2);
