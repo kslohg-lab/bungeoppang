@@ -14,6 +14,8 @@ st.textContent=[
  '#menu>.card{animation:jpop .3s cubic-bezier(.2,1.3,.45,1)}',
  /* 꽃가루 */
  '#jcf{position:absolute;inset:0;pointer-events:none;z-index:60}',
+ /* 게임 중 알림은 위쪽에 (틀을 가리지 않게) */
+ '#toast.top{bottom:auto!important;top:86px}',
  '.jnum{display:inline-block;animation:jnum .35s ease-out}@keyframes jnum{30%{transform:scale(1.25)}}'].join('\n');
 (document.head||document.documentElement).appendChild(st);
 /* 버튼 누를 때: 작은 '톡' 소리 + 안드로이드 짧은 진동 */

@@ -42,4 +42,6 @@ function set(k){if(!L.some(x=>x.k===k))return;try{localStorage.setItem(KEY,k)}ca
 (function init(){const st=document.createElement('style');st.textContent=base+'\n'+css('white',V.white)+'\n'+css('black',V.black);(document.head||document.documentElement).appendChild(st);apply(get());
  const bind=()=>{document.querySelectorAll('[data-thb]').forEach(b=>{b.onclick=()=>{set(b.getAttribute('data-thb'))}});apply(get())};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind()})();
-return{get,set,list:L}})();
+/* 게임 화면 위쪽 정보 바 색 (캔버스) */
+const hud=()=>({white:'#4b5160',black:'#231d1a'})[get()]||'#8a5a3a';
+return{get,set,list:L,hud}})();

@@ -162,13 +162,13 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
  else if(m.s===5){bread(fx,fy,z0,'#2a1a12',{rim:'#000'});for(let j=0;j<3;j++){const ph=(s.t*.7+j/3)%1;cx.fillStyle='rgba(90,90,90,'+(.55*(1-ph))+')';cx.beginPath();cx.arc(fx-10+j*12+Math.sin(ph*5+j)*4,fy-14-ph*26,6+ph*6,0,7);cx.fill()}lab='치우기'}
  else{const M=BP2.R.menu[m.f],rd=m.p>=.85;let col=bakeCol(m.p),sy=1,dy=0;
   if(m.s===4&&a<.4){const ang=a/.4*Math.PI;sy=Math.cos(ang);dy=-Math.sin(ang)*18;if(ang<Math.PI/2)col='#e8aa46'}
-  const inP=m.p>=1-M.w&&m.p<=1+M.w,glow=inP&&Math.floor(s.t*6)%2?'rgba(110,240,130,.95)':null;
+  const Mw=BP2.wOf?BP2.wOf(run,m.f):M.w,inP=m.p>=1-Mw&&m.p<=1+Mw,glow=inP&&Math.floor(s.t*6)%2?'rgba(110,240,130,.95)':null;
   bread(fx,fy,sc,col,{sy:sy===0?.02:sy,dy,glow});
   if(!(m.s===4&&a<.4)){cx.fillStyle=M.col;cx.globalAlpha=.9;cx.beginPath();cx.arc(fx-11,fy+2,3,0,7);cx.fill();cx.globalAlpha=1}
   em(M.e,X+18,Y+17,18);lab=BP2.tossable(run,m)?'탔어요! 버리기':m.s===3?(rd?'뒤집어!':'앞면 굽는 중'):(rd?'꺼내!':'뒷면 굽는 중');steam(fx,fy,i,Math.min(1,m.p/.5));
   if(m.s===4&&m.qa==='p')em('✨',X+MW-16,Y+14,14);
   if(inP&&Math.floor(s.t*6)%2)lc='#8dffa0';if(m.p>=M.bad)lc='#ff8a80';
-  const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-M.w,'#ffd23a'],[1-M.w,1+M.w,'#3fd46a'],[1+M.w,M.bad,'#ffd23a'],[M.bad,mx,'#e0503a']];
+  const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-Mw,'#ffd23a'],[1-Mw,1+Mw,'#3fd46a'],[1+Mw,M.bad,'#ffd23a'],[M.bad,mx,'#e0503a']];
   for(const z of Z){cx.fillStyle=z[2];cx.fillRect(gx+gw*z[0]/mx,gy,gw*(z[1]-z[0])/mx,8)}rr(gx+gw*Math.min(m.p,mx)/mx-2,gy-3,4,14,2,'#fff')}
  tx(lab,X+146,Y+24,m.s>=3?16:18,lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
 /* 손님 말풍선 (리액션) */
@@ -194,6 +194,7 @@ function custDraw(c,i){const x0=i*150;rr(x0+8,76,134,244,18,'rgba(255,255,255,.3
  const by=Y-52;
  if(c.leave>0&&c.angry){bub(X,by,'흥! 안 살래요 😤','#ffdcd6','#a0281a');em('💢',X+40,Y-8,22)}
  else if(c.leave>0&&c.happy){bub(X,by,c.ty==='critic'?'🎩 별 다섯 개!':'또 올게요! 💖','#ffe9f2','#a03060');for(let k=0;k<3;k++){const ph=(s.t*1.5+k/3)%1;em('💖',X-24+k*24,Y-20-ph*40,14,1-ph)}}
+ else if(c.nb>0)bub(X,by,c.nbt||'아직 없어요? 🥺','#ffefd6','#8a4a10');
  else if(c.rxT>0){const q=c.rxQ||'g',L2=RXP[q]||RXP.g;let w=L2[(c.an.codePointAt(0)+(c.rxN|0))%L2.length];if(c.ty==='critic'&&q==='p')w='🎩 브라보!';bub(X,by,w,q==='p'?'#fff3b0':'#fff',q==='p'?'#a06000':'#5a3a22');if(q==='p'&&c.rxT>1)em('✨',X+36,Y-24,18)}
  else if(ag<1.8&&ez>=1)bub(X,by,HELLO[c.ty]||HELLO.n);
  else if(r<.3){bub(X,by,c.ty==='hurry'?'빨리요!! 😫':'아직이에요? 😥','#ffefd6');em('💦',X+30,Y-20+Math.sin(s.t*8)*3,18)}
@@ -247,6 +248,7 @@ function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
  const by=y-sz*.62-16;
  if(c.leave>0&&c.angry){bub(x,by,'흥! 안 살래요 😤','#ffdcd6','#a0281a');em('💢',x+sz*.6,y-sz*.2,22)}
  else if(c.leave>0&&c.happy){bub(x,by,c.ty==='critic'?'🎩 별 다섯 개!':'또 올게요! 💖','#ffe9f2','#a03060');for(let q=0;q<3;q++){const ph=(s.t*1.5+q/3)%1;em('💖',x-20+q*20,y-sz*.3-ph*36,13,1-ph)}}
+ else if(arrived&&c.nb>0)bub(x,by,c.nbt||'아직 없어요? 🥺','#ffefd6','#8a4a10');
  else if(arrived&&c.rxT>0){const q=c.rxQ||'g',L2=RXP[q]||RXP.g;let w=L2[(c.an.codePointAt(0)+(c.rxN|0))%L2.length];if(c.ty==='critic'&&q==='p')w='🎩 브라보!';bub(x,by,w,q==='p'?'#fff3b0':'#fff',q==='p'?'#a06000':'#5a3a22');if(q==='p'&&c.rxT>1)em('✨',x+sz*.6,y-sz*.3,18)}
  else if(!arrived&&c.leave<=0&&d>.3){if(d<1)bub(x,by,HELLO[c.ty]||HELLO.n,'rgba(255,255,255,.92)')}
  else if(arrived&&ag<WALK+1.2)bub(x,by,HELLO[c.ty]||HELLO.n);
@@ -307,13 +309,13 @@ function tapPlay(x,y){const B=BP2,h=hit(x,y);if(!h)return null;
  else B.selFl(s,run,h.i);return h}
 /* 효과 큐 처리 공용 */
 function drainFx(){const q=s.fx;s.fx=[];for(const f of q){
- if(f.k==='snd'){OPT.snd(f.n);if(f.n==='burn')ui.shake=.3}else if(f.k==='toast')OPT.toast(f.t);else if(f.k==='rx'){const c=s.cust[f.i];if(c){if(f.q){c.rxT=1.4;c.rxQ=f.q;c.rxN=(c.rxN|0)+1}}}else if(f.k==='rush')ui.rb=2.2;
+ if(f.k==='snd'){OPT.snd(f.n);if(f.n==='burn')ui.shake=.3}else if(f.k==='toast')OPT.toast(f.t);else if(f.k==='rx'){const c=s.cust[f.i];if(c){if(f.q){c.rxT=1.4;c.rxQ=f.q;c.rxN=(c.rxN|0)+1}}}else if(f.k==='rush')ui.rb=2.2;else if(f.k==='nob'){const c=s.cust[f.i];if(c){c.nb=1.3;c.nbt=f.t}}else if(f.k==='asrv'){const p=at({a:'c',i:f.i});ui.ft.push({t:'🙋 척척!',x:p.x,y:p.y-10,c:'#bfe8ff',l:.9})}
  else if(f.k==='ft'){const p=at(f);ui.ft.push({t:f.t,x:p.x,y:p.y,c:f.c,l:1.1});if(f.t.indexOf('PERFECT')===0){ui.rg.push({x:p.x,y:p.y+24,l:.5});ui.shake=Math.max(ui.shake,.14);if(window.AUDIO)AUDIO.vib(18)}if(/^\+\d/.test(f.t)&&f.a==='c'&&ui.coin.length<14)ui.coin.push({x:p.x,y:p.y,x1:366,y1:18,t:0})}
  else if(f.k==='pf'){if(ui.pa.length>40)continue;const p=at(f);for(let i=0;i<f.n;i++)ui.pa.push({e:f.e,x:p.x+(Math.random()*24-12),y:p.y+24,vx:Math.random()*80-40,vy:-40-Math.random()*70,l:.5+Math.random()*.4,s:18+Math.random()*10})}}}
 /* 매 프레임 효과 움직이기 */
 function tickFx(dt){for(const q of ui.rg)q.l-=dt;ui.rg=ui.rg.filter(q=>q.l>0);if(ui.cb)ui.cb.l-=dt;
  if(s){const cb=s.combo|0;for(const T of[5,10,20])if(cb>=T&&(ui.lc|0)<T){ui.cb={n:T,l:1.3};OPT.snd('combo');if(window.AUDIO)AUDIO.vib(30)}ui.lc=cb}
- if(s)for(const c of s.cust)if(c){if(c.ag==null&&!s.noHint)OPT.snd('hi');c.ag=(c.ag||0)+dt;if(c.rxT>0)c.rxT-=dt}for(const q of ui.ft){q.y-=40*dt;q.l-=dt}ui.ft=ui.ft.filter(q=>q.l>0);for(const q of ui.pa){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=200*dt;q.l-=dt}ui.pa=ui.pa.filter(q=>q.l>0);if(ui.rb>0)ui.rb-=dt;if(ui.shake>0)ui.shake-=dt;if(ui.hud>0)ui.hud-=dt;for(const f of ui.fly)f.t+=dt/.4;ui.fly=ui.fly.filter(f=>f.t<1);for(const c of ui.coin){c.t+=dt/.6;if(c.t>=1)ui.hud=.2}ui.coin=ui.coin.filter(c=>c.t<1)}
+ if(s)for(const c of s.cust)if(c){if(c.ag==null&&!s.noHint)OPT.snd('hi');c.ag=(c.ag||0)+dt;if(c.nb>0)c.nb-=dt;if(c.rxT>0)c.rxT-=dt}for(const q of ui.ft){q.y-=40*dt;q.l-=dt}ui.ft=ui.ft.filter(q=>q.l>0);for(const q of ui.pa){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=200*dt;q.l-=dt}ui.pa=ui.pa.filter(q=>q.l>0);if(ui.rb>0)ui.rb-=dt;if(ui.shake>0)ui.shake-=dt;if(ui.hud>0)ui.hud-=dt;for(const f of ui.fly)f.t+=dt/.4;ui.fly=ui.fly.filter(f=>f.t<1);for(const c of ui.coin){c.t+=dt/.6;if(c.t>=1)ui.hud=.2}ui.coin=ui.coin.filter(c=>c.t<1)}
 const newUi=()=>({ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0,rg:[],cb:null,lc:0});
 
 return{use,E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at,rackRow,menuBar,hints,weather,fxDraw,timeBar,drawPlay,tapPlay,drainFx,tickFx,newUi,QC}};

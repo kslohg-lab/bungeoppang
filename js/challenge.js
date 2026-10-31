@@ -19,14 +19,14 @@ const mus=n=>{if(AU)AU.music(n)};
 if(save.snd===false&&AU){try{if(!localStorage.getItem('bpAudio'))AU.set('fx',0)}catch(e){}}
 
 /* ---------- 화면 전환 ---------- */
-const show=n=>{['menu','shop','over','pause','set','how','nick','lb','rv','wel','goal','nwk'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home').style.display=scr==='game'?'block':'none'};
+const show=n=>{['menu','shop','over','pause','set','how','nick','lb','rv','wel','goal','nwk'].forEach(i=>$(i).style.display=i===n?'block':'none');$('home').style.display=scr==='game'?'block':'none';$('toast').classList.toggle('top',scr==='game'||scr==='tut'||scr==='demo')};
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1700)}
 function ask(btn,label,fn){if(btn.dataset.a!=='1'){btn.dataset.a='1';btn.dataset.o=btn.textContent;btn.textContent=label;setTimeout(()=>{if(btn.dataset.a==='1'){btn.dataset.a='0';btn.textContent=btn.dataset.o}},3000)}else{btn.dataset.a='0';btn.textContent=btn.dataset.o;fn()}}
 const esc=t=>String(t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 /* 체크포인트: 10단계마다 그 순간의 판을 저장해 두고, 죽으면 거기서 다시 */
 const cpOK=()=>save.cp&&save.cp.wid===wid()&&save.cp.run&&save.cp.run.sv===B.SIMV;
 const clone=o=>JSON.parse(JSON.stringify(o));
-function startFromCp(){if(!cpOK())return;au();run=clone(save.cp.run);save.runs++;save.run={run};store();startDay();toast('🔁 '+(save.cp.stage+1)+'단계부터 다시! 화이팅 🔥')}
+function startFromCp(){if(!cpOK())return;au();run=clone(save.cp.run);pityApply();save.runs++;save.run={run};store();startDay();toast('🔁 '+(save.cp.stage+1)+'단계부터 다시! 화이팅 🔥')}
 function renderMenu(){
  if(save.run&&save.run.run&&save.run.run.over){run=save.run.run;record();save.run=null;store();run=null}
  const sr=save.run,wk=save.week.id===wid()?save.week:{stage:0,net:0};
@@ -38,7 +38,7 @@ function renderMenu(){
 function toMenu(){scr='menu';s=null;paused=false;renderMenu();show('menu')}
 
 /* ---------- 판 · 하루 흐름 ---------- */
-function startRun(mode){au();run=B.newRun(mode==='week'?weekSeed():(Math.random()*4294967296)>>>0,mode);run.wid=wid();run.sv=B.SIMV;save.runs++;save.run={run};store();if(!save.goal){openGoal();return}startDay()}
+function startRun(mode){au();run=B.newRun(mode==='week'?weekSeed():(Math.random()*4294967296)>>>0,mode);run.wid=wid();run.sv=B.SIMV;pityApply();save.runs++;save.run={run};store();if(!save.goal){openGoal();return}startDay()}
 /* 🎯 첫 판 전에 한 번: 오늘의 목표(컷트라인)를 크게 */
 function openGoal(){scr='goal';$('glc').textContent=fmt(B.cutRun(run,run.day))+'원';show('goal')}
 $('gl1').onclick=()=>{save.goal=1;store();snd('pop');startDay()};
@@ -51,12 +51,23 @@ function openCards(then){const offer=B.cardOffer(run);if(!offer.length){then&&th
  if(!cdo){cdo=document.createElement('div');cdo.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.72);z-index:30;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box';$('box').appendChild(cdo)}
  cdo.style.display='flex';cdo.innerHTML='';const c=document.createElement('div');c.className='thc';c.style.cssText='background:#fff8ec;border-radius:28px;width:100%;box-sizing:border-box;padding:16px;text-align:center;color:#5a3a22';
  c.innerHTML='<div style="font-size:15px;opacity:.75">'+st+'단계 통과 보상</div><div style="font-size:27px;margin:2px 0 4px">🃏 카드 한 장 고르기</div><div style="font-size:14px;opacity:.7;margin-bottom:10px">이번 주엔 모두 같은 카드가 나와요 · 같은 카드는 겹쳐요</div>';
- offer.forEach((k,i)=>{const d=B.CK[k],have=B.cn(run,k),b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #e0c4a0;font-family:inherit;color:#5a3a22;border:3px solid #ffe2a8';
-  b.innerHTML='<span style="font-size:42px;line-height:1">'+d.e+'</span><span style="flex:1"><b style="font-weight:400;font-size:21px">'+d.n+(have?' <small style="font-size:13px;color:#2a8a3a">보유 '+have+' → '+(have+1)+'</small>':'')+'</b><br><span style="font-size:15px;opacity:.85">'+d.d+(k==='flav'?' ('+R.menu[run.nf-1].e+' '+R.menu[run.nf-1].n+')':'')+'</span></span>';
-  b.onclick=()=>{if(!B.pickCard(run,k))return;save.run={run};store();snd('win');cdo.style.display='none';toast(d.e+' '+d.n+' 카드를 얻었어요!');if(then)then()};c.appendChild(b)});
+ offer.forEach((k,i)=>{const d=B.CK[k],have=B.cn(run,k),b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #e0c4a0;font-family:inherit;color:#5a3a22;border:3px solid '+(d.r?'#ff7a5a':'#ffe2a8');
+  b.innerHTML='<span style="font-size:42px;line-height:1">'+d.e+'</span><span style="flex:1">'+(d.r?'<small style="display:inline-block;background:#ff7a5a;color:#fff;border-radius:8px;padding:0 6px;font-size:12px;margin-bottom:2px">⚖️ 양날 카드</small><br>':'')+'<b style="font-weight:400;font-size:21px">'+d.n+(have?' <small style="font-size:13px;color:#2a8a3a">보유 '+have+' → '+(have+1)+'</small>':'')+'</b><br><span style="font-size:15px;opacity:.85">'+d.d+(k==='flav'?' ('+R.menu[run.nf-1].e+' '+R.menu[run.nf-1].n+')':'')+'</span></span>';
+  b.onclick=()=>{if(!B.pickCard(run,k))return;save.run={run};store();snd('win');cdo.style.display='none';toast(d.e+' '+d.n+' 카드를 얻었어요!');if(B.canAssist&&B.canAssist(run))openAssist(then);else if(then)then()};c.appendChild(b)});
  cdo.appendChild(c)}
+/* 🧰 보조 칸: 10단계부터 하나, 5단계마다 바꾸기 */
+function openAssist(then){if(!B.canAssist(run)){then&&then();return}scr='cards';
+ if(!cdo){cdo=document.createElement('div');cdo.style.cssText='position:absolute;inset:0;background:rgba(40,24,14,.72);z-index:30;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box';$('box').appendChild(cdo)}
+ cdo.style.display='flex';cdo.innerHTML='';const c=document.createElement('div');c.className='thc';c.style.cssText='background:#eef7ff;border-radius:28px;width:100%;box-sizing:border-box;padding:16px;text-align:center;color:#2a4a5a';
+ const first=!run.as;c.innerHTML='<div style="font-size:15px;opacity:.75">'+(first?'🎉 10단계 돌파 보상':run.stage+'단계 · 바꿀 수 있어요')+'</div><div style="font-size:27px;margin:2px 0 4px">🧰 보조 칸'+(first?' 열림!':'')+'</div><div style="font-size:14px;opacity:.7;margin-bottom:10px">하나만 쓸 수 있어요 · 5단계마다 바꿀 수 있어요</div>';
+ const done=()=>{save.run={run};store();cdo.style.display='none';if(then)then()};
+ B.ASSIST.forEach(a=>{const on=run.as===a.k,b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #a8c8e0;font-family:inherit;color:#2a4a5a;border:3px solid '+(on?'#4aa8ff':'#cfe6f8');
+  b.innerHTML='<span style="font-size:42px;line-height:1">'+a.e+'</span><span style="flex:1"><b style="font-weight:400;font-size:21px">'+a.n+(on?' <small style="font-size:13px;color:#2a7ad0">쓰는 중</small>':'')+'</b><br><span style="font-size:15px;opacity:.85">'+a.d+'</span></span>';
+  b.onclick=()=>{if(!B.setAssist(run,a.k))return;snd('pop');toast(a.e+' '+a.n+(on?' 그대로 써요':' 장착!'));done()};c.appendChild(b)});
+ cdo.appendChild(c)}
+const asPill=()=>run&&run.as?'<span class="pill" style="background:#d8ecff">'+B.ASSIST.find(a=>a.k===run.as).e+' '+B.ASSIST.find(a=>a.k===run.as).n+'</span>':'';
 const cardPill=()=>run&&run.cards&&run.cards.length?'<span class="pill" style="background:#efe2ff">🃏 '+run.cards.map(c=>B.CK[c.split(':')[0]].e).join('')+'</span>':'';
-function startDay(){if(run&&B.cardStage(run)&&scr!=='cards'){openCards(()=>startDay());return}s=B.newDay(run);ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none');mus('chal')}
+function startDay(){if(run&&B.cardStage(run)&&scr!=='cards'){openCards(()=>startDay());return}if(run&&B.canAssist&&B.canAssist(run)&&!run.as&&scr!=='cards'){openAssist(()=>startDay());return}s=B.newDay(run);ui=A.newUi();A.use(s,run,ui);prevBest=run.mode==='week'?ghostGet(run.day):null;ui.gh=prevBest;scr='game';paused=false;acc=0;last=0;show('none');mus('chal')}
 /* ---------- 순위표 보내기 ---------- */
 const LB=()=>window.LB&&!window.LB.off?window.LB:null;
 /* 매 단계 통과 때 진행 중(live)으로 올리고, 판이 끝나면(fin) 무조건 한 번 더 보내 확정해요. 더 나쁜 기록으로는 덮지 않아요 */
@@ -70,16 +81,28 @@ function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage
  if(m==='week'){if(save.week.id!==run.wid)save.week={id:run.wid,stage:0,net:0};if(gt(save.week,0))save.week={id:run.wid,stage:st,net}}
  else if(gt(save.free,0))save.free={stage:st,net};
  if(run.clear)save.clears++;return submit(true,true)}
-function finishDay(){const res=B.dayResult(s,run),kind=B.endDay(run,res);
+function finishDay(){const res=B.dayResult(s,run),dd=run.day,kind=B.endDay(run,res);ghostSet(dd,res.net);if(kind==='pass'&&save.pf&&save.pf.wid===run.wid&&dd>=save.pf.d){save.pf=null}
  if(kind==='pass'||kind==='revive'){
   if(kind==='pass'&&run.mode==='week'&&run.stage%10===0&&run.stage<R.maxStage&&(!cpOK()||run.stage>=save.cp.stage))save.cp={wid:run.wid,stage:run.stage,run:clone(run)};
   save.run={run};store();let pr=null;if(kind==='pass')pr=submit(run.stage%5===0,false);goShop(res,kind);rankInto('srk',pr,'shop');if(kind==='pass'&&B.cardStage(run))setTimeout(()=>openCards(()=>{scr='shop';renderShop();$('s1').textContent='▶ '+run.day+'일차 시작 (컷트라인 '+fmt(B.cutRun(run,run.day))+')'}),350)}
  else if(kind==='over'&&run.mode==='week'&&B.canLateRevive(run)){save.run={run};store();openRevive(res)}
  else endRun(res,kind)}
-function endRun(res,kind){const pr=record();save.run=null;store();goOver(res,kind);rankInto('ork',pr,'over')}
+function endRun(res,kind){if(res&&!res.pass&&run.mode==='week'&&!run.giveUp&&!run.clear){const d=run.day;if(save.pf&&save.pf.wid===run.wid&&save.pf.d===d)save.pf.n++;else save.pf={wid:run.wid,d,n:1}}const pr=record();save.run=null;store();goOver(res,kind);rankInto('ork',pr,'over')}
+/* 👻 이번 주 같은 날 내 최고 수익 (다시 할 때 막대에 표시) */
+function ghostGet(d){const g=save.gh;return g&&g.w===wid()&&g.d?g.d[d]:undefined}
+function ghostSet(d,net){if(!run||run.mode!=='week')return;if(!save.gh||save.gh.w!==run.wid)save.gh={w:run.wid,d:{}};if(save.gh.d[d]==null||net>save.gh.d[d])save.gh.d[d]=net}
+/* 💪 응원 보너스: 같은 날 3번 떨어지면 −5%, 4번부터 −10% (20일차까지) */
+const pityP=()=>{const f=save.pf;return f&&f.wid===wid()&&f.d<=20&&f.n>=3?(f.n>=4?10:5):0};
+function pityApply(){const p=pityP();if(p&&run&&run.mode==='week'&&B.setPity)B.setPity(run,save.pf.d,p)}
+/* 떨어진 이유 한 줄 + 아깝다 */
+function failTip(res){if(!res)return'';const gap=res.cut-res.net;let h='<div class="sum" style="margin-top:6px;text-align:center">';
+ h+=gap>0?'😣 컷트라인까지 <b>'+fmt(gap)+'원</b> 모자랐어요':'';if(run.mode==='week'&&prevBest!=null&&res.net>prevBest)h+='<br>📈 지난 시도보다 <b>+'+fmt(res.net-prevBest)+'원</b>! 거의 다 왔어요';
+ const t=res.lost>=3?'😡 놓친 손님 '+res.lost+'명 → 🍳 틀 늘리기 · 💬 친절 교육이 도움돼요':res.burnt>=3?'😵 탄 빵 '+res.burnt+'개 → 초록 구간에서 톡!':res.full>=2?'🍽️ 접시가 '+res.full+'번 꽉 찼어요 → 🍽️ 접시 넓히기':res.idle>.3?'😴 손님 없는 시간이 길었어요 → 🏮 간판 · 🗺️ 장사 터':res.made&&res.perf/res.made<.5?'✨ PERFECT가 적어요 → 양면 모두 초록 구간에서':'🫘 비싼 새 메뉴나 맛 강화로 값을 올려 봐요';
+ h+='<br><span style="font-size:15px">'+t+'</span>';const p=pityP();if(p&&run.mode==='week')h+='<br>💪 다음 도전엔 <b>응원 보너스</b>! '+save.pf.d+'일차 컷트라인 −'+p+'%';return h+'</div>'}
+let prevBest=null;
 /* 탈락 직후: 부활권을 사서 같은 날 한 번 더 */
 let rvRes=null;
-function openRevive(res){rvRes=res;scr='rv';const c=B.ticketCost(run);$('rvb').innerHTML='💰 오늘 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+'<br>🪙 가진 코인 '+fmt(run.coins)+'<br>부활권을 사면 <b>'+run.day+'일차를 한 번 더</b> 할 수 있어요';
+function openRevive(res){rvRes=res;scr='rv';const c=B.ticketCost(run);$('rvb').innerHTML='💰 오늘 순수익 <b>'+fmt(res.net)+'원</b> / 컷트라인 '+fmt(res.cut)+'<br>🪙 가진 코인 '+fmt(run.coins)+'<br>부활권을 사면 <b>'+run.day+'일차를 한 번 더</b> 할 수 있어요'+failTip(res);
  $('rv1').textContent='🎫 부활권 사고 다시 (🪙 '+fmt(c)+')';show('rv')}
 $('rv1').onclick=()=>{if(!B.lateRevive(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');goShop(rvRes,'revive')};
 $('rv2').onclick=()=>ask($('rv2'),'⚠️ 정말 끝낼까요? 한 번 더!',()=>endRun(rvRes,'over'));
@@ -95,7 +118,7 @@ let lastR=null;
 function goShop(res,kind){lastR=res;scr='shop';if(kind==='pass'){snd('win');if((run.day-1)%5===0&&window.JUICE)JUICE.confetti(50)}$('st').textContent=kind==='revive'?'🎫 한 번 더!':'🌙 '+(run.day-1)+'단계 통과!';$('ss').innerHTML=sumHtml(res,kind);renderShop();
  const ev=B.evOf(run.day),c=B.cutRun(run,run.day);$('s1').textContent=(kind==='revive'?'▶ '+run.day+'일차 다시 시작':'▶ '+run.day+'일차 시작')+' (컷트라인 '+fmt(c)+')';show('shop')}
 function renderShop(){
- $('sw').innerHTML='<span class="pill">🪙 '+fmt(run.coins)+'</span><span class="pill">'+(B.evOf(run.day)?R.ev[B.evOf(run.day)].e+' '+run.day+'일차 '+R.ev[B.evOf(run.day)].n:'📅 '+run.day+'일차')+'</span>'+(rivalOK()?'<span class="pill" style="background:#ffd8c8">🎯 '+esc(save.rival.n)+' '+save.rival.s+'단계'+(run.stage>=save.rival.s?' ✅ 넘었다!':'')+'</span>':'')+cardPill()+(run.mode==='week'&&LB()?'<span class="pill" id="srk" style="background:#ffe9a0">🏆 '+(lastRank?'이번 주 '+lastRank:'…')+'</span>':'');
+ $('sw').innerHTML='<span class="pill">🪙 '+fmt(run.coins)+'</span><span class="pill">'+(B.evOf(run.day)?R.ev[B.evOf(run.day)].e+' '+run.day+'일차 '+R.ev[B.evOf(run.day)].n:'📅 '+run.day+'일차')+'</span>'+(rivalOK()?'<span class="pill" style="background:#ffd8c8">🎯 '+esc(save.rival.n)+' '+save.rival.s+'단계'+(run.stage>=save.rival.s?' ✅ 넘었다!':'')+'</span>':'')+cardPill()+asPill()+(run.mode==='week'&&LB()?'<span class="pill" id="srk" style="background:#ffe9a0">🏆 '+(lastRank?'이번 주 '+lastRank:'…')+'</span>':'');
  const L=$('shl');L.innerHTML='';
  const row=(e,n,d,label,can,fn,rec)=>{const r=document.createElement('div');r.className='it'+(rec?' rec':'');r.innerHTML='<b>'+e+'</b><div>'+(String(n).startsWith('<span')?n:'<span>'+n+'</span>')+'<br>'+d+'</div>';const b=document.createElement('button');b.textContent=label;if(!can)b.className='no';b.onclick=fn;r.appendChild(b);L.appendChild(r)};
  const buyK=k=>{if(!B.buy(run,k)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()};
@@ -114,7 +137,7 @@ function renderShop(){
  if(run.ticket)row('🎫','부활권','탈락할 때 같은 날을 한 번 더 해요','보유 ✅',false,()=>{});
  else row('🎫','부활권','컷트라인에 못 미쳐도 같은 날을 한 번 더 해요 (탈락한 순간에도 살 수 있어요)',fmt(tc)+'🪙',run.coins>=tc,()=>{if(!B.buyTicket(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()})}
 function goOver(res,kind){scr='over';const st=run.stage;$('ot').textContent=run.clear?'🎉 '+R.maxStage+'단계 완주!':(run.giveUp?'🏳️ 포기했어요':'💥 '+(st+1)+'일차에서 탈락');
- let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind).replace('💰 순수익','💰 오늘 수익')+'<br>');
+ let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind).replace('💰 순수익','💰 오늘 수익')+failTip(res));
  h+='<br>🏅 도달 단계 <b>'+st+'</b> · 누적 순수익 '+fmt(run.tot)+'원';
  const w=save.week.id===run.wid?save.week:null;if(run.mode==='week'&&w)h+='<br>이번 주 내 최고 <b>'+w.stage+'단계</b>';
  $('obd').innerHTML=h;const cp=cpOK()&&!run.clear;$('o5').style.display=cp?'block':'none';if(cp)$('o5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)';
@@ -130,7 +153,7 @@ $('m1').onclick=()=>{au();const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.
 $('m5').onclick=()=>{const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid())ask($('m5'),'⚠️ 지금 판이 사라져요. 한 번 더!',()=>startRun('week'));else startFromCp()};
 function renderHow(){const wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('hw').innerHTML='<p class="ht"><b>🏅 내 기록</b></p><div class="sum">이번 주 판: <b>'+wk.stage+'단계</b> ('+fmt(wk.net)+'원)<br>전체 최고: <b>'+save.best.stage+'단계</b> · 도전 '+save.runs+'번 · 완주 '+save.clears+'번</div>'+
- '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 팥 하나만 키워서 멀리 가는 것도 가능해요!<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
+ '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 새 맛을 열면 손님 주문이 여러 맛으로 나뉘어요. 강화한 맛은 주문이 조금 더 들어와요.<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🃏 5단계마다 카드 3장 중 1장! ⚖️ <b>양날 카드</b>는 보너스가 크지만 손해도 있어요.<br>• 🧰 <b>10단계</b>부터 보조 칸: 🔮 눈치 반죽(손님이 원하는 맛 자동) 또는 🙋 자동 서빙 중 하나, 5단계마다 바꿀 수 있어요.<br>• 💪 같은 날(20일차까지)에서 3번 떨어지면 다음 도전에 응원 보너스(컷트라인 −5~10%).<br>• 51~60단계는 마지막 구간! 컷트라인이 가파르게 올라요. 60단계를 깬 사람끼리는 누적 수익으로 겨뤄요.<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
 $('m4').onclick=()=>{au();renderHow();show('how')};$('hx').onclick=()=>show('menu');
 $('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=()=>share();
 $('o6').onclick=()=>share({stage:run?run.stage:0,net:run?run.tot:0});
@@ -201,13 +224,13 @@ function drain(){A.drainFx()}
 /* ---------- 그리기 (가게와 같은 그림 도구, 배경만 챌린지 노점) ---------- */
 function awning(t){const n=15,w=W/n;for(let i=0;i<n;i++){const c=i%2?'#fff6ec':'#e8584a';cx.fillStyle=c;cx.fillRect(i*w,60,w,16);cx.beginPath();cx.arc(i*w+w/2,76,w/2,0,Math.PI);cx.fill()}
  cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(0,60,W,3)}
-function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.wea.n+' · 컷트라인 '+fmt(s.cut)+'원',
+function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.wea.n+' · 컷트라인 '+fmt(s.cut)+'원'+(run.pity&&run.pity.d===s.d?' · 💪 응원 −'+run.pity.p+'%':''),
  bg:t=>{cx.fillStyle='#ffe0b5';cx.fillRect(0,0,W,H);cx.fillStyle='#c9935f';cx.fillRect(0,322,W,78);cx.fillStyle='#d9a873';cx.fillRect(0,322,W,6);cx.fillStyle='rgba(0,0,0,.14)';cx.fillRect(0,328,W,4);cx.fillStyle='#6b5344';cx.fillRect(0,394,W,310)},
  front:t=>{awning(t);/* 카운터 앞판 */const g=cx.createLinearGradient(0,318,0,330);g.addColorStop(0,'#b97d4a');g.addColorStop(1,'#a06a3a');cx.fillStyle=g;cx.fillRect(0,318,W,8)},
- head:t=>{rr(0,0,W,58,0,'#8a5a3a');tx(s.d+'일차 '+s.wea.e,50,20,22,'#fff','left');
-  const dc=['','🏮','🏮⛱️','🏮⛱️✨'][run.up.deco|0];tx(lc.e+(dc||''),160,20,16,'#fff','left');
+ head:t=>{rr(0,0,W,58,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(s.d+'일차 '+s.wea.e,50,20,22,'#fff','left');
+  const dc=['','🏮','🏮⛱️','🏮⛱️✨'][run.up.deco|0];tx(lc.e+(dc||'')+(run.as?' '+B.ASSIST.find(a=>a.k===run.as).e:''),160,20,16,'#fff','left');
   {const tv=run.coins+s.net;if(ui.cv==null)ui.cv=tv;ui.cv+=(tv-ui.cv)*.16;if(Math.abs(tv-ui.cv)<1)ui.cv=tv;tx('🪙 '+fmt(Math.round(ui.cv)),385,20,ui.hud>0?26:22,ui.hud>0?'#fff6c0':'#ffe9a0','right')}
-  const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,38,258,12,6,'rgba(0,0,0,.35)');rr(128,38,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,36,3,16,1,'#fff');tx('컷트라인 '+fmt(s.cut),122,45,13,'#fff','right')}})}
+  const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,38,258,12,6,'rgba(0,0,0,.35)');rr(128,38,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,36,3,16,1,'#fff');if(ui.gh!=null&&ui.gh>0){const gx=128+258*Math.min(1.25,ui.gh/s.cut)/1.25;rr(gx-1,35,2,18,1,'rgba(200,230,255,.95)');A.em('👻',gx,30,13,.9)}tx('컷트라인 '+fmt(s.cut),122,45,13,'#fff','right')}})}
 
 /* ---------- 도전장 (자랑 링크로 들어온 사람) ---------- */
 const rivalOK=()=>save.rival&&save.rival.w===wid()&&save.rival.n;
