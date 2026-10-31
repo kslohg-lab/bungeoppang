@@ -214,9 +214,10 @@ function drawGround(look,t){const ground=look.night?'#6f9a62':'#a8d890',Rc=iso(N
  cx.fillStyle=ground;cx.beginPath();cx.moveTo(0,OY+(Lc.y-OY)*.2);cx.lineTo(W,OY+(Rc.y-OY)*.2);cx.lineTo(W,800);cx.lineTo(0,800);cx.closePath();cx.fill();
  /* 인도 */
  poly([iso(N,N-1),iso(N+3,N-1),iso(N+3,N),iso(N,N)],'#d8cbb6','#bba98e');for(let k=0;k<3;k++)poly([iso(N+k,N-1),iso(N+k+1,N-1),iso(N+k+1,N),iso(N+k,N)],null,'rgba(120,100,80,.25)',1);
- /* 마당 장식 (왼쪽·오른쪽) */
- const side=(it,p)=>{if(it&&it.sz){shadow(p.x,p.y,it.sz*.3);const z=it.sz*TW/96*.8;em(it.e,p.x,p.y-z*.42,z)}};
- side(look.sL,iso(-.9,N-.6));side(look.sR,iso(N+1.5,N-2.6))}
+}
+/* 마당 장식 (왼쪽·오른쪽): 가게 앞마당 양쪽, 바닥보다 앞에 그려서 잘리지 않게 (화면 밖으로도 덜 나가요) */
+const SIDE_L=()=>({gx:Math.min(2.2,N*.3),gy:N+1.05}),SIDE_R=()=>({gx:N+1.05,gy:Math.min(2.2,N*.3)});
+function drawSide(it,g){if(!it||!it.sz)return;const p=iso(g.gx,g.gy);shadow(p.x,p.y,it.sz*.3);const z=it.sz*TW/96*.8;em(it.e,p.x,p.y-z*.42,z)}
 function drawWalls(look,t){const T=iso(0,0),Rc=iso(N,0),Lc=iso(0,N),wc=look.wall.c,wp=WP[look.wall.id];
  poly([T,Rc,up(Rc,WH),up(T,WH)],dark(wc,.08),dark(wc,.35));poly([Lc,T,up(T,WH),up(Lc,WH)],lite(wc,.05),dark(wc,.35));
  const lines=(n,col,lw,vert)=>{cx.strokeStyle=col;cx.lineWidth=lw;for(let i=1;i<n;i++){const u=i/n;if(vert){for(const [a,b] of [[iso(u*N,0),0],[iso(0,u*N),0]]){cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(a.x,a.y-WH);cx.stroke()}}else{const h=WH*u;cx.beginPath();cx.moveTo(Lc.x,Lc.y-h);cx.lineTo(T.x,T.y-h);cx.lineTo(Rc.x,Rc.y-h);cx.stroke()}}};
@@ -316,7 +317,7 @@ function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
- L.push({z:1.4,f:()=>drawCounter(t,look)});staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
+ L.push({z:1.4,f:()=>drawCounter(t,look)});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
