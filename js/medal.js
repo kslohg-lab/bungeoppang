@@ -14,6 +14,10 @@ function claim(wid,stage){wid=wid|0;stage=stage|0;if(wid<WK||stage<10)return[];c
  if(out.length){v.w[wid]=got;trim(v,wid);save(v)}return out}
 /* 다음 목표: {st,n} 또는 null */
 function next(wid,stage){const got=(load().w[wid|0])||[];for(const [st,n] of MS)if(stage<st&&!got.includes(st))return{st,n};return null}
+/* 🏆 지난 주 등수 보상: 1위 50 · 2~3위 30 · 4~10위 20 · 11~30위 10 (주마다 한 번) */
+const RK=r=>!(r>=1)?0:r===1?50:r<=3?30:r<=10?20:r<=30?10:0;
+const rankPaid=w=>{const v=load();return!!(v.r&&v.r[w])};
+function payRank(w,rank){const v=load();if(!v.r||typeof v.r!=='object')v.r={};if(v.r[w])return 0;const n=RK(rank);v.r[w]=rank||-1;for(const k in v.r)if(+k<w-8)delete v.r[k];if(n){v.n+=n;v.t+=n}save(v);return n}
 function spend(n){const v=load();if(v.n<n)return false;v.n-=n;save(v);return true}
-return{get:()=>load(),claim,next,spend,MS,WK}})();
+return{get:()=>load(),claim,next,spend,MS,WK,RK,rankPaid,payRank}})();
 window.MEDAL=MEDAL;
