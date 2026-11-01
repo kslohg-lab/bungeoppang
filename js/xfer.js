@@ -4,7 +4,7 @@
    🚚 이사 방식: 받는 쪽이 번호를 쓰면 xfer_done/{번호_보낸사람}을 남기고, 보낸 쪽은 다음에 확인할 때 자기 기록을 잠가요(새로 시작).
    번호는 한 번에 하나만: 새 번호를 받으면 이전 번호는 지워요. 이전 번호가 이미 쓰였다면 새 번호를 만들 수 없어요. */
 import {CFG} from './firebase-config.js';
-const KEYS=['bungeoppang2Pub1','bpShopPubV1','bpNewsSeen'],TTL=15*60*1000,OUT='bpXferOut';
+const KEYS=['bungeoppang2Pub1','bpShopPubV1','bpNewsSeen','bpMedal'],TTL=15*60*1000,OUT='bpXferOut';
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}};
 window.XFER={off:true};
 if(CFG&&CFG.apiKey&&CFG.projectId){window.XFER={off:true,pending:true};

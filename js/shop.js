@@ -365,7 +365,7 @@ const placed=k=>save.fur.filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-p
 const pendList=()=>{const L=save.fur.filter(f=>f.pend);return{L,n:L.length,sum:L.reduce((a,f)=>a+((IS.FK[f.k]||{}).p||0),0)}};
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
 function renderDeco(){const tabs=DT(),tk=dtabK();
- {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')}$('dci').textContent='✨ 매력 +'+Math.round(charmBonus()*100)+'%';
+ {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent='✨ 매력 +'+Math.round(charmBonus()*100)+'%';
  const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
  {const S=$('dsub'),g=DG[dtab];S.innerHTML='';S.style.display=g.sl||g.k==='fur'?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)});if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
  const L=$('dl'),sl0=L.scrollLeft;L.innerHTML='';
@@ -389,6 +389,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
+  if(sl.k==='skin'&&window.MEDAL)card('🏅','메달 스킨','곧 공개 · 🏅'+MEDAL.get().n,'lk',()=>{toast('🏅 메달로만 사는 특별 스킨이 곧 열려요! 챌린지에서 모아요');snd('tap')});
   sl.L.forEach((it,id)=>{const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
    card(it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:save.eq[sl.k],it=sl.L[id],own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;

@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.1.6';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.1.7';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -30,7 +30,7 @@ function startFromCp(){if(!cpOK())return;au();run=clone(save.cp.run);pityApply()
 function renderMenu(){
  if(save.run&&save.run.run&&save.run.run.over){run=save.run.run;record();save.run=null;store();run=null}
  const sr=save.run,wk=save.week.id===wid()?save.week:{stage:0,net:0};
- $('mw').innerHTML=(save.nick?'<span class="pill">🙂 '+esc(save.nick)+'</span>':'')+'<span class="pill">🏅 이번 주 '+wk.stage+'단계</span>';mus('menu');bkGift();$('ver').textContent='시험판 v'+VER+' · 이번 주 판 #'+wid();
+ $('mw').innerHTML=(save.nick?'<span class="pill">🙂 '+esc(save.nick)+'</span>':'')+'<span class="pill">🏅 이번 주 '+wk.stage+'단계</span>';mus('menu');bkGift();if(window.MEDAL&&wk.stage)medalGet(wk.stage);if(window.MEDAL&&wid()>=MEDAL.WK)$('mw').innerHTML+='<span class="pill" style="background:#fff0c0">🏅 '+MEDAL.get().n+'</span>';$('ver').textContent='시험판 v'+VER+' · 이번 주 판 #'+wid();
  $('mi').innerHTML='컷트라인을 넘기며 몇 단계까지 갈까요? 🔥<br><small style="opacity:.7">이번 주엔 모두 같은 손님 · 순위표에서 겨뤄요</small>';
  if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid()){$('m1').textContent='▶ 이어서 하기 · '+sr.run.day+'일차';$('m5').style.display='block';$('m5').textContent='🆕 처음부터 다시 시작'}
  else if(cpOK()){$('m1').textContent='▶ 이번 주 판 1단계부터';$('m5').style.display='block';$('m5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)'}
@@ -81,12 +81,15 @@ function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage
  if(m==='week'){if(save.week.id!==run.wid)save.week={id:run.wid,stage:0,net:0};if(gt(save.week,0))save.week={id:run.wid,stage:st,net}}
  else if(gt(save.free,0))save.free={stage:st,net};
  if(run.clear)save.clears++;return submit(true,true)}
-function finishDay(){const res=B.dayResult(s,run),dd=run.day,kind=B.endDay(run,res);ghostSet(dd,res.net);if(kind==='pass'&&save.pf&&save.pf.wid===run.wid&&dd>=save.pf.d){save.pf=null}
+function finishDay(){const res=B.dayResult(s,run),dd=run.day,kind=B.endDay(run,res);if((kind==='pass'||kind==='clear')&&run.mode==='week'&&run.wid===wid())medalGet(run.stage);ghostSet(dd,res.net);if(kind==='pass'&&save.pf&&save.pf.wid===run.wid&&dd>=save.pf.d){save.pf=null}
  if(kind==='pass'||kind==='revive'){
   if(kind==='pass'&&run.mode==='week'&&run.stage%10===0&&run.stage<R.maxStage&&(!cpOK()||run.stage>=save.cp.stage))save.cp={wid:run.wid,stage:run.stage,run:clone(run)};
   save.run={run};store();let pr=null;if(kind==='pass')pr=submit(run.stage%5===0,false);goShop(res,kind);rankInto('srk',pr,'shop');if(kind==='pass'&&B.cardStage(run))setTimeout(()=>openCards(()=>{scr='shop';renderShop();$('s1').textContent='▶ '+run.day+'일차 시작 (컷트라인 '+fmt(B.cutRun(run,run.day))+')'}),350)}
  else if(kind==='over'&&run.mode==='week'&&B.canLateRevive(run)){save.run={run};store();openRevive(res)}
  else endRun(res,kind)}
+/* 🏅 메달: 이번 주 판 10·20·30·40·50·60단계 도달 보상 */
+function medalGet(st){if(!window.MEDAL)return;const g=MEDAL.claim(wid(),st);if(!g.length)return;const n=g.reduce((a,x)=>a+x.n,0);setTimeout(()=>{toast('🏅 '+g[g.length-1].st+'단계 달성! 메달 +'+n);snd('fanfare');if(window.JUICE)JUICE.confetti(70)},600)}
+const medalLine=()=>{if(!window.MEDAL||wid()<MEDAL.WK)return'';const st=save.week.id===wid()?save.week.stage:0,nx=MEDAL.next(wid(),st);return'🏅 메달 <b>'+MEDAL.get().n+'</b>개'+(nx?' · 다음: '+nx.st+'단계 +'+nx.n:' · 이번 주 다 받았어요!')};
 function endRun(res,kind){if(res&&!res.pass&&run.mode==='week'&&!run.giveUp&&!run.clear){const d=run.day;if(save.pf&&save.pf.wid===run.wid&&save.pf.d===d)save.pf.n++;else save.pf={wid:run.wid,d,n:1}}const pr=record();save.run=null;store();goOver(res,kind);rankInto('ork',pr,'over')}
 /* 👻 이번 주 같은 날 내 최고 수익 (다시 할 때 막대에 표시) */
 function ghostGet(d){const g=save.gh;return g&&g.w===wid()&&g.d?g.d[d]:undefined}
@@ -139,7 +142,7 @@ function renderShop(){
 function goOver(res,kind){scr='over';const st=run.stage;$('ot').textContent=run.clear?'🎉 '+R.maxStage+'단계 완주!':(run.giveUp?'🏳️ 포기했어요':'💥 '+(st+1)+'일차에서 탈락');
  let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind).replace('💰 순수익','💰 오늘 수익')+failTip(res));
  h+='<br>🏅 도달 단계 <b>'+st+'</b> · 누적 순수익 '+fmt(run.tot)+'원';
- const w=save.week.id===run.wid?save.week:null;if(run.mode==='week'&&w)h+='<br>이번 주 내 최고 <b>'+w.stage+'단계</b>';
+ const w=save.week.id===run.wid?save.week:null;if(run.mode==='week'&&w)h+='<br>이번 주 내 최고 <b>'+w.stage+'단계</b>';{const ml=medalLine();if(ml)h+='<br>'+ml}
  $('obd').innerHTML=h;const cp=cpOK()&&!run.clear;$('o5').style.display=cp?'block':'none';if(cp)$('o5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)';
  $('o1').textContent=cp?'🆕 1단계부터 새로':'🔁 이번 주 판 다시 도전';$('o1').className=cp?'big sm':'big';$('ork').textContent='';$('o7').style.display=shopNew()?'flex':'none';show('over');mus('menu');
  if(run.clear&&window.JUICE){JUICE.confetti(150);snd('fanfare')}
@@ -153,7 +156,7 @@ $('m1').onclick=()=>{au();const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.
 $('m5').onclick=()=>{const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid())ask($('m5'),'⚠️ 지금 판이 사라져요. 한 번 더!',()=>startRun('week'));else startFromCp()};
 function renderHow(){const wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('hw').innerHTML='<p class="ht"><b>🏅 내 기록</b></p><div class="sum">이번 주 판: <b>'+wk.stage+'단계</b> ('+fmt(wk.net)+'원)<br>전체 최고: <b>'+save.best.stage+'단계</b> · 도전 '+save.runs+'번 · 완주 '+save.clears+'번</div>'+
- '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 새 맛을 열면 손님 주문이 여러 맛으로 나뉘어요. 강화한 맛은 주문이 조금 더 들어와요.<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🃏 5단계마다 카드 3장 중 1장! ⚖️ <b>양날 카드</b>는 보너스가 크지만 손해도 있어요.<br>• 🧰 <b>10단계</b>부터 보조 칸: 🔮 눈치 반죽(손님이 원하는 맛 자동) 또는 🙋 자동 서빙 중 하나, 5단계마다 바꿀 수 있어요.<br>• 💪 같은 날(20일차까지)에서 3번 떨어지면 다음 도전에 응원 보너스(컷트라인 −5~10%).<br>• 51~60단계는 마지막 구간! 컷트라인이 가파르게 올라요. 60단계를 깬 사람끼리는 누적 수익으로 겨뤄요.<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
+ '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 새 맛을 열면 손님 주문이 여러 맛으로 나뉘어요. 강화한 맛은 주문이 조금 더 들어와요.<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🃏 5단계마다 카드 3장 중 1장! ⚖️ <b>양날 카드</b>는 보너스가 크지만 손해도 있어요.<br>• 🧰 <b>10단계</b>부터 보조 칸: 🔮 눈치 반죽(손님이 원하는 맛 자동) 또는 🙋 자동 서빙 중 하나, 5단계마다 바꿀 수 있어요.<br>• 💪 같은 날(20일차까지)에서 3번 떨어지면 다음 도전에 응원 보너스(컷트라인 −5~10%).<br>• 51~60단계는 마지막 구간! 컷트라인이 가파르게 올라요. 60단계를 깬 사람끼리는 누적 수익으로 겨뤄요.<br>• 🏅 <b>메달</b>: 이번 주 판에서 10·20·30·40단계마다 +5, 50단계 +10, 60단계 완주 +20 (한 주 최대 50개). 메달로는 🏪 가게의 특별 스킨을 살 수 있어요 (곧 공개).<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
 $('m4').onclick=()=>{au();renderHow();show('how')};$('hx').onclick=()=>show('menu');
 $('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=()=>share();
 $('o6').onclick=()=>share({stage:run?run.stage:0,net:run?run.tot:0});
