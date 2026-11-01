@@ -224,8 +224,8 @@ function startDay(){au();if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=
 function resTop(gain,net,tax,hm){return'<div class="rbig">'+(net>=0?'🪙 +'+fmt(gain):'📉 0')+'<small>'+(net<0?'재료비가 더 들었지만 손해는 없던 걸로!':'벌이 '+fmt(net)+(tax?' · 🏛️ 세금 −'+fmt(tax):''))+'</small></div><div class="chips"><span class="chip'+(hm<1?' red':' ok')+'">'+(hm<1?'🎁 오늘 보너스 끝 · '+Math.round(hm*100)+'%만 받아요 (내일 100%)':'🎁 보너스 '+Math.max(0,HB1-hbNow().n)+'/'+HB1+'판 남음')+'</span></div>'}
 /* 목표 짧게: 아이콘 + 두세 단어 */
 function gShort(g){const n=g.n,k=g.p.k;return{perf:{e:'✨',t:'PERFECT '+n},serve:{e:'🐾',t:'손님 '+n+'명'},combo:{e:'🔥',t:'콤보 '+n},noburn:{e:'😵',t:'안 태우기'},nolose:{e:'😊',t:'놓침 '+n+'명 이하'},net:{e:'💰',t:'수익 '+(n>=10000?Math.round(n/1000)/10+'만':fmt(n))}}[k]||{e:'📋',t:g.p.t(n)}}
-/* 🎁 도와주기 하루 보너스: 처음 10판 100% · 11~20판 50% · 21판부터 20% (매일 초기화. 폰 시계를 뒤로 돌려도 다시 채워지지 않아요) */
-const HB1=10,HB2=20;
+/* 🎁 도와주기 하루 보너스: 처음 20판 100% · 21~30판 50% · 31판부터 20% (매일 초기화. 폰 시계를 뒤로 돌려도 다시 채워지지 않아요) */
+const HB1=20,HB2=30;
 function hbNow(){const d=BIZ.dayKey(Date.now());if(!save.hb||typeof save.hb!=='object')save.hb={d,n:0};if(d>save.hb.d)save.hb={d,n:0};return save.hb}
 const hbMul=n=>n<HB1?1:n<HB2?.5:.2;
 function hbUse(){const h=hbNow(),m=hbMul(h.n);h.n++;return m}
@@ -257,7 +257,10 @@ cv.addEventListener('pointerdown',e=>{if(scr!=='cafe'||paused)return;e.preventDe
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev,()=>{if(scr==='cafe')CF.up()}));
 $('r1').onclick=()=>{if(lastHelp==='cafe')startCafe();else startDay()};$('r4').onclick=()=>{toHome()};
 $('r2').onclick=()=>openDeco('res');$('r3').onclick=()=>openUp('res');
-$('p2').onclick=()=>ask($('p2'),'⚠️ 여기까지로 정산해요. 한 번 더!',()=>{paused=false;$('pause').style.display='none';if(scr==='cafe'){CF.finish();finishCafe()}else finishDay()});
+const quitHelp=()=>{paused=false;$('pause').style.display='none';if(scr==='cafe'){CF.finish();finishCafe()}else finishDay()};
+$('p2').onclick=()=>JUICE.ask('🏁 그만 도와줄까요?','지금까지 번 만큼 정산해요','🏁 네, 그만할래요',quitHelp,'▶ 계속하기',resumeGame);
+/* 📱 뒤로 가기: 게임 중이면 멈추고 물어봐요 */
+JUICE.backGuard(()=>scr==='game'||scr==='cafe',()=>{pauseGame();JUICE.ask('🏁 그만 도와줄까요?','지금까지 번 만큼 정산해요','🏁 네, 그만할래요',quitHelp,'▶ 계속하기',resumeGame)});
 /* ---------- 가게 키우기 (굽기 업그레이드) ---------- */
 let backTo='home',utab=0;
 function openUp(from,tab){backTo=from;if(tab!=null)utab=tab;scr='up';renderUp(true);show('up')}

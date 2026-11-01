@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.1.4';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.1.5';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -212,7 +212,11 @@ function share(o){au();const wk=save.week.id===wid()?save.week:{stage:0,net:0},u
  const lb=LB();if(lastRank||!lb){go();return}toast('카드 만드는 중…');const sc=mySc();if(!sc||!lb.rank){go();return}Promise.race([lb.rank(wid(),sc),new Promise(r=>setTimeout(()=>r(null),2500))]).then(n=>{if(n)lastRank=rkTxt(n);go()}).catch(go)}
 function pauseGame(){if(scr!=='game'||!s||paused||s.ph!=='play')return;paused=true;$('pause').style.display='block'}
 function resumeGame(){if(!paused)return;paused=false;$('pause').style.display='none';last=0}
-$('home').onclick=pauseGame;$('p1').onclick=resumeGame;$('p2').onclick=()=>ask($('p2'),'⚠️ 판이 끝나요. 한 번 더!',giveUp);
+$('home').onclick=pauseGame;$('p1').onclick=resumeGame;
+const askQuit=()=>JUICE.ask('🏳️ 게임을 그만둘까요?','이번 판은 여기서 끝나요','🏳️ 네, 그만둘래요',giveUp,'▶ 계속하기',resumeGame);
+$('p2').onclick=askQuit;
+/* 📱 뒤로 가기: 게임 중이면 멈추고 물어봐요 */
+JUICE.backGuard(()=>scr==='game'&&s&&s.ph==='play',()=>{pauseGame();askQuit()});
 
 /* ---------- 조작 ---------- */
 A=ART(cx,{shape:()=>0,toast:t=>toast(t),snd:k=>snd(k)});const {em,tx,rr,m2,lite,dark}=A;

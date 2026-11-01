@@ -35,5 +35,15 @@ function burst(x,y,e='✨',n=8){const h=host();for(let i=0;i<n;i++){const d=docu
 /* ---------- 숫자 또르륵 ---------- */
 function count(el,from,to,fmt,ms=600){if(!el)return;fmt=fmt||(v=>String(v));if(from===to||!isFinite(from)){el.textContent=fmt(to);return}const t0=performance.now();el.classList.remove('jnum');void el.offsetWidth;el.classList.add('jnum');
  const k=()=>{const u=Math.min(1,(performance.now()-t0)/ms),e=1-Math.pow(1-u,3);el.textContent=fmt(Math.round(from+(to-from)*e));if(u<1)requestAnimationFrame(k)};requestAnimationFrame(k)}
-return{confetti,burst,count}})();
+/* ---------- 묻기 창 (알림창 대신) ---------- */
+let qv=null;
+function ask(title,msg,yes,onYes,no,onNo){const h=host();if(!qv){qv=document.createElement('div');qv.className='ov sh';qv.style.cssText='display:block;z-index:45;position:absolute;inset:0'}h.appendChild(qv);qv.style.display='block';
+ qv.innerHTML='<div class="card" style="top:230px"><h2 style="font-size:25px"></h2><div class="sum" style="text-align:center;font-size:17px"></div><button class="big"></button><button class="big sm"></button></div>';
+ const c=qv.firstChild;c.querySelector('h2').textContent=title;c.querySelector('.sum').textContent=msg;const b=c.querySelectorAll('button');b[0].textContent=no;b[1].textContent=yes;
+ /* 실수 방지: 크게 = 계속하기, 작게 = 그만두기 */
+ const close=()=>{qv.style.display='none'};b[0].onclick=()=>{close();onNo&&onNo()};b[1].onclick=()=>{close();onYes&&onYes()}}
+/* ---------- 뒤로 가기 지키기: 게임 중엔 멈추고 묻기, 아니면 원래대로 뒤로 ---------- */
+function backGuard(inGame,onBack){try{history.pushState({bpg:1},'')}catch(e){return}
+ addEventListener('popstate',()=>{if(inGame()){try{history.pushState({bpg:1},'')}catch(e){}onBack()}else{try{history.back()}catch(e){}}})}
+return{confetti,burst,count,ask,backGuard}})();
 window.JUICE=JUICE;
