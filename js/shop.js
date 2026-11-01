@@ -14,7 +14,9 @@ const SKY=[{n:'맑은 낮',e:'☀️',p:0,g:0},{n:'노을',e:'🌇',p:3000,g:0},
 const TOP=[{n:'없음',e:'➖',p:0,g:0},{n:'잉어 깃발 줄',e:'🎏',p:2000,g:0},{n:'풍선 아치',e:'🎈',p:6500,g:1},{n:'대형 붕어 조형물',e:'🐟',p:24000,g:2},{n:'LED 전광판',e:'🪧',p:60000,g:3},{n:'황금 왕관 장식',e:'👑',p:200000,g:4},{n:'불꽃놀이',e:'🎆',p:450000,g:5}];
 const MSH=[{n:'붕어 틀',e:'🐟',p:0,g:0},{n:'동그라미 틀',e:'⚪',p:800,g:0},{n:'네모 틀',e:'🟧',p:1500,g:0},{n:'세모 틀',e:'🔺',p:2600,g:1},{n:'하트 틀',e:'💗',p:6000,g:1},{n:'별 틀',e:'⭐',p:14000,g:2},{n:'곰돌이 틀',e:'🐻',p:38000,g:3},{n:'구름 틀',e:'☁️',p:90000,g:4},{n:'왕관 틀',e:'👑',p:240000,g:5}];
 /* 🏠 외관 스킨: 붕어빵 거리에서 보이는 가게 겉모습 (그림은 street.js) */
-const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000,g:1},{n:'통나무 오두막',e:'🪵',p:150000,g:2},{n:'한옥',e:'🏯',p:350000,g:3},{n:'카페 테라스',e:'☕',p:700000,g:4},{n:'과자집',e:'🍭',p:1300000,g:5},{n:'성',e:'🏰',p:2500000,g:6}];
+const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000,g:1},{n:'통나무 오두막',e:'🪵',p:150000,g:2},{n:'한옥',e:'🏯',p:350000,g:3},{n:'카페 테라스',e:'☕',p:700000,g:4},{n:'과자집',e:'🍭',p:1300000,g:5},{n:'성',e:'🏰',p:2500000,g:6},
+ /* 🏅 메달 스킨: 메달로만 사요 (그림 img/sk, 싼 것 → 비싼 것) */
+ {n:'분홍 비늘 집',e:'🏅',p:0,g:0,m:30,img:'img/sk/m1.webp'},{n:'숲속 트리하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m2.webp'},{n:'붕어 기차',e:'🏅',p:0,g:0,m:30,img:'img/sk/m3.webp'},{n:'눈 오는 오두막',e:'🏅',p:0,g:0,m:30,img:'img/sk/m4.webp'},{n:'진저브레드 하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m5.webp'},{n:'붕어 목조 주막',e:'🏅',p:0,g:0,m:50,img:'img/sk/m6.webp'},{n:'벚꽃 한옥',e:'🏅',p:0,g:0,m:50,img:'img/sk/m7.webp'},{n:'붕어 버섯 집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m8.webp'},{n:'우주 돔 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m9.webp'},{n:'붕어 지붕 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m10.webp'},{n:'하얀 붕어 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m11.webp'},{n:'눈 덮인 붕어 오두막',e:'🏅',p:0,g:0,m:80,img:'img/sk/m12.webp'},{n:'붕어 등대',e:'🏅',p:0,g:0,m:80,img:'img/sk/m13.webp'},{n:'붕어 잠수함',e:'🏅',p:0,g:0,m:120,img:'img/sk/m14.webp'},{n:'벚꽃 붕어 가게',e:'🏅',p:0,g:0,m:120,img:'img/sk/m15.webp'},{n:'왕관 붕어 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m16.webp'},{n:'분홍 고양이 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m17.webp'},{n:'황금 붕어 궁전',e:'🏅',p:0,g:0,m:150,img:'img/sk/m18.webp'},{n:'고양이 얼굴 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m19.webp'},{n:'꼬리 붕어빵 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m20.webp'}];
 const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
@@ -389,13 +391,13 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
-  if(sl.k==='skin'&&window.MEDAL)card('🏅','메달 스킨','곧 공개 · 🏅'+MEDAL.get().n,'lk',()=>{toast('🏅 메달로만 사는 특별 스킨이 곧 열려요! 챌린지에서 모아요');snd('tap')});
   sl.L.forEach((it,id)=>{const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
-   card(it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
+   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m:'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:save.eq[sl.k],it=sl.L[id],own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
   if(eqd)dbtn('da1','✅ 사용 중','dis');
   else if(own)dbtn('da1','바꾸기','go',()=>{save.eq[sl.k]=id;prev=null;store();snd('tap');renderDeco()});
   else if(lk)dbtn('da1',lk,'dis');
+  else if(it.m)dbtn('da1','🏅 메달 '+it.m+'개로 사기',window.MEDAL&&MEDAL.get().n>=it.m?'go':'dis',()=>{if(!window.MEDAL||!MEDAL.spend(it.m)){toast('🏅 메달이 부족해요! 챌린지에서 모아요 (가진 메달 '+(window.MEDAL?MEDAL.get().n:0)+')');snd('no');return}save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('fanfare');if(window.JUICE)JUICE.confetti(120);toast('🏅 '+it.n+' 설치 완료!');renderDeco();syncShop()});
   else if(free)dbtn('da1','받기 🎁','go',()=>{save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('win');renderDeco()});
   else dbtn('da1','사기 🪙'+fmt(it.p),save.coins>=it.p?'go':'dis',()=>{if(save.coins<it.p){toast('코인이 부족해요!');snd('no');return}save.coins-=it.p;save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('buy');if(window.JUICE)JUICE.confetti(60);toast(it.n+' 설치 완료!');renderDeco()});
   dbtn('da2',prev?'↩ 되돌리기':'✔ 완료','',()=>{if(prev){prev=null;renderDeco()}else $('dx').click()});
