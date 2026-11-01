@@ -92,19 +92,23 @@ function poly(pts,fill,stroke,lw=1.5){cx.beginPath();pts.forEach((p,i)=>i?cx.lin
 const up=(p,h)=>({x:p.x,y:p.y-h});
 function box(gx,gy,m,h,col,o={}){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=iso(gx+1-m,gy+1-m),L=iso(gx+m,gy+1-m);const z=o.z||0;
  const T0=up(T,z),R0=up(Rr,z),B0=up(B,z),L0=up(L,z),T1=up(T,z+h),R1=up(Rr,z+h),B1=up(B,z+h),L1=up(L,z+h);const ln=o.line||dark(col,.55),lw=Math.max(1.6,TW*.026);
- poly([L0,B0,B1,L1],dark(col,.12),ln,lw);poly([B0,R0,R1,B1],dark(col,.24),ln,lw);poly([T1,R1,B1,L1],o.top||lite(col,.08),ln,lw);return{T:T1,R:R1,B:B1,L:L1,c:{x:(T1.x+B1.x)/2,y:(T1.y+B1.y)/2}}}
+ const gv=(a,b,c0,c1)=>{const g=cx.createLinearGradient(a.x,a.y,b.x,b.y);g.addColorStop(0,c0);g.addColorStop(1,c1);return g};
+ poly([L0,B0,B1,L1],h>TW*.06?gv(B1,B0,dark(col,.06),dark(col,.26)):dark(col,.12),ln,lw);poly([B0,R0,R1,B1],h>TW*.06?gv(B1,B0,dark(col,.18),dark(col,.38)):dark(col,.24),ln,lw);poly([T1,R1,B1,L1],o.top||gv(T1,B1,lite(col,.16),lite(col,.02)),ln,lw);
+ /* 윗면 앞 모서리 하이라이트 */cx.strokeStyle='rgba(255,255,255,.35)';cx.lineWidth=Math.max(1,lw*.6);cx.beginPath();cx.moveTo(L1.x+(B1.x-L1.x)*.08,L1.y+(B1.y-L1.y)*.08-1);cx.lineTo(B1.x,B1.y-1.2);cx.lineTo(R1.x+(B1.x-R1.x)*.08,R1.y+(B1.y-R1.y)*.08-1);cx.stroke();return{T:T1,R:R1,B:B1,L:L1,c:{x:(T1.x+B1.x)/2,y:(T1.y+B1.y)/2}}}
 function panel(gx,gy,d,m,z,h,col){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=iso(gx+1-m,gy+1-m),L=iso(gx+m,gy+1-m);const E=[[T,Rr],[L,T],[Rr,B],[B,L]][d];
- poly([up(E[0],z),up(E[1],z),up(E[1],z+h),up(E[0],z+h)],d>=2?dark(col,.1):col,dark(col,.55),Math.max(1.6,TW*.026))}
-function shadow(x,y,w){cx.fillStyle='rgba(0,0,0,.16)';cx.beginPath();cx.ellipse(x,y,w,w*.45,0,0,7);cx.fill()}
+ const g=cx.createLinearGradient(0,up(E[0],z+h).y,0,up(E[0],z).y);g.addColorStop(0,lite(d>=2?dark(col,.08):col,.06));g.addColorStop(1,dark(col,d>=2?.24:.14));poly([up(E[0],z),up(E[1],z),up(E[1],z+h),up(E[0],z+h)],g,dark(col,.55),Math.max(1.6,TW*.026))}
+function shadow(x,y,w){cx.save();cx.translate(x,y);cx.scale(1,.45);const g=cx.createRadialGradient(0,0,w*.2,0,0,w*1.15);g.addColorStop(0,'rgba(40,24,14,.28)');g.addColorStop(1,'rgba(40,24,14,0)');cx.fillStyle=g;cx.beginPath();cx.arc(0,0,w*1.15,0,7);cx.fill();cx.restore()}
 /* ---------- 가구 ---------- */
 /* 스티커 이모지: 캐릭터 그림처럼 흰 테두리 + 그림자 (크기별로 한 번만 만들어 둬요) */
 const STK={};
 function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)return c;
  const pad=Math.ceil(z*.14)+2,S=Math.ceil(z*1.4)+pad*2,a=document.createElement('canvas');a.width=a.height=S;const ax=a.getContext('2d');ax.font=z+'px '+A.E;ax.textAlign='center';ax.textBaseline='middle';ax.fillText(e,S/2,S/2);
- c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),r=Math.max(2,z*.07);
- for(let i=0;i<12;i++){const an=i/12*Math.PI*2;x.drawImage(a,Math.cos(an)*r,Math.sin(an)*r)}
- x.globalCompositeOperation='source-in';x.fillStyle='#fff';x.fillRect(0,0,S,S);x.globalCompositeOperation='source-over';
- x.globalAlpha=.18;x.drawImage(c,0,0);x.globalAlpha=1;x.drawImage(a,0,0);STK[k]=c;return c}
+ /* 흰 스티커 테두리 대신: 얇은 진한 테두리 + 아래쪽 그늘 → 바닥에 놓인 물건처럼 */
+ c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),r=Math.max(1,z*.035);
+ for(let i=0;i<10;i++){const an=i/10*Math.PI*2;x.drawImage(a,Math.cos(an)*r,Math.sin(an)*r)}
+ x.globalCompositeOperation='source-in';x.fillStyle='rgba(70,44,28,.75)';x.fillRect(0,0,S,S);x.globalCompositeOperation='source-over';x.drawImage(a,0,0);
+ x.globalCompositeOperation='source-atop';const g=x.createLinearGradient(0,S*.35,0,S*.85);g.addColorStop(0,'rgba(40,20,10,0)');g.addColorStop(1,'rgba(40,20,10,.28)');x.fillStyle=g;x.fillRect(0,0,S,S);
+ const h=x.createLinearGradient(0,S*.1,0,S*.45);h.addColorStop(0,'rgba(255,255,255,.18)');h.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=h;x.fillRect(0,0,S,S);x.globalCompositeOperation='source-over';STK[k]=c;return c}
 function emS(e,x,y,z,al=1){const c=stk(e,z);cx.globalAlpha=al;cx.drawImage(c,x-c.width/2,y-c.height/2);cx.globalAlpha=1}
 const OL='#5a3a22';
 /* 가구 놓을 때 통통 (보이기만, 저장 안 해요) */
