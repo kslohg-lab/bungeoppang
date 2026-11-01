@@ -16,7 +16,7 @@ const MSH=[{n:'붕어 틀',e:'🐟',p:0,g:0},{n:'동그라미 틀',e:'⚪',p:800
 /* 🏠 외관 스킨: 붕어빵 거리에서 보이는 가게 겉모습 (그림은 street.js) */
 const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000,g:1},{n:'통나무 오두막',e:'🪵',p:150000,g:2},{n:'한옥',e:'🏯',p:350000,g:3},{n:'카페 테라스',e:'☕',p:700000,g:4},{n:'과자집',e:'🍭',p:1300000,g:5},{n:'성',e:'🏰',p:2500000,g:6},
  /* 🏅 메달 스킨: 메달로만 사요 (그림 img/sk, 싼 것 → 비싼 것) */
- {n:'분홍 비늘 집',e:'🏅',p:0,g:0,m:30,img:'img/sk/m1.webp'},{n:'숲속 트리하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m2.webp'},{n:'붕어 기차',e:'🏅',p:0,g:0,m:30,img:'img/sk/m3.webp'},{n:'눈 오는 오두막',e:'🏅',p:0,g:0,m:30,img:'img/sk/m4.webp'},{n:'진저브레드 하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m5.webp'},{n:'붕어 목조 주막',e:'🏅',p:0,g:0,m:50,img:'img/sk/m6.webp'},{n:'벚꽃 한옥',e:'🏅',p:0,g:0,m:50,img:'img/sk/m7.webp'},{n:'붕어 버섯 집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m8.webp'},{n:'우주 돔 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m9.webp'},{n:'붕어 지붕 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m10.webp'},{n:'하얀 붕어 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m11.webp'},{n:'눈 덮인 붕어 오두막',e:'🏅',p:0,g:0,m:80,img:'img/sk/m12.webp'},{n:'붕어 등대',e:'🏅',p:0,g:0,m:80,img:'img/sk/m13.webp'},{n:'붕어 잠수함',e:'🏅',p:0,g:0,m:120,img:'img/sk/m14.webp'},{n:'벚꽃 붕어 가게',e:'🏅',p:0,g:0,m:120,img:'img/sk/m15.webp'},{n:'왕관 붕어 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m16.webp'},{n:'분홍 고양이 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m17.webp'},{n:'황금 붕어 궁전',e:'🏅',p:0,g:0,m:150,img:'img/sk/m18.webp'},{n:'고양이 얼굴 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m19.webp'},{n:'꼬리 붕어빵 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m20.webp'}];
+ {n:'분홍 비늘 집',e:'🏅',p:0,g:0,m:30,img:'img/sk/m1.webp',a:2,h:0},{n:'숲속 트리하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m2.webp',a:0,h:3},{n:'붕어 기차',e:'🏅',p:0,g:0,m:30,img:'img/sk/m3.webp',a:0,h:3},{n:'눈 오는 오두막',e:'🏅',p:0,g:0,m:30,img:'img/sk/m4.webp',a:2,h:0},{n:'진저브레드 하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m5.webp',a:0,h:3},{n:'붕어 목조 주막',e:'🏅',p:0,g:0,m:50,img:'img/sk/m6.webp',a:0,h:4},{n:'벚꽃 한옥',e:'🏅',p:0,g:0,m:50,img:'img/sk/m7.webp',a:3,h:0},{n:'붕어 버섯 집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m8.webp',a:0,h:4},{n:'우주 돔 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m9.webp',a:3,h:0},{n:'붕어 지붕 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m10.webp',a:0,h:6},{n:'하얀 붕어 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m11.webp',a:4,h:0},{n:'눈 덮인 붕어 오두막',e:'🏅',p:0,g:0,m:80,img:'img/sk/m12.webp',a:4,h:0},{n:'붕어 등대',e:'🏅',p:0,g:0,m:80,img:'img/sk/m13.webp',a:0,h:6},{n:'붕어 잠수함',e:'🏅',p:0,g:0,m:120,img:'img/sk/m14.webp',a:0,h:8},{n:'벚꽃 붕어 가게',e:'🏅',p:0,g:0,m:120,img:'img/sk/m15.webp',a:5,h:0},{n:'왕관 붕어 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m16.webp',a:0,h:8},{n:'분홍 고양이 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m17.webp',a:5,h:0},{n:'황금 붕어 궁전',e:'🏅',p:0,g:0,m:150,img:'img/sk/m18.webp',a:6,h:5},{n:'고양이 얼굴 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m19.webp',a:6,h:5},{n:'꼬리 붕어빵 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m20.webp',a:6,h:5}];
 const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
@@ -31,6 +31,9 @@ const grade=()=>gradeOf(save.served);
 const eqIt=(k,pv)=>{const sl=SLOTS.find(x=>x.k===k);const id=pv&&pv.k===k?pv.id:save.eq[k];return sl.L[id]||sl.L[0]};
 const charm=()=>SLOTS.reduce((a,s)=>a+charmOf(eqIt(s.k)),0)+(save.fur||[]).reduce((a,it)=>{const f=IS.FK[it.k];return a+(f?charmOf(f):0)},0);
 const charmBonus=()=>Math.min(.25,charm()*.0023);
+/* 🏅 메달 스킨 효과 (쓰고 있는 스킨만): a = 손님 +%, h = 도와주기 수익 +% · 가게에만, 챌린지엔 없음 */
+const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h|0)/100}};
+const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.h+'%':'');
 const nm=()=>save.name||'붕어빵';
 /* 사장님 그림: 0=기본(코드 그림), 1=곰, 2=얼룩곰 */
 const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp'},{n:'얼룩곰 사장님',f:'img/cook2.webp'}];
@@ -61,7 +64,7 @@ const IS=ISO(cx,A);
 const {E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at}=A;
 /* ---------- 경영: 직원이 알아서 장사 (js/biz.js) ---------- */
 const seatsN=()=>(save.fur||[]).filter(it=>{const f=IS.FK[it.k];return f&&f.seat&&IS.inRoom(it.x,it.y,save.room)}).length;
-const bctx=()=>({lv:shopLv(),charm:charmBonus(),seats:seatsN()});
+const bctx=()=>({lv:shopLv(),charm:charmBonus()+skBuf().a,seats:seatsN()});
 let bizPop=0,bizFl=[],bizT=0,bizN=0;
 function bizTick(away){const g=BIZ.settle(save,Date.now(),bctx());if(!g)return null;if(g.whole>0)bizPop+=g.whole;if(away&&g.h>=3/60&&save.name)awayCard(g);return g}
 const hm=h=>{const m=Math.max(1,Math.round(h*60));return m>=60?Math.floor(m/60)+'시간'+(m%60?' '+m%60+'분':''):m+'분'};
@@ -234,7 +237,7 @@ function hbUse(){const h=hbNow(),m=hbMul(h.n);h.n++;return m}
 function hbTxt(m){const h=hbNow(),left=Math.max(0,HB1-h.n);return m<1?'🎁 오늘 보너스 판을 다 써서 <b>'+Math.round(m*100)+'%</b>만 받아요 · 내일 다시 100%!':'🎁 오늘 보너스 판 <b>'+left+'/'+HB1+'</b> 남았어요'+(left?'':' · 다음 판부터 50%')}
 function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl=goals.map((g,i)=>({g,ok:g.p.ok(res,g.n),was:gd.done[i]}));let star=0,bonus=0;const g0=grade();
  gl.forEach((x,i)=>{if(x.ok&&!x.was){gd.done[i]=1;star++}});const got=gd.done.filter(Boolean).length;if(got===3&&!gd.all){gd.all=1;bonus=500+lv*250}
- const hm=res.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.round((Math.max(0,res.net)-tax)*hm)+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
+ const hm=res.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.round((Math.max(0,res.net)-tax)*hm*(1+skBuf().h))+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
  save.bestNet=Math.max(save.bestNet,res.net);save.bestCombo=Math.max(save.bestCombo,res.bc);
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
@@ -249,7 +252,7 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
 let lastHelp='bread';
 const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
 function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save,mul:BIZ.beanMul(save),dp:d=>BIZ.dPrice(save,d),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
-function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm);
+function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h));
  save.coins+=gain;save.served+=r.served;save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
  let h=resTop(gain,r.net,tax,hm)+'<div class="chips"><span class="chip">☕ '+r.served+'잔</span><span class="chip">✨ '+r.perf+'</span><span class="chip">👍 '+r.great+'</span><span class="chip">🙂 '+r.good+'</span><span class="chip'+(r.lost?' red':'')+'">😡 '+r.lost+'</span><span class="chip'+(r.wrong?' red':'')+'">😣 '+r.wrong+'</span><span class="chip'+(r.spill?' red':'')+'">💦 '+r.spill+'</span><span class="chip">🔥 '+r.bc+'</span></div>';
  h+='<div class="tip">💡 점선에 딱 맞추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
@@ -392,7 +395,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
   sl.L.forEach((it,id)=>{const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
-   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m:'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
+   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m+' · '+skTxt(it):'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:save.eq[sl.k],it=sl.L[id],own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
   if(eqd)dbtn('da1','✅ 사용 중','dis');
   else if(own)dbtn('da1','바꾸기','go',()=>{save.eq[sl.k]=id;prev=null;store();snd('tap');renderDeco()});
@@ -401,7 +404,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else if(free)dbtn('da1','받기 🎁','go',()=>{save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('win');renderDeco()});
   else dbtn('da1','사기 🪙'+fmt(it.p),save.coins>=it.p?'go':'dis',()=>{if(save.coins<it.p){toast('코인이 부족해요!');snd('no');return}save.coins-=it.p;save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('buy');if(window.JUICE)JUICE.confetti(60);toast(it.n+' 설치 완료!');renderDeco()});
   dbtn('da2',prev?'↩ 되돌리기':'✔ 완료','',()=>{if(prev){prev=null;renderDeco()}else $('dx').click()});
-  msg=prev&&!eqd?'미리 보는 중 · 매력 +'+charmOf(it):sl.n+' 고르기'}
+  msg=it.m?(prev&&!eqd?'미리 보는 중 · ':'')+'효과: '+(it.a?'손님 +'+it.a+'%':'')+(it.a&&it.h?' · ':'')+(it.h?'도와주기 수익 +'+it.h+'%':''):prev&&!eqd?'미리 보는 중 · 매력 +'+charmOf(it):sl.n+' 고르기'}
  $('dmsg').textContent=msg;L.scrollLeft=sl0}
 /* 가게 바닥을 톡: 가구 고르기 / 놓기 */
 function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room,{gx,gy}=IS.toTile(x,y);
