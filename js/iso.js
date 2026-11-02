@@ -103,7 +103,9 @@ function okPlace(items,gx,gy,k,mv,n=N,d){d=d==null?(mv?mv.d|0:0):d;if(!fitAt(ite
 /* 돌리기: 다음 방향 중 놓을 수 있는 방향 (없으면 null) */
 /* 돌리기 순서는 시계 방향: 0 왼쪽 아래 → 1 오른쪽 아래 → 3 오른쪽 위 → 2 왼쪽 위 (두 번 돌리면 정확히 반대 = 180°) */
 const RING=[0,1,3,2];
-function nextRot(items,it,n=N){const p=RING.indexOf(it.d|0);for(let i=1;i<=4;i++){const d=RING[(p+i)%4];if(okPlace(items,it.x,it.y,it.k,it,n,d))return d}return null}
+/* 뒷모습 그림이 없는 그림 가구는 앞모습 두 방향(왼쪽 아래 ↔ 오른쪽 아래)만 → 누를 때마다 확실히 바뀌어요 */
+function nextRot(items,it,n=N){const fi=FIMG[it.k],Rg=fi&&!fi.b?[0,1]:RING,cur=it.d|0;let p=Rg.indexOf(cur);if(p<0)p=cur===2?1:0;
+ for(let i=1;i<=Rg.length;i++){const d=Rg[(p+i)%Rg.length];if(d!==cur&&okPlace(items,it.x,it.y,it.k,it,n,d))return d}return Rg.includes(cur)?null:Rg[(p+1)%Rg.length]}
 /* 불러올 때 정리: 2칸 가구가 겹치거나 방 밖이면 돌려 보고, 안 되면 빼요 → 뺀 목록 */
 function fixWide(items,n=N){const out=[];for(const it of items.slice()){if(!isWide(it.k)||!FK[it.k])continue;if(fitAt(items,it.k,it.x,it.y,it.d,it,n))continue;let ok=false;for(let d=0;d<4;d++)if(fitAt(items,it.k,it.x,it.y,d,it,n)){it.d=d;ok=true;break}if(!ok){items.splice(items.indexOf(it),1);out.push(it)}}return out}
 function blockedSeats(items,n=N){return items.filter(it=>FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y,n)&&!cells(it).some(c=>seatOk(items,c,n))).length}
