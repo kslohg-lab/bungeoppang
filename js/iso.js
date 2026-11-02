@@ -108,7 +108,7 @@ const FIMG={chair:{w:.62,b:1},sofa:{w:1.05},shelf:{w:.98},piano:{w:.9,b:1},bench
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
 function fuImg(k,back){if(!FK[k]||!(FK[k].emo||FIMG[k]))return null;if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp');if(b)return b}return ld('img/fu/'+k+'.webp')}
 function drawImgF(it,t){const fi=FIMG[it.k];if(!fi)return false;const d=it.d|0,back=d>=2&&!!fi.b,im=fuImg(it.k,back);if(!im)return false;
- const c=iso(it.x+.5,it.y+.5),ww=TW*fi.w,hh=ww*im.naturalHeight/im.naturalWidth;let flip=(d===1||d===2);if(!back&&d>=2)flip=d===3;if(fi.fr)flip=!flip;
+ const c=iso(it.x+.5,it.y+.5),ww=TW*fi.w*.86,hh=ww*im.naturalHeight/im.naturalWidth;let flip=(d===1||d===2);if(!back&&d>=2)flip=d===3;if(fi.fr)flip=!flip;
  shadow(c.x,c.y+2,Math.min(ww*.45,TW*.42));cx.save();cx.translate(c.x,c.y+TH*.3);if(flip)cx.scale(-1,1);cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();return true}
 function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)return c;
  const pad=Math.ceil(z*.14)+2,S=Math.ceil(z*1.4)+pad*2,a=document.createElement('canvas');a.width=a.height=S;const ax=a.getContext('2d');ax.font=z+'px '+A.E;ax.textAlign='center';ax.textBaseline='middle';ax.fillText(e,S/2,S/2);
@@ -165,7 +165,7 @@ function drawItem(it,t,sel){if(drawImgF(it,t))return;const gx=it.x,gy=it.y,d=it.
   A.fish2(p.c.x,p.c.y-TW*.38+Math.sin(t*1.6)*2,TW*.0075,'#ffcf3a',{glow:'rgba(255,220,80,.8)'});break}
  default:{const f=FK[it.k];if(!f||!f.emo)break;
   /* AI 그림 소품 (img/fu/키.webp): 불러왔으면 그림, 아니면 예전 받침+이모지 */
-  {const im=fuImg(it.k);if(im){const hh=TW*Math.max(.7,f.z*1.35+(f.tall||0)*1.1),ww=hh*im.naturalWidth/im.naturalHeight,sway=f.tree||f.pole?Math.sin(t*1.5+gx)*.02:0;shadow(c.x,c.y+2,Math.min(ww*.42,TW*.36));
+  {const im=fuImg(it.k);if(im){const hh=TW*Math.max(.62,f.z*1.2+(f.tall||0)*1.0),ww=hh*im.naturalWidth/im.naturalHeight,sway=f.tree||f.pole?Math.sin(t*1.5+gx)*.02:0;shadow(c.x,c.y+2,Math.min(ww*.42,TW*.36));
    if(f.glow){const g=cx.createRadialGradient(c.x,c.y-hh*.75,2,c.x,c.y-hh*.75,TW*.5);g.addColorStop(0,'rgba(255,230,150,'+(.35+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,230,150,0)');cx.fillStyle=g;cx.beginPath();cx.arc(c.x,c.y-hh*.75,TW*.5,0,7);cx.fill()}
    cx.save();cx.translate(c.x,c.y+TH*.22);if(sway)cx.rotate(sway);cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();break}}shadow(c.x,c.y+2,TW*.3);const h=TW*(f.tall||.1);const p=box(gx,gy,f.tall?.14:.3,h,f.b,f.glass?{top:'rgba(220,240,255,.85)'}:{});
   if(f.pole){cx.fillStyle=OL;cx.fillRect(c.x-2,c.y-TW*.9,4,TW*.9)}

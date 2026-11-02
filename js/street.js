@@ -72,7 +72,9 @@ const IMC={};function skImg(src){let im=IMC[src];if(!im){im=new Image();im.src=s
 function imgBld(Q,ori,d,t,st){const big=(d.room|0)>4,S=size(d.room),Wd=big?S.w:1.9,D=big?S.d:1.6,im=skImg(st.img);if(!im)return cart(Q,ori,d,t,SK[0]);
  const pts=[Q(0,0),Q(Wd,0),Q(Wd,D),Q(0,D)],x0=Math.min(...pts.map(p=>p.x)),x1=Math.max(...pts.map(p=>p.x)),yb=Math.max(...pts.map(p=>p.y)),w=(x1-x0)*1.18,h=w*im.naturalHeight/im.naturalWidth;
  cx.save();cx.translate((x0+x1)/2,0);if(ori==='R')cx.scale(-1,1);cx.drawImage(im,-w/2,yb-h+w*.05,w,h);cx.restore();return{Wd,D,h:h*.8}}
-function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];if(st.img)return imgBld(Q,ori,d,t,st);if((d.room|0)<=4)return cart(Q,ori,d,t,st);
+/* 기본 외관(0번)도 그림으로: 노점은 수레(d0), 가게는 아담한 가게(d1). 그림을 못 불러오면 예전 코드 그림 */
+const DEF0={img:'img/sk/d0.webp'},DEF1={img:'img/sk/d1.webp'};
+function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];if(!(d.skin|0)){const df=(d.room|0)<=4?DEF0:DEF1;if(skImg(df.img))return imgBld(Q,ori,d,t,df)}if(st.img)return imgBld(Q,ori,d,t,st);if((d.room|0)<=4)return cart(Q,ori,d,t,st);
  const S=size(d.room),Wd=S.w,D=S.d,s=T/40,gh=T*1.32,fh=T*.92,h=gh+fh*(S.fl-1),F=ori==='F',fsl=F?.5:-.5,ssl=F?-.5:.5,aS=F?Wd:0,lite_=c=>c,drk=c=>dark(c,.16);
  const fcol=F?st.w:drk(st.w),scol=F?drk(st.w):st.w;
  poly([Q(-.15,-.2),Q(Wd+.2,-.2),Q(Wd+.2,D+.15),Q(-.15,D+.15)],'rgba(0,0,0,.13)');
