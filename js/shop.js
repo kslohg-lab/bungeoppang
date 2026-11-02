@@ -63,7 +63,7 @@ const A=ART(cx,{shape:()=>save.eq.shape|0,toast:t=>toast(t),snd:k=>snd(k)});
 const IS=ISO(cx,A);
 const {E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at}=A;
 /* ---------- 경영: 직원이 알아서 장사 (js/biz.js) ---------- */
-const seatsN=()=>(save.fur||[]).filter(it=>{const f=IS.FK[it.k];return f&&f.seat&&IS.inRoom(it.x,it.y,save.room)}).length;
+const seatsN=()=>IS.seatCount((save.fur||[]).filter(it=>IS.inRoom(it.x,it.y,save.room)));
 const bctx=()=>({lv:shopLv(),charm:charmBonus()+skBuf().a,seats:seatsN()});
 let bizPop=0,bizFl=[],bizT=0,bizN=0;
 function bizTick(away){const g=BIZ.settle(save,Date.now(),bctx());if(!g)return null;if(g.whole>0)bizPop+=g.whole;if(away&&g.h>=3/60&&save.name)awayCard(g);return g}
@@ -396,7 +396,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+IS.SET_BONUS:' · 다 놓으면 ✨+'+IS.SET_BONUS)+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.FK[dsel.k];
-  dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){dsel.d=((dsel.d|0)+1)%4;store();snd('tap')}});
+  dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(save.fur,dsel,save.room);if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
   dbtn('da2','📦 보관함에 넣기',dsel?'':'dis',()=>{if(dsel){save.fur=save.fur.filter(it=>it!==dsel);dsel=null;store();snd('tap');renderDeco()}});
   msg=dsel?f.n+' 골랐어요 · 한 번 더 톡 = 돌리기 · 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'')}
  else if(tk==='room'){
@@ -422,16 +422,16 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
 /* 가게 바닥을 톡: 가구 고르기 / 놓기 */
 function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room,{gx,gy}=IS.toTile(x,y);
  if(!IS.inRoom(gx,gy,n)){dsel=null;renderDeco();return}
- const it=save.fur.find(q=>q.x===gx&&q.y===gy);
+ const it=IS.occAt(save.fur,gx,gy);
  /* 고른 가구를 한 번 더 톡 = 돌리기 */
- if(it){if(dsel===it){if(IS.FK[it.k].rot){it.d=((it.d|0)+1)%4;store();snd('tap')}else toast('이 가구는 돌릴 수 없어요')}else{dsel=it;dpick=null;snd('tap')}renderDeco();return}
+ if(it){if(dsel===it){if(IS.FK[it.k].rot){const nd=IS.nextRot(save.fur,it,n);if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no')}else{it.d=nd;store();snd('tap')}}else toast('이 가구는 돌릴 수 없어요')}else{dsel=it;dpick=null;snd('tap')}renderDeco();return}
  if(IS.isCounter(gx,gy)){toast('여기는 카운터예요');snd('no');return}
  if(IS.isPath(gx,gy,n)){toast(gy===1?'카운터 앞은 손님이 계산하는 자리예요':'문 앞은 비워 둬야 손님이 들어와요');snd('no');return}
  const bs0=IS.blockedSeats(save.fur,n),seatWarn=()=>{if(IS.blockedSeats(save.fur,n)>bs0)setTimeout(()=>toast('⚠️ 손님이 갈 수 없는 의자가 생겼어요'),350)};
  /* 가구를 고른 채 빈 칸 톡 = 옮기기 */
- if(dsel&&!dpick){if(!IS.okPlace(save.fur,gx,gy,dsel.k,dsel,n)){toast('🚧 여기 놓으면 손님 길이 막혀요');snd('no');return}dsel.x=gx;dsel.y=gy;store();snd('place');IS.bounce(dsel);seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco();return}
+ if(dsel&&!dpick){if(!IS.okPlace(save.fur,gx,gy,dsel.k,dsel,n)){toast(IS.fitAt(save.fur,dsel.k,gx,gy,dsel.d,dsel,n)?'🚧 여기 놓으면 손님 길이 막혀요':'🚧 2칸이 비어야 놓을 수 있어요');snd('no');return}dsel.x=gx;dsel.y=gy;store();snd('place');IS.bounce(dsel);seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco();return}
  if(!dpick){dsel=null;renderDeco();return}
- if(!IS.okPlace(save.fur,gx,gy,dpick,null,n)){toast('🚧 여기 놓으면 손님 길이 막혀요');snd('no');return}
+ if(!IS.okPlace(save.fur,gx,gy,dpick,null,n)){toast(IS.fitAt(save.fur,dpick,gx,gy,0,null,n)?'🚧 여기 놓으면 손님 길이 막혀요':'🚧 '+(IS.isWide(dpick)?'2칸이 비어야':'여기엔')+' 놓을 수 없어요');snd('no');return}
  const f=IS.FK[dpick];
  /* 🛒 보관함에 없으면 바로 사지 않고 담아 둬요 → ✔ 완료 때 한꺼번에 계산 */
  let pend=0;if(spare(dpick)<=0){pend=1;toast('🛒 '+f.n+' 담았어요 · 완료할 때 계산해요')}
@@ -533,7 +533,7 @@ function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=e
 let vPre=null,hPre=0;
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
-  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.FK[it.k]);
+  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.FK[it.k]);IS.fixWide(vfur,Math.max(4,Math.min(10,d.room|0)));
   if(vFrom==='url'&&uid!==N.uid)toast('💌 '+((d.nk&&!BADW.bad(d.nk))?d.nk+'님이':'친구가')+' 가게 구경에 초대했어요!');
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
@@ -604,6 +604,8 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
 window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
+/* 🛋️ 2칸 가구로 바뀐 뒤 처음: 겹치는 소파·벤치는 돌려 보고, 안 되면 보관함으로 */
+if(!save.w2&&save.fur){const moved=IS.fixWide(save.fur,save.room);save.w2=1;store();if(moved.length)setTimeout(()=>bzShow('🛋️','2칸 가구가 됐어요!','<p style="text-align:center;margin:0">소파 · 벤치 · 빵 진열대 · 피아노가 이제 2칸을 차지하고 두 명이 앉아요.<br>자리가 모자란 <b>'+moved.length+'개</b>는 📦 보관함에 넣어 뒀어요. 🎨 꾸미기에서 다시 놓아 주세요!</p>','🎨 꾸미러 가기',()=>openDeco('home'),'좋아요',null),900)}
 fit();{const qm=new URLSearchParams(location.search).get('medal');if(qm!=null&&save.name){try{history.replaceState(null,'',location.pathname)}catch(e){}setTimeout(()=>openMedal('home'),400)}}{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(giftCheck()){}else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400);INSTALL.nudge(true)}else{NEWS.check(true);renderHome();openName(true);INSTALL.nudge(false)}}requestAnimationFrame(loop);
 setTimeout(syncShop,1500);
 })();
