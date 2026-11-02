@@ -373,7 +373,7 @@ function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);
 /* ---------- 전체 ---------- */
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
- const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
+ const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:Math.max(...cells(it).map(q=>q.x+q.y))+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
  L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
