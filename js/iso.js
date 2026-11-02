@@ -72,7 +72,8 @@ const isCounter=(gx,gy)=>gy===0&&(gx===1||gx===2);
 const isPath=(gx,gy,n=N)=>(gy===1&&(gx===1||gx===2))||(gx===n-1&&gy===n-1);
 const canPlace=(gx,gy,n=N)=>inRoom(gx,gy,n)&&!isCounter(gx,gy)&&!isPath(gx,gy,n);
 /* 🛋️ 2칸 가구 (11/2): 소파·니트 소파·벤치·벚꽃 벤치·빵 진열대·피아노. 방향 0·3은 오른쪽 아래 칸(x+1), 1·2는 왼쪽 아래 칸(y+1)까지 */
-const WIDE=new Set(['sofa','knit','bench','skbench','shelf','piano']);
+/* 11/2: 2칸 가구는 사람 눈에 어색해서 되돌림 (기능은 남겨 두고 목록만 비움) */
+const WIDE=new Set([]);
 const isWide=k=>WIDE.has(k);
 /* 칸 방향은 그림과 똑같이: 그림을 안 뒤집으면 길이가 x(오른쪽 아래), 뒤집으면 y(왼쪽 아래) */
 /* 방향 d: 0 앞·왼쪽 아래 보기 · 1 앞·오른쪽 아래 · 2 뒤·왼쪽 위 · 3 뒤·오른쪽 위.
@@ -127,7 +128,7 @@ const STK={};
 /* AI 그림 가구 (img/fu): 소품(emo) + 아래 목록. w = 칸 너비 대비 그림 너비, fr = 그림이 오른쪽 아래를 봄, b = 뒷모습 그림(_b) 있음.
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
-const FIMG={chair:{w:.62,b:1},sofa:{w:1.05},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:1.05,b:1,fy:1},throne:{w:.72},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:1.05,b:1,by:1},knit:{w:1.05,b:1,by:1},
+const FIMG={chair:{w:.62,b:1},sofa:{w:.7},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72},knit:{w:.7},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
 function fuImg(k,back){if(!FK[k]||!(FK[k].emo||FIMG[k]))return null;if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp');if(b)return b}return ld('img/fu/'+k+'.webp')}
