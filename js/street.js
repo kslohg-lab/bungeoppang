@@ -74,7 +74,9 @@ function imgBld(Q,ori,d,t,st){const big=(d.room|0)>4,S=size(d.room),Wd=big?S.w:1
  cx.save();cx.translate((x0+x1)/2,0);if(ori==='R')cx.scale(-1,1);cx.drawImage(im,-w/2,yb-h+w*.05,w,h);cx.restore();return{Wd,D,h:h*.8}}
 /* 기본 외관(0번)도 그림으로: 노점은 수레(d0), 가게는 아담한 가게(d1). 그림을 못 불러오면 예전 코드 그림 */
 const DEF0={img:'img/sk/d0.webp'},DEF1={img:'img/sk/d1.webp'};
-function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];if(!(d.skin|0)){const df=(d.room|0)<=4?DEF0:DEF1;if(skImg(df.img))return imgBld(Q,ori,d,t,df)}if(st.img)return imgBld(Q,ori,d,t,st);if((d.room|0)<=4)return cart(Q,ori,d,t,st);
+/* 코인 외관 1~6도 그림으로 (img/sk/c1~c6), 못 불러오면 예전 코드 그림 */
+const CPIC=[null,'c1','c2','c3','c4','c5','c6'];
+function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];{const cp=CPIC[d.skin|0];if(cp){const o={img:'img/sk/'+cp+'.webp'};if(skImg(o.img))return imgBld(Q,ori,d,t,o)}}if(!(d.skin|0)){const df=(d.room|0)<=4?DEF0:DEF1;if(skImg(df.img))return imgBld(Q,ori,d,t,df)}if(st.img)return imgBld(Q,ori,d,t,st);if((d.room|0)<=4)return cart(Q,ori,d,t,st);
  const S=size(d.room),Wd=S.w,D=S.d,s=T/40,gh=T*1.32,fh=T*.92,h=gh+fh*(S.fl-1),F=ori==='F',fsl=F?.5:-.5,ssl=F?-.5:.5,aS=F?Wd:0,lite_=c=>c,drk=c=>dark(c,.16);
  const fcol=F?st.w:drk(st.w),scol=F?drk(st.w):st.w;
  poly([Q(-.15,-.2),Q(Wd+.2,-.2),Q(Wd+.2,D+.15),Q(-.15,D+.15)],'rgba(0,0,0,.13)');
