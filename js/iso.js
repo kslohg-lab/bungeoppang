@@ -309,15 +309,15 @@ function staffFront(t,look,L){const S=look.staff||{};
  if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal('🦊',p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});apron(p.x,y,s,SCOL.promo);
   cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore();badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
-/* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어 */
-function counterUp(t,look){const g=(look&&look.g)|0,lw=Math.max(1.4,TW*.024);if(g<1)return;
- if(g>=1){const a=up(iso(1.1,0),WH*.92),b=up(iso(2.9,0),WH*.92),c=up(iso(2.9,0),WH*.55),d=up(iso(1.1,0),WH*.55);poly([a,b,c,d],g>=5?'#2a3a2e':'#3e3228',g>=5?'#d4a020':OL,lw);
+/* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어
+   벽에 붙는 것(메뉴판·조명·줄전구·네온)은 사장님보다 먼저(wall=true), 빵 바구니만 나중에 그려요 → 사장님 얼굴을 안 가려요 */
+function counterUp(t,look,wall){const g=(look&&look.g)|0,lw=Math.max(1.4,TW*.024);if(g<1)return;if(!wall){if(g>=5){const p=iso(3.25,.35);em('🧺',p.x,p.y-TW*.12,TW*.3);em('🥖',p.x+TW*.05,p.y-TW*.24,TW*.18)}return}
+ if(g>=1){const a=up(iso(1.1,0),WH*.97),b=up(iso(2.9,0),WH*.97),c=up(iso(2.9,0),WH*.74),d=up(iso(1.1,0),WH*.74);poly([a,b,c,d],g>=5?'#2a3a2e':'#3e3228',g>=5?'#d4a020':OL,lw);
   const m={x:(a.x+c.x)/2,y:(a.y+c.y)/2},h=(d.y-a.y);cx.save();cx.translate(m.x,m.y);cx.transform(1,.5,0,1,0,0);tx('MENU',0,-h*.28,Math.max(7,TW*.1),'#fff6d0','center','#3e3228');
   const L=['🫘','🍮','🧀','🍠','🍫','🌟'].slice(0,Math.min(6,2+g));L.forEach((e,i)=>em(e,(i-(L.length-1)/2)*TW*.17,h*.12,Math.max(7,TW*.11)));cx.restore()}
  if(g>=3)for(const gx of[1.5,2.5]){const top=up(iso(gx,.45),WH*1.02),lp=up(iso(gx,.45),WH*.68);cx.strokeStyle='#3a2a1a';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(top.x,top.y);cx.lineTo(lp.x,lp.y);cx.stroke();
   cx.fillStyle='rgba(255,230,150,.28)';cx.beginPath();cx.arc(lp.x,lp.y+TW*.05,TW*.22,0,7);cx.fill();cx.fillStyle=g>=5?'#d4a020':'#e8584a';cx.beginPath();cx.moveTo(lp.x-TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.04,lp.y-TW*.03);cx.lineTo(lp.x-TW*.04,lp.y-TW*.03);cx.closePath();cx.fill();cx.fillStyle='#fff6c0';cx.beginPath();cx.arc(lp.x,lp.y+TW*.06,TW*.03,0,7);cx.fill()}
  if(g>=4){const C=['#ff6a5a','#ffd23a','#5ad07a','#5ab4ff','#ff9ad0'];for(let i=0;i<=16;i++){const u=i/16,p=up(iso(.2+u*Math.min(N-.4,5.6),0),WH*.99-Math.sin(u*Math.PI*4)*WH*.04);cx.globalAlpha=.55+.45*Math.abs(Math.sin(t*2+i));cx.fillStyle=C[i%5];cx.beginPath();cx.arc(p.x,p.y,Math.max(1.6,TW*.028),0,7);cx.fill()}cx.globalAlpha=1}
- if(g>=5){const p=iso(3.25,.35);em('🧺',p.x,p.y-TW*.12,TW*.3);em('🥖',p.x+TW*.05,p.y-TW*.24,TW*.18)}
  if(g>=6){const p=up(iso(Math.min(N-.55,3.6),0),WH*.74),gl=.6+.4*Math.sin(t*3);cx.fillStyle='rgba(255,120,200,'+(.22*gl)+')';cx.beginPath();cx.arc(p.x,p.y,TW*.38,0,7);cx.fill();em('🐟',p.x,p.y,TW*.42,.85+.15*gl)}}
 function drawCounter(t,look){const S=(look&&look.staff)||{},cafe=!!(look&&look.cafe),cq=behind(S.bake>0||(cafe&&S.barista>0)?2.08:2,.35,.44);staffBack(t,look||{});staffBack2(t,look||{});animal('cook',cq.x,cq.y,cq.s,{t,ph:0,mood:'h',shirt:'#ffffff'});
  const H0=TW*.34,lw=Math.max(1.6,TW*.026);
@@ -351,7 +351,7 @@ function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:it.x+it.y+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
- L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
+ L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}

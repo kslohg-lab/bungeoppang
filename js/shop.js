@@ -181,7 +181,17 @@ const gradeCol=()=>['#aaa','#c8a070','#7ec8ff','#7ed88a','#ffd23a','#ff9a3a','#f
 /* 🎉 가게 레벨·등급이 오르면 꽃가루 */
 function lvWatch(){if(vd)return;const lv=shopLv(),g=grade();if(lvWatch.l==null){lvWatch.l=lv;lvWatch.g=g;return}
  if(g>lvWatch.g){if(window.JUICE)JUICE.confetti(140);snd('fanfare');toast('🎉 '+GR[g].e+' '+GR[g].n+' 등급이 됐어요!')}else if(lv>lvWatch.l){if(window.JUICE)JUICE.confetti(70);snd('win');toast('🎉 가게 Lv'+lv+'!')}lvWatch.l=lv;lvWatch.g=g}
-function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ✨+'+Math.round(charmBonus()*100)+'%',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
+/* 🏮 등급 · 🏪 레벨 안내 (위쪽 줄을 누르면): 무엇으로 오르는지, 다음까지 얼마나 */
+function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=decoScore(),need=20*lv*lv,prev=20*(lv-1)*(lv-1);
+ const bar=(a,b,col)=>'<div style="height:14px;border-radius:7px;background:rgba(0,0,0,.12);overflow:hidden;margin:4px 0 2px"><div style="height:100%;width:'+Math.max(3,Math.min(100,a/b*100))+'%;background:'+col+';border-radius:7px"></div></div>';
+ let h='<div class="sum"><b>'+GR[g].e+' 가게 등급: '+GR[g].n+'</b>';
+ if(nx)h+=bar(sv-GR[g].at,nx.at-GR[g].at,'#ffc94a')+'<small>다음 '+nx.e+' <b>'+nx.n+'</b>까지 손님 <b>'+fmt(nx.at-sv)+'명</b> ('+fmt(sv)+' / '+fmt(nx.at)+')</small>';else h+='<br><small>최고 등급이에요! 👑</small>';
+ h+='<br><small>🙋 <b>도와주기</b>로 손님을 직접 대접하면 올라요 · 오르면 새 가구·꾸밈이 열리고 카운터에 메뉴판·조명이 생겨요</small></div>';
+ h+='<div class="sum"><b>🏪 가게 레벨: Lv'+lv+'</b>';
+ if(lv<40)h+=bar(sc-prev,need-prev,'#7ed88a')+'<small>다음 Lv'+(lv+1)+'까지 꾸미기 점수 <b>'+fmt(need-sc)+'</b> ('+fmt(sc)+' / '+fmt(need)+')</small>';else h+='<br><small>최고 레벨이에요! 🎉</small>';
+ h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small></div>';
+ bzShow(GR[g].e,'등급 · 레벨 안내',h,'🙋 도와주러 가기',()=>$('h1').click(),'🎨 꾸미러 가기',()=>openDeco('home'))}
+function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#8fcdff','#e6f4ff'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
 function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
@@ -439,7 +449,7 @@ cv.addEventListener('pointerdown',e=>{if(!panScr())return;e.preventDefault();con
 cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const p=cvPt(e);pts.set(e.pointerId,p);
  if(pin&&pts.size>=2){const [a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>10&&pin.d>10)zoomBy(d/pin.d);pin.d=d;return}
  if(!drg||e.pointerId!==drg.id)return;if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv){if(scr==='street')SV.drag(p.x-drg.lx,p.y-drg.ly);else if(IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly)}drg.lx=p.x;drg.ly=p.y});
-const endDrg=(e,ok)=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
+const endDrg=(e,ok)=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&d.y<64&&d.x<300){snd('tap');gradeCard();return}if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
 cv.addEventListener('pointerup',e=>endDrg(e,true));cv.addEventListener('pointercancel',e=>endDrg(e,false));
 /* 아이폰 사파리: 화면 전체가 확대되지 않게 */try{document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false})}catch(_){}
 /* 컴퓨터: 마우스 휠로 확대·축소 */
