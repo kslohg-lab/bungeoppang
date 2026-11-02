@@ -359,7 +359,7 @@ let dsub=0,fcat=0;
 const FCAT=[{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'}];
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
-const thumbOf=k=>THC[k]||(THC[k]=TI.thumb(k));
+const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
 /* 🏅 메달 상점: 꾸미기 화면을 '메달 전용 탭'으로 열어요. 나중에 품목이 늘면 MG에 탭을 더해요 */
 const MG=[{k:'mskin',n:'🏠 메달 스킨',sl:['skin']}];let dMed=false;
 const DT=()=>dMed?MG:DG;
@@ -457,7 +457,7 @@ function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  h+='<div class="cur" style="flex-direction:column;align-items:stretch;gap:4px"><div style="display:flex;justify-content:space-between;font-size:15px"><b style="font-weight:400">'+GR[g].e+' '+GR[g].n+'</b><span>'+(nx?nx.e+' '+nx.n+'까지 🐾 '+fmt(nx.at-save.served):'🎉 최고 등급!')+'</span></div>'+(nx?'<div class="bar" style="margin:2px 0"><i style="width:'+Math.round(100*(save.served-GR[g].at)/(nx.at-GR[g].at))+'%"></i></div>':'')+'<div class="chips" style="justify-content:flex-start;margin:0"><span class="chip">🐾 '+fmt(save.served)+'명</span><span class="chip">📅 '+save.days+'일</span><span class="chip">💰 최고 '+fmt(save.bestNet)+'</span><span class="chip">🔥 '+save.bestCombo+'</span></div></div>';
  const rw=starRw();
  h+='<p class="ht" style="margin-top:12px"><b>⭐ 별 보상</b> <small style="opacity:.7">목표·단골로 별을 모아요</small></p><div class="gr3">'+rw.map((x,j)=>{const ok=save.stars>=x.st;return'<div class="uc'+(x.own||ok?'':' lk')+'"><div class="av">'+x.e+'</div><div class="nm">'+x.n+'</div><div class="st">'+x.sl+'</div>'+(x.own?'<button class="ub done">✅ 받음</button>':ok?'<button class="ub srw" data-j="'+j+'">🎁 받기</button>':'<button class="ub no">⭐ '+x.st+'</button>')+'</div>'}).join('')+'</div>';
- h+='<p class="ht" style="margin-top:12px"><b>📖 손님 도감</b> <small style="opacity:.7">10번·30번 오면 단골 ⭐</small></p><div class="dx">'+R.an.map(a=>{const n=save.dex[a];const lv=save.dexS[a]||0;return'<div><b>'+(n!==undefined?a:'❓')+'</b>'+(n!==undefined?(lv?'⭐'.repeat(lv)+' ':'')+n+'번':'?')+'</div>'}).join('')+'</div>';
+ h+='<p class="ht" style="margin-top:12px"><b>📖 손님 도감</b> <small style="opacity:.7">10번·30번 오면 단골 ⭐</small></p><div class="dx">'+R.an.map(a=>{const n=save.dex[a];const lv=save.dexS[a]||0;const im=window.ART_IMG&&window.ART_IMG[a];return'<div><b>'+(n!==undefined?(im&&im.src?'<img src="'+im.src+'" alt="" style="height:30px;vertical-align:middle">':a):'❓')+'</b>'+(n!==undefined?(lv?'⭐'.repeat(lv)+' ':'')+n+'번':'?')+'</div>'}).join('')+'</div>';
  $('cb').innerHTML=h;
  $('cb').querySelectorAll('.srw').forEach(bt=>bt.onclick=()=>{const x=rw[+bt.dataset.j];if(!x||x.own||save.stars<x.st)return;if(!save.own[x.k].includes(x.i))save.own[x.k].push(x.i);save.eq[x.k]=x.i;store();snd('win');syncShop();toast(x.e+' '+x.n+' 받았어요! 가게에 바로 달았어요 ✨');const sc=$('cb').scrollTop;renderCol();$('cb').scrollTop=sc;starDot()})}
 $('cx').onclick=()=>show('hm');

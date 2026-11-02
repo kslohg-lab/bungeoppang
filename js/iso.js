@@ -101,6 +101,7 @@ function shadow(x,y,w){cx.save();cx.translate(x,y);cx.scale(1,.45);const g=cx.cr
 /* ---------- 가구 ---------- */
 /* 스티커 이모지: 캐릭터 그림처럼 흰 테두리 + 그림자 (크기별로 한 번만 만들어 둬요) */
 const STK={};
+const FUI={};function fuImg(k){if(!FK[k]||!FK[k].emo)return null;let im=FUI[k];if(!im){im=new Image();im.decoding='async';im.src='img/fu/'+k+'.webp';FUI[k]=im}return im.complete&&im.naturalWidth?im:null}
 function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)return c;
  const pad=Math.ceil(z*.14)+2,S=Math.ceil(z*1.4)+pad*2,a=document.createElement('canvas');a.width=a.height=S;const ax=a.getContext('2d');ax.font=z+'px '+A.E;ax.textAlign='center';ax.textBaseline='middle';ax.fillText(e,S/2,S/2);
  /* 흰 스티커 테두리 대신: 얇은 진한 테두리 + 아래쪽 그늘 → 바닥에 놓인 물건처럼 */
@@ -154,7 +155,11 @@ function drawItem(it,t,sel){const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=
  case'fflag':{shadow(c.x,c.y+2,TW*.12);box(gx,gy,.38,TW*.06,'#8a7a6a');cx.fillStyle=OL;cx.fillRect(c.x-2,c.y-TW*1.05,4,TW*1.05);for(let i=0;i<3;i++){cx.save();cx.translate(c.x+TW*.16,c.y-TW*(.9-i*.22));cx.rotate(Math.sin(t*3+i)*.18);A.fish2(0,0,TW*.0034,['#ff8a6a','#ffcf3a','#6cc8ff'][i],{plain:true});cx.restore()}break}
  case'statue':{shadow(c.x,c.y+2,TW*.3);const p=box(gx,gy,.2,TW*.26,'#b8b4ac',{top:'#d8d4cc'});const g=cx.createRadialGradient(p.c.x,p.c.y-TW*.4,2,p.c.x,p.c.y-TW*.4,TW*.6);g.addColorStop(0,'rgba(255,220,80,'+(.4+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,220,80,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.c.x,p.c.y-TW*.4,TW*.6,0,7);cx.fill();
   A.fish2(p.c.x,p.c.y-TW*.38+Math.sin(t*1.6)*2,TW*.0075,'#ffcf3a',{glow:'rgba(255,220,80,.8)'});break}
- default:{const f=FK[it.k];if(!f||!f.emo)break;shadow(c.x,c.y+2,TW*.3);const h=TW*(f.tall||.1);const p=box(gx,gy,f.tall?.14:.3,h,f.b,f.glass?{top:'rgba(220,240,255,.85)'}:{});
+ default:{const f=FK[it.k];if(!f||!f.emo)break;
+  /* AI 그림 소품 (img/fu/키.webp): 불러왔으면 그림, 아니면 예전 받침+이모지 */
+  {const im=fuImg(it.k);if(im){const hh=TW*Math.max(.7,f.z*1.35+(f.tall||0)*1.1),ww=hh*im.naturalWidth/im.naturalHeight,sway=f.tree||f.pole?Math.sin(t*1.5+gx)*.02:0;shadow(c.x,c.y+2,Math.min(ww*.42,TW*.36));
+   if(f.glow){const g=cx.createRadialGradient(c.x,c.y-hh*.75,2,c.x,c.y-hh*.75,TW*.5);g.addColorStop(0,'rgba(255,230,150,'+(.35+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,230,150,0)');cx.fillStyle=g;cx.beginPath();cx.arc(c.x,c.y-hh*.75,TW*.5,0,7);cx.fill()}
+   cx.save();cx.translate(c.x,c.y+TH*.22);if(sway)cx.rotate(sway);cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();break}}shadow(c.x,c.y+2,TW*.3);const h=TW*(f.tall||.1);const p=box(gx,gy,f.tall?.14:.3,h,f.b,f.glass?{top:'rgba(220,240,255,.85)'}:{});
   if(f.pole){cx.fillStyle=OL;cx.fillRect(c.x-2,c.y-TW*.9,4,TW*.9)}
   if(f.glow){const g=cx.createRadialGradient(p.c.x,p.c.y-TW*.3,2,p.c.x,p.c.y-TW*.3,TW*.55);g.addColorStop(0,'rgba(255,230,150,'+(.4+.1*Math.sin(t*3))+')');g.addColorStop(1,'rgba(255,230,150,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.c.x,p.c.y-TW*.3,TW*.55,0,7);cx.fill()}
   const sway=f.tree||f.pole?Math.sin(t*1.5+gx)*1.2:0;emS(f.e,p.c.x+sway,p.c.y-TW*f.z*.5-(f.pole?TW*.5:0)+(f.glass?TW*.12:0),TW*f.z)}
@@ -344,6 +349,6 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);poly([iso(g.x,g.y),iso(g.x+1,g.y),iso(g.x+1,g.y+1),iso(g.x,g.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+return{imgReady:k=>!FK[k]||!FK[k].emo||!!fuImg(k),bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
  zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
