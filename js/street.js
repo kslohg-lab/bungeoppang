@@ -152,9 +152,11 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
   const ctr=P(l.cx,l.cy);if(ctr.x<-260||ctr.x>W+260||ctr.y<-200||ctr.y>1000)return;
   const xr=mb&&!it.me&&l.cx+l.cy>mz&&pl.bb.x0<mb.x1&&pl.bb.x1>mb.x0&&pl.bb.y0<mb.y1&&pl.bb.y1>mb.y0;
   D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=bldg(Q,l.o,it.d,t);cx.globalAlpha=1;const pts=[Q(-.3,-.4),Q(r.Wd+.3,-.4),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h),Q(0,0,r.h),Q(r.Wd,0,r.h)];hits.push({i,xr,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y))-10,y1:Math.max(...pts.map(p=>p.y))+22});
-   lab.push(()=>{const q=l.o==='F'?P(l.cx,l.fx+.55):P(l.fx+.55,l.cy);const nm=it.d.n||'붕어빵',sub=it.me?'⭐ 내 가게':(it.d.nk?it.d.nk+' 사장님':''),k=Math.max(.75,Math.min(1.15,T/40)),f1=13*k,f2=11*k;
-    cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=Math.max(cx.measureText(nm).width,cx.measureText(sub).width*.85)+16*k;rr(q.x-bw/2,q.y,bw,34*k,10*k,it.me?'#ffc94a':'rgba(255,255,255,.93)');
-    tx(nm,q.x,q.y+11*k,f1,'#5a3a22','center',it.me?'#ffc94a':'#fff');tx(sub,q.x,q.y+25*k,f2,it.me?'#7a4a10':'#8a6a4a','center',it.me?'#ffc94a':'#fff');
+   /* 이름표: 가게 이름 한 줄만 작게. 앞 건물에 걸리는 뒤 가게 이름표는 숨겨요(건물을 누르면 이름이 나와요). 내 가게 이름표는 항상 보여요 */
+   lab.push(()=>{const q=l.o==='F'?P(l.cx,l.fx+.55):P(l.fx+.55,l.cy);const nm=(it.me?'⭐ ':'')+(it.d.n||'붕어빵'),k=Math.max(.75,Math.min(1.1,T/40)),f1=12*k,bh=22*k;
+    cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+14*k,bx=q.x-bw/2;
+    if(!it.me){const z0=l.cx+l.cy;for(let j=0;j<PL.length;j++){const o2=PL[j];if(!o2||j===i||o2.l.cx+o2.l.cy<=z0)continue;const b=o2.bb,mx=(b.x1-b.x0)*.2,my=(b.y1-b.y0)*.15;if(bx<b.x1-mx&&bx+bw>b.x0+mx&&q.y<b.y1-my*1.6&&q.y+bh>b.y0+my)return}}
+    rr(bx,q.y,bw,bh,8*k,it.me?'#ffc94a':'rgba(255,255,255,.9)');tx(nm,q.x,q.y+bh/2,f1,'#5a3a22','center',it.me?'#ffc94a':'#fff');
     if(it.me){const p=Q(r.Wd/2,r.D/2,r.h);em('📍',p.x,p.y-20-Math.abs(Math.sin(t*3))*5,24)}})}})});
  /* 공원 */PARK.forEach(p=>D.push({z:p.x+p.y,f:()=>{const q=P(p.x,p.y);if(q.x<-60||q.x>W+60||q.y<-60||q.y>860)return;cx.fillStyle='rgba(0,0,0,.12)';cx.beginPath();cx.ellipse(q.x,q.y,T*.45*p.s,T*.18*p.s,0,0,7);cx.fill();em(p.e,q.x,q.y-T*.5*p.s,T*1.05*p.s)}}));
  /* 가로등 (사거리 모퉁이) */for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*(BX+RB_)+BX-.35,y=j*(BY+RB_)+BY-.35;D.push({z:x+y,f:()=>{const q=P(x,y);cx.strokeStyle='#4a4a52';cx.lineWidth=Math.max(2,T*.07);cx.beginPath();cx.moveTo(q.x,q.y);cx.lineTo(q.x,q.y-T*1.4);cx.stroke();cx.fillStyle=o.night?'#ffe680':'#fff6c0';cx.beginPath();cx.arc(q.x,q.y-T*1.45,T*.14,0,7);cx.fill();cx.strokeStyle=OL;cx.lineWidth=1;cx.stroke()}})}
