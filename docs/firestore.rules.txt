@@ -6,6 +6,10 @@ service cloud.firestore {
     function weekNow() {
       return math.floor((math.floor((request.time.toMillis() + 32400000) / 86400000) + 3) / 7);
     }
+    // 오늘이 몇 번째 날인지 (한국 시간 0시 기준) — 좋아요·방명록 하루 한 번
+    function dayNow() {
+      return math.floor((request.time.toMillis() + 32400000) / 86400000);
+    }
     function mine(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
@@ -61,6 +65,13 @@ service cloud.firestore {
         && d.fur is list && d.fur.size() <= 120
         && d.ts == request.time;
     }
+    function okNote(v, d) {
+      return d.keys().hasOnly(['s', 'n', 'nk', 'd', 't'])
+        && d.s is int && d.s >= 0 && d.s <= 7
+        && d.d == dayNow() && d.t == request.time
+        && d.n == get(/databases/$(database)/documents/shops/$(v)).data.n
+        && d.nk == get(/databases/$(database)/documents/shops/$(v)).data.nk;
+    }
     match /shops/{uid} {
       allow read: if true;
       allow create: if mine(uid) && okShop(request.resource.data) && request.resource.data.lk == 0;
@@ -68,14 +79,24 @@ service cloud.firestore {
         || (request.auth != null && !mine(uid)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lk'])
             && request.resource.data.lk == resource.data.lk + 1
-            && !exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid))
-            && existsAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)));
+            && !exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid + '_' + string(dayNow())))
+            && existsAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid + '_' + string(dayNow()))));
       allow delete: if false;
+      // ❤️ 좋아요: 문서 이름 = {누른 사람}_{오늘 날짜} → 하루 한 번
       match /likes/{v} {
         allow read: if true;
-        allow create: if request.auth != null && request.auth.uid == v && v != uid
+        allow create: if request.auth != null && v == request.auth.uid + '_' + string(dayNow()) && request.auth.uid != uid
           && getAfter(/databases/$(database)/documents/shops/$(uid)).data.lk == get(/databases/$(database)/documents/shops/$(uid)).data.lk + 1;
         allow update, delete: if false;
+      }
+      // 💌 방명록 스티커: 남긴 사람 칸에 하루 한 번(덮어쓰기). 이름은 남긴 사람 가게 문서와 같아야 해요. 목록은 가게 주인만
+      match /notes/{v} {
+        allow get: if request.auth != null && (request.auth.uid == v || mine(uid));
+        allow list: if mine(uid);
+        allow create: if request.auth != null && request.auth.uid == v && v != uid && okNote(v, request.resource.data);
+        allow update: if request.auth != null && request.auth.uid == v && okNote(v, request.resource.data)
+          && resource.data.d < request.resource.data.d;
+        allow delete: if mine(uid);
       }
     }
 

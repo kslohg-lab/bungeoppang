@@ -1,5 +1,6 @@
 /* 가게 순위·구경 연결 (Firebase 익명 로그인 + Firestore). 챌린지와 같은 익명 사용자예요.
-   shops/{uid}: 가게 모습 요약 + 꾸미기 점수(sc) + 좋아요 수(lk). 좋아요는 shops/{uid}/likes/{방문자}로 한 사람 한 번 */
+   shops/{uid}: 가게 모습 요약 + 꾸미기 점수(sc) + 좋아요 수(lk). 좋아요는 shops/{uid}/likes/{방문자}_{날짜}로 한 사람 하루 한 번.
+   💌 방명록 스티커: shops/{uid}/notes/{방문자} = {s 스티커 번호, n·nk 남긴 사람 가게 이름·닉네임, d 날짜, t} (하루 한 번 덮어쓰기, 주인만 목록 보기) */
 import {CFG} from './firebase-config.js';
 import {presence} from './stat.js?v=2';
 window.NET={off:true};
@@ -8,7 +9,8 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
    const [{initializeApp},{getAuth,signInAnonymously},F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
-   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where}=F;
+   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where,Timestamp}=F;
+   /* 한국 시간 날짜 번호 (규칙과 같은 계산) */const day=()=>Math.floor((Date.now()+32400000)/86400000);
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
    let authP=null;const login=()=>authP||(authP=signInAnonymously(auth).then(c=>c.user.uid).catch(e=>{authP=null;throw e}));
    const cache=new Map();
@@ -27,9 +29,16 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},top:top?1:0})}};
      add(d.docs,1);add(a.docs);add(b.docs);add(c.docs);return o},
     async get(uid){const s=await getDoc(doc(db,'shops',uid));return s.exists()?s.data():null},
-    async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()},
+    async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me+'_'+day()));return s.exists()},
     async like(uid){const me=await login();N.uid=me;if(me===uid)return false;const b=writeBatch(db);
-     b.set(doc(db,'shops',uid,'likes',me),{t:serverTimestamp()});b.update(doc(db,'shops',uid),{lk:increment(1)});await b.commit();cache.clear();return true},
+     b.set(doc(db,'shops',uid,'likes',me+'_'+day()),{t:serverTimestamp()});b.update(doc(db,'shops',uid),{lk:increment(1)});await b.commit();cache.clear();return true},
+    /* 💌 오늘 이 가게에 남긴 스티커 (없으면 -1) */
+    async noteMine(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'notes',me));if(!s.exists())return -1;const v=s.data();return v.d===day()?v.s|0:-1},
+    async note(uid,st){const me=await login();N.uid=me;if(me===uid)return false;const my=await getDoc(doc(db,'shops',me));if(!my.exists())throw new Error('noshop');const m=my.data();
+     await setDoc(doc(db,'shops',uid,'notes',me),{s:st|0,n:m.n,nk:m.nk||'',d:day(),t:serverTimestamp()});return true},
+    /* 내 가게 방명록: 최근 20개 · 새 것 개수(since 이후, 최대 9) */
+    async notes(){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20)));return q.docs.map(x=>{const v=x.data();return{u:x.id,s:v.s|0,n:v.n||'',nk:v.nk||'',t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
+    async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),where('t','>',Timestamp.fromMillis(since|0)),orderBy('t','desc'),limit(9)));return q.size},
     bust(){cache.clear()}};
    presence(db,login,F,'s');
    window.NET=N;login().then(u=>{N.uid=u;window.dispatchEvent(new Event('net-ready'))}).catch(e=>console.warn('NET login',e&&e.code||e));
