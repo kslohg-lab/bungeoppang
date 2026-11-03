@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.7';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.8';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -190,6 +190,8 @@ $('nki').addEventListener('keydown',e=>{if(e.key==='Enter')$('nk1').click()});
 $('nkx').onclick=()=>{if(nickFrom==='after'){scr='over';show('over');return}toMenu()};
 /* ---------- 순위표 ---------- */
 let lbWk=0,lbBusy=false;
+/* 📮 못 보냈던 점수를 나중에 보냈으면 내 기록(등수 보상용)도 맞춰요 */
+addEventListener('lb-sent',e=>{const o=e.detail;if(!o||!o.w)return;const sc=o.st*1000000000+o.net,cur=save.sub&&save.sub.id===o.w?save.sub.stage*1000000000+save.sub.net:-1;if(sc>cur){if(save.sub&&save.sub.id&&save.sub.id!==o.w)save.subPrev=save.sub;save.sub={id:o.w,stage:o.st,net:o.net,live:false};store()}});
 function openLb(wk){lbWk=wk;show('lb');renderLb()}
 async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab'+(lbWk===0?' on':'');$('lbt1').className='tab'+(lbWk===1?' on':'');
  $('lbh').textContent=lbWk===0?'이번 주 판 #'+w+' · 월요일 0시에 새로 시작':'지난 주 판 #'+w+' 최종 순위';
@@ -197,18 +199,21 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  L.innerHTML='<p class="ht">불러오는 중…</p>';if(lbBusy)return;lbBusy=true;
  let rows=null;try{rows=await lb.top(w)}catch(e){rows=null}lbBusy=false;if(scr==='game')return;
  if(w!==wid()-lbWk)return;
- if(!rows){L.innerHTML='<p class="ht">불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.</p>';return}
+ if(!rows){L.innerHTML='<p class="ht">'+(lb.full&&Date.now()-lb.full<3600e3?'⏳ 지금 사람이 많아서 순위를 잠깐 못 불러와요.<br>게임은 그대로 할 수 있고, 기록도 나중에 자동으로 올라가요.':'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>';return}
  if(!rows.length){L.innerHTML='<p class="ht">'+(lbWk===0?'아직 아무도 없어요. 첫 번째 주인공이 되어 보세요! 🏆':'지난 주 기록이 없어요.')+'</p>';return}
  const me=lb.uid;L.innerHTML='';
  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='lr'+(r.u===me?' me':'');
   const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
-  d.querySelector('.ln').textContent=r.n;d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)};L.appendChild(d)});
+  d.querySelector('.ln').textContent=r.n;d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)};
+  if(r.u!==me&&lb.report){const f=document.createElement('button');f.className='lrp';f.textContent='🚩';f.setAttribute('aria-label','신고');f.onclick=ev=>{ev.stopPropagation();reportLb(r)};d.appendChild(f)}L.appendChild(d)});
  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명이에요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f);
  /* 30위 밖이면 내 순위 주변 (위·아래 3명) */
  const sc=lbWk===0?mySc():0;if(rows.length>=30&&sc&&!rows.some(r=>r.u===me)&&lb.around){const h=document.createElement('p');h.className='ht';h.style.textAlign='center';h.textContent='⋯ 내 순위 주변 불러오는 중 ⋯';L.appendChild(h);
   Promise.all([lb.rank(w,sc),lb.around(w,sc)]).then(([n,a])=>{if(scr==='game')return;h.innerHTML='<b>⋯ 내 순위 주변 ⋯</b>';lastRank=rkTxt(n);
    const mk=(r,k,isMe)=>{const d=document.createElement('div');d.className='lr'+(isMe?' me':'');d.innerHTML='<b>'+k+'</b><span class="ln"></span><span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';d.querySelector('.ln').textContent=r.n;if(!isMe){d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)}}return d};
    a.above.forEach((r,i)=>L.appendChild(mk(r,n-a.above.length+i,false)));L.appendChild(mk({n:save.nick,st:save.sub.stage,net:save.sub.net},n,true));a.below.forEach((r,i)=>L.appendChild(mk(r,n+1+i,false)))}).catch(()=>{h.textContent=''})}}
+/* 🚩 순위표 신고: 이상한 이름·점수 → 운영자가 확인하고 숨겨요 (자동으로 숨기지 않아요) */
+function reportLb(r){if(!window.JUICE)return;JUICE.ask('🚩 신고할까요?','「'+String(r.n||'').slice(0,12)+'」 · 이름이나 점수가 이상하면 알려 주세요. 운영자가 확인해서 숨겨요.','🚩 신고하기',()=>{const lb=LB();if(!lb||!lb.report)return;lb.report(r.u,1).then(()=>toast('🚩 신고했어요. 고마워요!')).catch(()=>toast('이미 신고했거나 잠시 뒤에 다시 해 주세요'))},'취소',null)}
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
 /* 자랑하기: 그림 카드 + 링크 (js/share.js) */

@@ -525,6 +525,8 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
 function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
+/* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
+const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
 function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(()=>{save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
@@ -534,7 +536,7 @@ function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=
  whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪</p>';return}L.innerHTML='';
   rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
    d.querySelector('.nm span').textContent='🏪 '+r.n;d.querySelector('.nm small').textContent=(GR[r.g]?GR[r.g].e+' '+GR[r.g].n:'')+' · Lv'+lvOf(r.sc)+(r.nk?' · 🙂 '+r.nk:'');d.onclick=()=>visit(r.u,'rk');L.appendChild(d)});
-  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
+  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
 $('nb').onclick=()=>{au();syncShop();openRank('sc')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
 /* 구경 */
 let vd=null,vuid=null,vfur=[],vFrom='home';
@@ -548,7 +550,7 @@ function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();
   if(vFrom==='url'&&uid!==N.uid)toast('💌 '+((d.nk&&!BADW.bad(d.nk))?d.nk+'님이':'친구가')+' 가게 구경에 초대했어요!');
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
-  if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast('불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
+  $('vrp').style.display=uid===N.uid?'none':'block';if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast(busyMsg()||'불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
 function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
 function leaveVisit(){vd=null;hPre=0;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='street'){openStreet()}else if(vFrom==='rk'){openRank()}else if(vFrom==='gb'){openNotes()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
@@ -564,7 +566,13 @@ $('vlk').onclick=()=>{if(!vd||$('vlk').className==='done')return;whenNet(N=>{if(
 const STK=[['😍','예뻐요'],['🐟','맛있어 보여요'],['🛋️','인테리어 최고'],['🎉','축하해요'],['👍','또 올게요'],['🌸','따뜻해요'],['🔥','대박'],['🙌','배워 갈게요']];
 $('vnt').onclick=()=>{if(!vd||$('vnt').className==='done'){if(vd&&vuid!==(window.NET&&NET.uid))toast('💌 이 가게엔 오늘 남겼어요 · 내일 또 남길 수 있어요');return}
  if(!save.name){toast('🏪 내 가게를 만들면 스티커를 남길 수 있어요');snd('no');return}
+ $('stph').textContent='💌 스티커 남기기';$('stps').textContent='하루 한 번 · 가게 주인 방명록에 내 가게 이름과 함께 남아요';
  const g=$('stg');g.innerHTML='';STK.forEach((x,i)=>{const b=document.createElement('button');b.innerHTML='<b>'+x[0]+'</b>';b.append(x[1]);b.onclick=()=>sendNote(i);g.appendChild(b)});$('stp').style.display='block';snd('tap')};
+/* 🚩 가게 신고: 이유 3가지 → 운영자가 확인하고 숨겨요 (자동으로 숨기지 않아요) */
+const RPR=[['🤬','이상한 이름'],['📈','이상한 점수'],['❓','다른 문제']];
+$('vrp').onclick=()=>{if(!vd)return;whenNet(N=>{if(vuid===N.uid){toast('내 가게예요');return}
+ $('stph').textContent='🚩 신고하기';$('stps').textContent='운영자가 확인해서 문제가 있으면 숨겨요 · 장난 신고는 하지 말아 주세요';
+ const g=$('stg');g.innerHTML='';RPR.forEach((x,i)=>{const b=document.createElement('button');b.innerHTML='<b>'+x[0]+'</b>';b.append(x[1]);b.onclick=()=>{$('stp').style.display='none';const u=vuid;N.report&&N.report(u,i).then(()=>toast('🚩 신고했어요. 고마워요!')).catch(()=>toast('이미 신고했거나 잠시 뒤에 다시 해 주세요'))};g.appendChild(b)});$('stp').style.display='block';snd('tap')},()=>toast('지금은 연결할 수 없어요'))};
 $('stpx').onclick=()=>{$('stp').style.display='none'};
 function sendNote(i){$('stp').style.display='none';const uid=vuid;whenNet(N=>{if(!N.note||uid===N.uid)return;$('vnt').className='done';
  N.note(uid,i).then(()=>{if(vuid===uid)$('vnt').textContent=STK[i][0];snd('win');if(window.JUICE)JUICE.burst(225,620,STK[i][0],8);toast('💌 '+STK[i][1]+'! 스티커를 남겼어요')})
@@ -578,7 +586,7 @@ const ago=ms=>{const m=Math.max(0,Math.floor((Date.now()-ms)/60000));return m<1?
 function openNotes(){au();const L=$('gbl');L.innerHTML='<div style="text-align:center;padding:30px;opacity:.6">불러오는 중…</div>';show('gbv');scr='gb';
  whenNet(N=>{if(!N.notes)return;N.notes().then(rows=>{const seen=nSeen();L.innerHTML='';if(!rows.length){L.innerHTML='<div style="text-align:center;padding:30px;line-height:1.6;opacity:.7">아직 방명록이 없어요<br>📤 내 가게 자랑으로 친구를 불러 보세요!</div>'}
   rows.forEach(r=>{const x=STK[r.s]||STK[0],d=document.createElement('div');d.className='gb'+(r.t>seen?' new':'');d.innerHTML='<b>'+x[0]+'</b><div></div>';const t=d.querySelector('div');const a=document.createElement('span');a.textContent=(BADW.bad(r.n)?'붕어빵 가게':r.n)+' 사장님 · '+x[1]+'!';const sm=document.createElement('small');sm.textContent=(r.nk&&!BADW.bad(r.nk)?'🙂 '+r.nk+' · ':'')+ago(r.t)+' · 놀러 가기 ›';t.append(a,sm);d.onclick=()=>{$('gbv').style.display='none';visit(r.u,'gb')};L.appendChild(d)});
-  const mx=rows.reduce((m,r)=>Math.max(m,r.t),seen);try{localStorage.setItem(NS_KEY,String(mx))}catch(e){}nNew=0;noteBadge()}).catch(()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">불러오지 못했어요. 잠시 뒤에 다시 열어 주세요</div>'})},()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">지금은 연결할 수 없어요</div>'})}
+  const mx=rows.reduce((m,r)=>Math.max(m,r.t),seen);try{localStorage.setItem(NS_KEY,String(mx))}catch(e){}nNew=0;noteBadge()}).catch(()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 열어 주세요')+'</div>'})},()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">지금은 연결할 수 없어요</div>'})}
 $('nnt').onclick=openNotes;$('gbx').onclick=()=>{$('gbv').style.display='none';toHome()};
 /* ---------- 가게 첫 방문 안내 (건너뛰기 가능) ---------- */
 const TOUR=[['biz','💼 <b>영업 중</b> — 직원들이 알아서 장사해요. 자리를 비워도 8시간까지!<br>누르면 장부(매출·월세·월급·세금)를 봐요'],['h1','🙋 <b>도와주기</b> — 심심할 때 직접 90초 동안 구워서 더 벌어요'],['h2','🎨 <b>꾸미기</b> — 가구를 사서 가게 바닥에 직접 놓아요.<br>예쁠수록 손님이 많이 와요 (가게 Lv)'],['h3','💼 <b>경영</b> — 알바를 뽑고 키우고, 가게를 사서 월세를 없애요'],['nb','🏘️ <b>가게 순위</b> — 다른 사람 가게를 구경하고 ❤️를 눌러요'],['nbs','📤 <b>내 가게 자랑</b> — 카톡으로 "구경 와!" 링크를 보내요'],['hc','🔥 <b>챌린지</b> — 매주 친구들과 단계를 겨루는 서바이벌!']];
@@ -601,7 +609,7 @@ const dD=r=>{const e=r.eq||{};return{room:r.room|0,skin:e.skin|0,awn:e.awn|0,sig
 let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown';
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-function stBuild(){const rows=(stRows||[]).slice(),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
+function stBuild(){const rows=(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
  const near=take(shuf(rows.slice().sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my)).slice(0,14)),6).sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my));
  const big=take(shuf(rows.filter(r=>r.sc>my*1.5&&!r.top)),3).sort((a,b)=>a.sc-b.sc);
  const top=take(shuf(rows.filter(r=>r.top)),2).sort((a,b)=>a.sc-b.sc);
@@ -612,7 +620,7 @@ function loadStreet(){const c=lsJ(ST_KEY);if(c&&c.d===dayKey()&&Array.isArray(c.
  const tries=lsJ(ST_KEY+'T')||{};if(tries.d===dayKey()&&(tries.n|0)>=3){stRows=stRows||(c&&c.rows)||[];stMsg=stRows.length?'':'아직 이웃 가게가 없어요';stBuild();stUI();return}
  stLoad=true;stUI();lsJ(ST_KEY+'T',{d:dayKey(),n:(tries.d===dayKey()?tries.n|0:0)+1});const sc=Math.min(3000000,decoScore());
  whenNet(N=>{if(!N.pool){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.pool(sc,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(scr==='street'){stBuild();stUI()}})
-  .catch(e=>{console.warn('town',e&&e.code||e);stLoad=false;stMsg='이웃을 불러오지 못했어요';stRows=stRows||(c&&c.rows)||[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||(c&&c.rows)||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
+  .catch(e=>{console.warn('town',e&&e.code||e);stLoad=false;stMsg=busyMsg()||'이웃을 불러오지 못했어요';stRows=stRows||(c&&c.rows)||[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||(c&&c.rows)||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
 function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet();stUI()}
 function drawStreet(t,dt){const m=stList.find(x=>x.me);if(m)m.d=myD(null);const r=SV.scene(t,stList,{dt,an:R.an,night:save.eq.sky===2||save.eq.sky===6});stHits=r.hits}
 function stTap(x,y){const h=SV.hit(stHits,x,y);if(!h)return;const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}

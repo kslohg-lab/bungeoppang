@@ -1,21 +1,35 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>기록 검증 (운영자용)</title>
+<title>운영자 검사 도구</title>
 <style>
-body{font-family:"Noto Sans KR","Malgun Gothic",sans-serif;margin:0;padding:16px;background:#fff8ec;color:#4a2f1c;line-height:1.5}
-h1{font-size:22px;margin:0 0 8px}table{border-collapse:collapse;width:100%;max-width:760px;font-size:15px}
-td,th{border-bottom:1px solid #ecd9b8;padding:6px 8px;text-align:left}.ok{color:#1a8a3a}.bad{color:#d03030;font-weight:700}.na{color:#a08060}
-button{font:inherit;padding:8px 14px;border-radius:10px;border:0;background:#ffc94a;margin:4px 6px 4px 0}code{background:#f5e6c8;padding:1px 5px;border-radius:5px;font-size:13px}
+body{font-family:"Noto Sans KR","Malgun Gothic",sans-serif;margin:0;padding:14px 14px 150px;background:#fff8ec;color:#4a2f1c;line-height:1.5}
+h1{font-size:22px;margin:0 0 6px}table{border-collapse:collapse;width:100%;max-width:820px;font-size:14px}
+td,th{border-bottom:1px solid #ecd9b8;padding:6px 6px;text-align:left;vertical-align:middle}.ok{color:#1a8a3a}.bad{color:#d03030;font-weight:700}.na{color:#a08060}.warn{color:#c07010;font-weight:700}
+button{font:inherit;padding:8px 12px;border-radius:10px;border:0;background:#fff0c8;margin:3px 4px 3px 0}button.on{background:#ffc94a;font-weight:700}
+code{background:#f5e6c8;padding:1px 5px;border-radius:5px;font-size:12px}tr.hid{background:#ffe2e2}input[type=checkbox]{width:22px;height:22px}
+#bar{position:fixed;left:0;right:0;bottom:0;background:#4a2f1c;color:#fff;padding:10px 14px;box-shadow:0 -4px 12px rgba(0,0,0,.2)}#bar button{background:#ffc94a;font-weight:700}
+#out{width:100%;max-width:820px;height:60px;font-size:12px;display:none;margin-top:6px}.ht{font-size:13px;opacity:.75}
 </style></head><body>
-<h1>🔍 순위표 기록 검증</h1>
-<p>위쪽 30명의 플레이 기록을 이 브라우저에서 처음부터 다시 돌려 점수가 맞는지 확인해요. (운영자용 · 서버 비용 거의 없음)</p>
-<div><button id="b0">이번 주</button><button id="b1">지난 주</button></div>
+<h1>🛡️ 운영자 검사 도구</h1>
+<p class="ht">체크한 사람은 <b>숨김 목록</b>에 들어가요 → 챌린지 순위표 · 가게 순위 · 붕어빵 동네 · 등수 보상에서 빠져요.<br>
+아래 <b>📋 숨김 목록 복사</b> → 깃허브 <code>hidden.json</code> 파일을 열어 연필(편집) → 전부 지우고 붙여 넣기 → Commit 하면 10분 안에 적용돼요.</p>
+<div id="tabs"><button data-t="w0">🏆 이번 주</button><button data-t="w1">🏆 지난 주</button><button data-t="sc">🏪 꾸미기 순위</button><button data-t="lk">❤️ 인기 순위</button><button data-t="rp">🚩 신고</button><button data-t="hd">🙈 숨김 목록</button></div>
 <p id="st"></p><table id="tb"></table>
+<div id="bar"><span id="cnt"></span> <button id="cp">📋 숨김 목록 복사</button><span id="cpm" class="ht" style="color:#ffe9a0"></span><textarea id="out" readonly></textarea></div>
 <script src="js/sim.js?v=10"></script>
 <script type="module">
 import {CFG} from './js/firebase-config.js';
 const $=id=>document.getElementById(id),V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+/* 숨김 목록: 지금 hidden.json + 이 화면에서 체크한 것 */
+const H=new Set(),NM={};let orig=[];
+try{const j=await (await fetch('hidden.json?'+Date.now(),{cache:'no-store'})).json();orig=Array.isArray(j.uids)?j.uids:[];orig.forEach(u=>H.add(u))}catch(e){}
+function sync(){$('cnt').textContent='🙈 숨김 '+H.size+'명'+(H.size!==orig.length||[...H].some(u=>!orig.includes(u))?' (바뀜 · 복사해서 올려야 적용)':'');document.querySelectorAll('tr[data-u]').forEach(tr=>{const on=H.has(tr.dataset.u);tr.classList.toggle('hid',on);const c=tr.querySelector('input');if(c)c.checked=on})}
+function box(u){return'<input type="checkbox" data-u="'+esc(u)+'"'+(H.has(u)?' checked':'')+'>'}
+document.addEventListener('change',e=>{const c=e.target;if(c.type!=='checkbox'||!c.dataset.u)return;if(c.checked)H.add(c.dataset.u);else H.delete(c.dataset.u);sync()});
+$('cp').onclick=async()=>{const txt=JSON.stringify({uids:[...H]});const o=$('out');o.value=txt;o.style.display='block';o.select();
+ try{await navigator.clipboard.writeText(txt);$('cpm').textContent=' 복사했어요! 깃허브 hidden.json에 붙여 넣어요'}catch(e){$('cpm').textContent=' 아래 글자를 길게 눌러 전부 복사해요'}};
 if(!CFG.apiKey){$('st').textContent='firebase-config.js 가 비어 있어요.'}
 else{
  const [{initializeApp},{getFirestore,doc,getDoc,collection,query,orderBy,limit,getDocs}]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-firestore.js')]);
@@ -23,19 +37,48 @@ else{
  async function unpack(p){if(p.startsWith('j:'))return JSON.parse(p.slice(2));
   const bin=Uint8Array.from(atob(p.slice(2)),c=>c.charCodeAt(0));
   const t=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text();return JSON.parse(t)}
- async function go(off){const w=BP2.weekId(Date.now())-off;$('st').textContent='불러오는 중… (주 #'+w+')';$('tb').innerHTML='';
+ const fmt=n=>(n|0).toLocaleString('ko-KR');
+ /* 🏆 챌린지: 위쪽 30명 다시 돌려 보기 → ❌ 불일치 · 기록 없음은 자동 체크 */
+ async function week(off){const w=BP2.weekId(Date.now())-off;$('st').textContent='불러오는 중… (주 #'+w+')';$('tb').innerHTML='';
   const snap=await getDocs(query(collection(db,'weeks',String(w),'scores'),orderBy('sc','desc'),limit(30)));
-  let h='<tr><th>#</th><th>닉네임</th><th>단계</th><th>번 돈</th><th>검증</th><th>문서 ID</th></tr>';let n=0,okc=0,bad=0;
-  for(const d of snap.docs){n++;const x=d.data();let res='<span class="na">기록 없음</span>';
+  let h='<tr><th>숨김</th><th>#</th><th>닉네임</th><th>단계</th><th>번 돈</th><th>검사</th></tr>',n=0,okc=0,bad=0;$('tb').innerHTML=h;
+  for(const d of snap.docs){n++;const x=d.data();NM[d.id]=x.n;let res='<span class="na">기록 없음</span>',auto=false;
    try{const pr=await getDoc(doc(db,'weeks',String(w),'proofs',d.id));
     if(pr.exists()){const p=pr.data();
      if(p.v!==BP2.SIMV)res='<span class="na">옛 규칙 버전</span>';
-     else if(p.st!==x.st)res='<span class="na">기록이 점수보다 짧음 (진행 중?)</span>';
+     else if(p.st!==x.st)res='<span class="na">진행 중(기록이 점수보다 짧음)</span>';
      else{const run=BP2.replay(BP2.weekSeed(w),await unpack(p.p),w);
-      if(run.stage===x.st&&run.tot===x.net){res='<span class="ok">✅ 일치</span>';okc++}else{res='<span class="bad">❌ 불일치 (재생: '+run.stage+'단계 / '+run.tot+'원)</span>';bad++}}}
-   }catch(e){res='<span class="bad">⚠️ 오류 '+String(e.message||e).replace(/[<>&]/g,'')+'</span>'}
-   const nm=document.createElement('span');nm.textContent=x.n;
-   h+='<tr><td>'+n+'</td><td>'+nm.innerHTML+'</td><td>'+x.st+'</td><td>'+x.net.toLocaleString('ko-KR')+'</td><td>'+res+'</td><td><code>'+d.id.slice(0,8)+'…</code></td></tr>'}
-  $('tb').innerHTML=h;$('st').textContent='주 #'+w+' · '+n+'명 확인 · 일치 '+okc+' · 불일치 '+bad+(bad?' → 불일치는 Firebase 콘솔의 weeks/'+w+'/scores 에서 해당 문서를 지우세요 (문서 ID 앞 8자리로 찾기).':'')}
- $('b0').onclick=()=>go(0);$('b1').onclick=()=>go(1);go(0)}
+      if(run.stage===x.st&&run.tot===x.net){res='<span class="ok">✅ 일치</span>';okc++}else{res='<span class="bad">❌ 불일치 (재생 '+run.stage+'단계 / '+fmt(run.tot)+'원)</span>';bad++;auto=true}}}
+    else if(x.st>=20){res='<span class="warn">⚠️ 기록 없음 (20단계 이상)</span>';auto=true}
+   }catch(e){res='<span class="bad">⚠️ 오류 '+esc(e.message||e)+'</span>'}
+   if(auto&&!H.has(d.id)&&!orig.includes(d.id)&&!localStorage.getItem('vfOk:'+d.id))H.add(d.id);
+   $('tb').insertAdjacentHTML('beforeend','<tr data-u="'+esc(d.id)+'"><td>'+box(d.id)+'</td><td>'+n+'</td><td>'+esc(x.n)+'</td><td>'+x.st+'</td><td>'+fmt(x.net)+'</td><td>'+res+'</td></tr>');sync()}
+  $('st').textContent='주 #'+w+' · '+n+'명 · 일치 '+okc+' · 불일치 '+bad+' → ❌·기록 없음(20단계 이상)은 자동으로 체크했어요. 괜찮은 사람이면 체크를 풀어요.'}
+ /* 체크를 풀면 다음에 자동 체크하지 않게 기억 */
+ document.addEventListener('change',e=>{const c=e.target;if(c.type==='checkbox'&&c.dataset.u){try{if(!c.checked)localStorage.setItem('vfOk:'+c.dataset.u,'1');else localStorage.removeItem('vfOk:'+c.dataset.u)}catch(_){}}});
+ /* 🏪 가게 순위 (꾸미기 점수 / 좋아요) */
+ async function shops(by){$('st').textContent='불러오는 중…';$('tb').innerHTML='';
+  const snap=await getDocs(query(collection(db,'shops'),orderBy(by,'desc'),limit(30)));let n=0;
+  let h='<tr><th>숨김</th><th>#</th><th>가게 · 사장님</th><th>꾸미기</th><th>❤️</th><th>크기·등급</th></tr>';
+  for(const d of snap.docs){n++;const x=d.data();NM[d.id]=x.n;const odd=(x.room|0)<=5&&(x.sc|0)>200000;
+   h+='<tr data-u="'+esc(d.id)+'"><td>'+box(d.id)+'</td><td>'+n+'</td><td>'+esc(x.n)+'<br><span class="ht">'+esc(x.nk||'')+'</span></td><td>'+fmt(x.sc)+(odd?' <span class="warn">⚠️ 작은 가게인데 점수가 커요</span>':'')+'</td><td>'+fmt(x.lk)+'</td><td>'+(x.room|0)+'×'+(x.room|0)+' · '+(x.g|0)+'등급</td></tr>'}
+  $('tb').innerHTML=h;sync();$('st').textContent=(by==='sc'?'꾸미기 점수':'좋아요')+' 위쪽 '+n+'곳 · 이상하면 체크해요'}
+ /* 🚩 신고: 대상별로 모아 많이 신고된 순 */
+ const RS=['🤬 이름','📈 점수','❓ 기타'];
+ async function reports(){$('st').textContent='불러오는 중…';$('tb').innerHTML='';
+  const snap=await getDocs(query(collection(db,'reports'),orderBy('t','desc'),limit(500)));const G=new Map();
+  snap.docs.forEach(d=>{const x=d.data();const g=G.get(x.u)||{u:x.u,n:0,r:[0,0,0],k:new Set(),t:0};g.n++;g.r[x.r|0]++;g.k.add(x.k);g.t=Math.max(g.t,x.t&&x.t.toMillis?x.t.toMillis():0);G.set(x.u,g)});
+  const L=[...G.values()].sort((a,b)=>b.n-a.n).slice(0,40);
+  await Promise.all(L.map(async g=>{if(NM[g.u])return;try{const s=await getDoc(doc(db,'shops',g.u));if(s.exists()){NM[g.u]=s.data().n+' · '+(s.data().nk||'');return}
+   const w=BP2.weekId(Date.now());const c=await getDoc(doc(db,'weeks',String(w),'scores',g.u));if(c.exists())NM[g.u]='(챌린지) '+c.data().n}catch(e){}}));
+  let h='<tr><th>숨김</th><th>대상</th><th>신고 수</th><th>이유</th><th>어디서</th><th>최근</th></tr>';
+  L.forEach(g=>{h+='<tr data-u="'+esc(g.u)+'"><td>'+box(g.u)+'</td><td>'+esc(NM[g.u]||'(이름 모름)')+'<br><code>'+esc(g.u.slice(0,8))+'…</code></td><td><b>'+g.n+'</b></td><td>'+g.r.map((v,i)=>v?RS[i]+' '+v:'').filter(Boolean).join('<br>')+'</td><td>'+[...g.k].map(k=>k==='c'?'챌린지':'가게').join('·')+'</td><td>'+(g.t?new Date(g.t).toLocaleString('ko-KR'):'')+'</td></tr>'});
+  $('tb').innerHTML=L.length?h:'<tr><td>아직 신고가 없어요 🙂</td></tr>';sync();$('st').textContent='최근 신고 '+snap.size+'건 · 대상 '+G.size+'명 (많이 신고된 순). 신고만으로는 숨기지 않아요 — 보고 체크해요.'}
+ /* 🙈 지금 숨김 목록 */
+ async function hidden(){$('tb').innerHTML='';const L=[...H];await Promise.all(L.map(async u=>{if(NM[u])return;try{const s=await getDoc(doc(db,'shops',u));if(s.exists())NM[u]=s.data().n}catch(e){}}));
+  $('tb').innerHTML=L.length?'<tr><th>숨김</th><th>이름</th><th>uid</th></tr>'+L.map(u=>'<tr data-u="'+esc(u)+'"><td>'+box(u)+'</td><td>'+esc(NM[u]||'(이름 모름)')+'</td><td><code>'+esc(u)+'</code></td></tr>').join(''):'<tr><td>숨긴 사람이 없어요</td></tr>';sync();
+  $('st').textContent='체크를 풀면 숨김에서 빠져요 (복사해서 올려야 적용)'}
+ const T={w0:()=>week(0),w1:()=>week(1),sc:()=>shops('sc'),lk:()=>shops('lk'),rp:reports,hd:hidden};
+ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));T[b.dataset.t]().catch(e=>{$('st').textContent='불러오지 못했어요: '+(e.code==='resource-exhausted'?'오늘 무료 한도를 다 썼어요 (오후 4~5시에 초기화)':esc(e.message||e))})});
+ document.querySelector('#tabs button').click();sync()}
 </script></body></html>
