@@ -52,11 +52,11 @@ const FK={};FUR.forEach(f=>FK[f.k]=f);
    h=걸리는 높이(벽 높이 비율), s=크기, glow=빛. 그림 img/fu/{키}.webp 가 있으면 그림, 없으면 이모지 */
 const WFUR=[
  {k:'w_frame',n:'붕어 액자',e:'🖼️',p:1500,g:0,c:'wall'},{k:'w_clock',n:'벽시계',e:'🕰️',p:2500,g:0,c:'wall'},{k:'w_hplant',n:'걸이 화분',e:'🪴',p:3000,g:0,h:.62,c:'wall'},
- {k:'w_scroll',n:'붕어빵 족자',e:'📜',p:4000,g:1,s:1.1,c:'wall'},{k:'w_mirror',n:'둥근 거울',e:'🪞',p:6000,g:1,c:'wall'},{k:'w_shelf',n:'벽 선반',e:'🫙',p:9000,g:2,h:.5,s:1.15,c:'wall'},
- {k:'w_cert',n:'장인 상장',e:'🎖️',p:12000,g:2,c:'wall'},{k:'w_neon',n:'붕어 네온사인',e:'🐟',p:20000,g:3,glow:1,s:1.1,c:'wall'},{k:'w_plaque',n:'황금 붕어 방패',e:'🛡️',p:45000,g:3,c:'wall'},
- {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.15,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.15,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.15,c:'wall'}];
+ {k:'w_scroll',n:'붕어빵 족자',e:'📜',p:4000,g:1,s:1.05,c:'wall'},{k:'w_mirror',n:'둥근 거울',e:'🪞',p:6000,g:1,c:'wall'},{k:'w_shelf',n:'벽 선반',e:'🫙',p:9000,g:2,h:.5,s:1.08,c:'wall'},
+ {k:'w_cert',n:'장인 상장',e:'🎖️',p:12000,g:2,c:'wall'},{k:'w_neon',n:'붕어 네온사인',e:'🐟',p:20000,g:3,glow:1,s:1.05,c:'wall'},{k:'w_plaque',n:'황금 붕어 방패',e:'🛡️',p:45000,g:3,c:'wall'},
+ {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.08,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.08,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.08,c:'wall'}];
 /* 그림이 준비된 벽 장식만 여기에 (없는 파일을 매번 찾지 않게) */
-const WIMG=new Set([]);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
+const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
 const WK={};WFUR.forEach(f=>WK[f.k]=f);const CK=k=>FK[k]||WK[k];
 /* 벽 칸: 왼쪽 벽은 간판(0~2칸) 다음부터, 오른쪽 벽은 차양·메뉴판(1~3칸) 다음부터 끝까지. 창문 칸에 걸면 창문은 안 그려요 */
 const wallSlots=(n=N)=>{const L=[];for(let i=3;i<n;i++){L.push({x:-1,y:i});L.push({x:i,y:-1})}return L};
@@ -359,7 +359,7 @@ function staffFront(t,look,L){const S=look.staff||{};
 function wPos(sl,hf){return sl.x===-1?{c:up(iso(0,sl.y+.5),WH*hf),k:-.5}:{c:up(iso(sl.x+.5,0),WH*hf),k:.5}}
 function wSlotPoly(sl,hf){const a=sl.x===-1?[iso(0,sl.y+.1),iso(0,sl.y+.9)]:[iso(sl.x+.1,0),iso(sl.x+.9,0)];return[up(a[0],WH*(hf-.2)),up(a[1],WH*(hf-.2)),up(a[1],WH*(hf+.2)),up(a[0],WH*(hf+.2))]}
 function drawWallItem(it,t,sel){const f=WK[it.k];if(!f)return;const hf=f.h||.56,{c,k}=wPos(it,hf),im=wImg(it.k);
- let w=TW*.36*(f.s||1),h=im?w*im.naturalHeight/im.naturalWidth:w;if(h>WH*.44){w*=WH*.44/h;h=WH*.44}
+ let w=TW*.42*(f.s||1),h=im?w*im.naturalHeight/im.naturalWidth:w;if(h>WH*.5){w*=WH*.5/h;h=WH*.5}
  const b=BNC.get(it),u=b!=null?(performance.now()-b)/480:1,sc=u<1?1+Math.sin(u*Math.PI*3)*.12*(1-u):1;
  cx.save();cx.translate(c.x,c.y);cx.transform(1,k,0,1,0,0);cx.scale(sc,sc);
  if(f.glow){const gl=.6+.4*Math.sin(t*3+it.x+it.y);cx.fillStyle=it.k==='w_neon'?'rgba(120,220,255,'+(.25*gl)+')':'rgba(255,215,90,'+(.25*gl)+')';cx.beginPath();cx.arc(0,0,w*.75,0,7);cx.fill()}
