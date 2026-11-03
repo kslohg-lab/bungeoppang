@@ -48,6 +48,20 @@ const FUR=[
 const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'}];
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
+/* 🖼️ 벽 장식: 뒤쪽 두 벽에 거는 물건. 바닥 가구와 같은 save.fur에 담고 자리만 벽(왼쪽 벽 {x:-1,y:칸} · 오른쪽 벽 {x:칸,y:-1}).
+   h=걸리는 높이(벽 높이 비율), s=크기, glow=빛. 그림 img/fu/{키}.webp 가 있으면 그림, 없으면 이모지 */
+const WFUR=[
+ {k:'w_frame',n:'붕어 액자',e:'🖼️',p:1500,g:0,c:'wall'},{k:'w_clock',n:'벽시계',e:'🕰️',p:2500,g:0,c:'wall'},{k:'w_hplant',n:'걸이 화분',e:'🪴',p:3000,g:0,h:.62,c:'wall'},
+ {k:'w_scroll',n:'붕어빵 족자',e:'📜',p:4000,g:1,s:1.1,c:'wall'},{k:'w_mirror',n:'둥근 거울',e:'🪞',p:6000,g:1,c:'wall'},{k:'w_shelf',n:'벽 선반',e:'🫙',p:9000,g:2,h:.5,s:1.15,c:'wall'},
+ {k:'w_cert',n:'장인 상장',e:'🎖️',p:12000,g:2,c:'wall'},{k:'w_neon',n:'붕어 네온사인',e:'🐟',p:20000,g:3,glow:1,s:1.1,c:'wall'},{k:'w_plaque',n:'황금 붕어 방패',e:'🛡️',p:45000,g:3,c:'wall'},
+ {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.15,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.15,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.15,c:'wall'}];
+/* 그림이 준비된 벽 장식만 여기에 (없는 파일을 매번 찾지 않게) */
+const WIMG=new Set([]);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
+const WK={};WFUR.forEach(f=>WK[f.k]=f);const CK=k=>FK[k]||WK[k];
+/* 벽 칸: 왼쪽 벽은 간판(0~2칸) 다음부터, 오른쪽 벽은 차양·메뉴판(1~3칸) 다음부터 끝까지. 창문 칸에 걸면 창문은 안 그려요 */
+const wallSlots=(n=N)=>{const L=[];for(let i=3;i<n;i++){L.push({x:-1,y:i});L.push({x:i,y:-1})}return L};
+const isWallAt=(it,n=N)=>!!WK[it.k]&&((it.x===-1&&it.y>=3&&it.y<n)||(it.y===-1&&it.x>=3&&it.x<n));
+const wallItemAt=(items,s)=>(items||[]).find(it=>WK[it.k]&&it.x===s.x&&it.y===s.y)||null;
 /* 넓히기: n칸, g=필요 등급, p=가격 */
 const ROOM=[{n:4,g:0,p:0},{n:5,g:1,p:8000},{n:6,g:2,p:30000},{n:7,g:4,p:120000},{n:8,g:5,p:400000},{n:9,g:6,p:1200000},{n:10,g:6,p:3000000}];
 let N=4,TW=96,TH=48,WH=120,OX=225,OY=320;
@@ -202,9 +216,10 @@ function drawItem(it,t,sel){if(drawImgF(it,t)){if(sel)selBox(it,t);return}const 
  }
  if(sel){cx.globalAlpha=.6+.4*Math.sin(t*6);poly([iso(gx,gy),iso(gx+1,gy),iso(gx+1,gy+1),iso(gx,gy+1)],null,'#ffc94a',3);cx.globalAlpha=1}}
 /* 꾸미기 카드용 작은 그림: 168×168 캔버스로 만든 ISO에서 불러요 (가구 하나를 타일 위에) */
-function thumb(k){const f=FK[k];if(!f)return'';const C=cx.canvas,S=C.width;cx.clearRect(0,0,S,S);
+function thumb(k){const f=FK[k],wf=WK[k];if(!f&&!wf)return'';const C=cx.canvas,S=C.width;cx.clearRect(0,0,S,S);
  N=1;TW=Math.round(S*.6);TH=TW/2;WH=Math.round(TW*1.25);OX=S/2;OY=Math.round(S*.62);
- drawItem({k,x:0,y:0,d:f.rot?1:0},0,false);
+ if(wf){const im=wImg(k);if(im){const z=S*.8/Math.max(im.naturalWidth,im.naturalHeight);cx.drawImage(im,S/2-im.naturalWidth*z/2,S/2-im.naturalHeight*z/2,im.naturalWidth*z,im.naturalHeight*z)}else em(wf.e,S/2,S/2,S*.6)}
+ else drawItem({k,x:0,y:0,d:f.rot?1:0},0,false);
  /* 그림이 있는 곳만 잘라서 카드에 꽉 차게 */
  try{const D=cx.getImageData(0,0,S,S).data;let x0=S,y0=S,x1=-1,y1=-1;for(let y=0;y<S;y++)for(let x=0;x<S;x++)if(D[(y*S+x)*4+3]>10){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
   if(x1<0)return C.toDataURL();const pd=4;x0=Math.max(0,x0-pd);y0=Math.max(0,y0-pd);x1=Math.min(S-1,x1+pd);y1=Math.min(S-1,y1+pd);const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(C,x0,y0,o.width,o.height,0,0,o.width,o.height);return o.toDataURL()}catch(e){return''}}
@@ -270,7 +285,7 @@ function drawGround(look,t){const ground=look.night?'#6f9a62':'#a8d890',Rc=iso(N
 /* 마당 장식 (왼쪽·오른쪽): 가게 앞마당 양쪽, 바닥보다 앞에 그려서 잘리지 않게 (화면 밖으로도 덜 나가요) */
 const SIDE_L=()=>({gx:Math.min(2.2,N*.3),gy:N+1.05}),SIDE_R=()=>({gx:N+1.05,gy:Math.min(2.2,N*.3)});
 function drawSide(it,g){if(!it||!it.sz)return;const p=iso(g.gx,g.gy);shadow(p.x,p.y,it.sz*.3);const z=it.sz*TW/96*.8;em(it.e,p.x,p.y-z*.42,z)}
-function drawWalls(look,t){const T=iso(0,0),Rc=iso(N,0),Lc=iso(0,N),wc=look.wall.c,wp=WP[look.wall.id];
+function drawWalls(look,t,items){const T=iso(0,0),Rc=iso(N,0),Lc=iso(0,N),wc=look.wall.c,wp=WP[look.wall.id];
  poly([T,Rc,up(Rc,WH),up(T,WH)],dark(wc,.08),dark(wc,.35));poly([Lc,T,up(T,WH),up(Lc,WH)],lite(wc,.05),dark(wc,.35));
  const lines=(n,col,lw,vert)=>{cx.strokeStyle=col;cx.lineWidth=lw;for(let i=1;i<n;i++){const u=i/n;if(vert){for(const [a,b] of [[iso(u*N,0),0],[iso(0,u*N),0]]){cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(a.x,a.y-WH);cx.stroke()}}else{const h=WH*u;cx.beginPath();cx.moveTo(Lc.x,Lc.y-h);cx.lineTo(T.x,T.y-h);cx.lineTo(Rc.x,Rc.y-h);cx.stroke()}}};
  if(wp==='brick'){lines(7,'rgba(110,40,20,.35)',1.2,0);lines(N*4,'rgba(110,40,20,.18)',1,1)}
@@ -281,7 +296,8 @@ function drawWalls(look,t){const T=iso(0,0),Rc=iso(N,0),Lc=iso(0,N),wc=look.wall
  else if(look.wall.id===1||look.wall.id===2||look.wall.id===3){cx.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<N*2;i++)for(let r=0;r<3;r++){const u=(i+.5)/(N*2),a=iso(u*N,0),b=iso(0,u*N);cx.beginPath();cx.arc(a.x,a.y-WH*(.22+r*.28),2,0,7);cx.fill();cx.beginPath();cx.arc(b.x,b.y-WH*(.22+r*.28),2,0,7);cx.fill()}}
  const trim=look.wall.id===8?'#b8860b':'#8a5a3a';poly([up(Lc,WH),up(T,WH),up(Rc,WH),up(Rc,WH+6),up(T,WH+6),up(Lc,WH+6)],trim);
  const win=(a,b)=>{const p=[up(a,WH*.36),up(b,WH*.36),up(b,WH*.8),up(a,WH*.8)];poly(p,look.night?'#2a3a6a':'#bfe6ff',trim,3);cx.strokeStyle=trim;cx.lineWidth=2;cx.beginPath();cx.moveTo((p[0].x+p[1].x)/2,(p[0].y+p[1].y)/2);cx.lineTo((p[2].x+p[3].x)/2,(p[2].y+p[3].y)/2);cx.stroke()};
- win(iso(0,N-1.5),iso(0,N-.5));win(iso(N-1.8,0),iso(N-.7,0));
+ {const ws=(items||[]).filter(it=>isWallAt(it)),hasL=i=>ws.some(it=>it.x===-1&&it.y===i),hasR=i=>ws.some(it=>it.y===-1&&it.x===i);
+  if(!hasL(N-2)&&!hasL(N-1))win(iso(0,N-1.5),iso(0,N-.5));if(!hasR(N-2)&&!hasR(N-1))win(iso(N-1.8,0),iso(N-.7,0))}
  /* 간판(메뉴판) + 차양: 카운터 위 오른쪽 벽 */
  const a=iso(0,2.2),b=iso(0,.45),sid=look.sign|0;
  const SB=[['#8a5a3a','#fff3c0'],['#ff8ab0','#fff'],['#2a3a32','#f0f0e0'],['#2a1a3a','#e8b0ff'],['#d4a020','#fff6d0'],['rb','#fff'],['#d4a020','#fff6d0'],['#1a2a5a','#fff6c0']][sid]||['#8a5a3a','#fff3c0'];
@@ -339,6 +355,22 @@ function staffFront(t,look,L){const S=look.staff||{};
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
 /* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어
    벽에 붙는 것(메뉴판·조명·줄전구·네온)은 사장님보다 먼저(wall=true), 빵 바구니만 나중에 그려요 → 사장님 얼굴을 안 가려요 */
+/* ---------- 🖼️ 벽 장식 그리기 ---------- */
+function wPos(sl,hf){return sl.x===-1?{c:up(iso(0,sl.y+.5),WH*hf),k:-.5}:{c:up(iso(sl.x+.5,0),WH*hf),k:.5}}
+function wSlotPoly(sl,hf){const a=sl.x===-1?[iso(0,sl.y+.1),iso(0,sl.y+.9)]:[iso(sl.x+.1,0),iso(sl.x+.9,0)];return[up(a[0],WH*(hf-.2)),up(a[1],WH*(hf-.2)),up(a[1],WH*(hf+.2)),up(a[0],WH*(hf+.2))]}
+function drawWallItem(it,t,sel){const f=WK[it.k];if(!f)return;const hf=f.h||.56,{c,k}=wPos(it,hf),im=wImg(it.k);
+ let w=TW*.36*(f.s||1),h=im?w*im.naturalHeight/im.naturalWidth:w;if(h>WH*.44){w*=WH*.44/h;h=WH*.44}
+ const b=BNC.get(it),u=b!=null?(performance.now()-b)/480:1,sc=u<1?1+Math.sin(u*Math.PI*3)*.12*(1-u):1;
+ cx.save();cx.translate(c.x,c.y);cx.transform(1,k,0,1,0,0);cx.scale(sc,sc);
+ if(f.glow){const gl=.6+.4*Math.sin(t*3+it.x+it.y);cx.fillStyle=it.k==='w_neon'?'rgba(120,220,255,'+(.25*gl)+')':'rgba(255,215,90,'+(.25*gl)+')';cx.beginPath();cx.arc(0,0,w*.75,0,7);cx.fill()}
+ cx.shadowColor='rgba(60,30,10,.28)';cx.shadowBlur=3;cx.shadowOffsetX=2;cx.shadowOffsetY=3;
+ if(im)cx.drawImage(im,-w/2,-h/2,w,h);else em(f.e,0,0,w*.95);cx.restore();
+ if(sel){cx.save();cx.setLineDash([5,4]);poly(wSlotPoly(it,hf),null,'#ffcf3a',2.5);cx.restore()}}
+function drawWallItems(items,t,o){const ws=(items||[]).filter(it=>isWallAt(it));
+ if(o.wedit){const fr=wallSlots().filter(sl=>!wallItemAt(ws,sl));cx.save();cx.setLineDash([5,4]);cx.globalAlpha=.55+.25*Math.sin(t*5);for(const sl of fr)poly(wSlotPoly(sl,.56),'rgba(140,230,140,.28)','#3a9a4a',2);cx.restore()}
+ for(const it of ws)drawWallItem(it,t,o.sel===it)}
+/* 화면 좌표 → 벽 칸 (없으면 null) */
+function wallAt(px,py,n){for(const sl of wallSlots(n)){const {c,k}=wPos(sl,.56),dx=px-c.x,dy=py-(c.y+k*dx);if(Math.abs(dx)<TW*.25&&Math.abs(dy)<WH*.26)return sl}return null}
 function counterUp(t,look,wall){const g=(look&&look.g)|0,lw=Math.max(1.4,TW*.024);if(g<1)return;if(!wall){if(g>=5){const p=iso(3.25,.35);em('🧺',p.x,p.y-TW*.12,TW*.3);em('🥖',p.x+TW*.05,p.y-TW*.24,TW*.18)}return}
  if(g>=1){const a=up(iso(1.1,0),WH*.97),b=up(iso(2.9,0),WH*.97),c=up(iso(2.9,0),WH*.74),d=up(iso(1.1,0),WH*.74);poly([a,b,c,d],g>=5?'#2a3a2e':'#3e3228',g>=5?'#d4a020':OL,lw);
   const m={x:(a.x+c.x)/2,y:(a.y+c.y)/2},h=(d.y-a.y);cx.save();cx.translate(m.x,m.y);cx.transform(1,.5,0,1,0,0);tx('MENU',0,-h*.28,Math.max(7,TW*.1),'#fff6d0','center','#3e3228');
@@ -346,7 +378,7 @@ function counterUp(t,look,wall){const g=(look&&look.g)|0,lw=Math.max(1.4,TW*.024
  if(g>=3)for(const gx of[1.5,2.5]){const top=up(iso(gx,.45),WH*1.02),lp=up(iso(gx,.45),WH*.68);cx.strokeStyle='#3a2a1a';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(top.x,top.y);cx.lineTo(lp.x,lp.y);cx.stroke();
   cx.fillStyle='rgba(255,230,150,.28)';cx.beginPath();cx.arc(lp.x,lp.y+TW*.05,TW*.22,0,7);cx.fill();cx.fillStyle=g>=5?'#d4a020':'#e8584a';cx.beginPath();cx.moveTo(lp.x-TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.09,lp.y+TW*.05);cx.lineTo(lp.x+TW*.04,lp.y-TW*.03);cx.lineTo(lp.x-TW*.04,lp.y-TW*.03);cx.closePath();cx.fill();cx.fillStyle='#fff6c0';cx.beginPath();cx.arc(lp.x,lp.y+TW*.06,TW*.03,0,7);cx.fill()}
  if(g>=4){const C=['#ff6a5a','#ffd23a','#5ad07a','#5ab4ff','#ff9ad0'];for(let i=0;i<=16;i++){const u=i/16,p=up(iso(.2+u*Math.min(N-.4,5.6),0),WH*.99-Math.sin(u*Math.PI*4)*WH*.04);cx.globalAlpha=.55+.45*Math.abs(Math.sin(t*2+i));cx.fillStyle=C[i%5];cx.beginPath();cx.arc(p.x,p.y,Math.max(1.6,TW*.028),0,7);cx.fill()}cx.globalAlpha=1}
- if(g>=6){const p=up(iso(Math.min(N-.55,3.6),0),WH*.74),gl=.6+.4*Math.sin(t*3);cx.fillStyle='rgba(255,120,200,'+(.22*gl)+')';cx.beginPath();cx.arc(p.x,p.y,TW*.38,0,7);cx.fill();em('🐟',p.x,p.y,TW*.42,.85+.15*gl)}}
+ if(g>=6){const p=up(iso(.5,0),WH*.74),gl=.6+.4*Math.sin(t*3);cx.fillStyle='rgba(255,120,200,'+(.22*gl)+')';cx.beginPath();cx.arc(p.x,p.y,TW*.38,0,7);cx.fill();em('🐟',p.x,p.y,TW*.42,.85+.15*gl)}}
 function drawCounter(t,look){const S=(look&&look.staff)||{},cafe=!!(look&&look.cafe),cq=behind(S.bake>0||(cafe&&S.barista>0)?2.08:2,.35,.44);staffBack(t,look||{});staffBack2(t,look||{});animal('cook',cq.x,cq.y,cq.s,{t,ph:0,mood:'h',shirt:'#ffffff'});
  const H0=TW*.34,lw=Math.max(1.6,TW*.026);
  /* 매대 앞면 이름표 (비스듬한 면에 맞춰 기울여 그려요) */
@@ -377,7 +409,7 @@ function drawCounter(t,look){const S=(look&&look.staff)||{},cafe=!!(look&&look.c
 function drawChandelier(look,t){if((look.lit|0)!==4)return;const c=iso(N/2,N/2);const y=c.y-WH*.95;cx.strokeStyle='#c89010';cx.lineWidth=2;cx.beginPath();cx.moveTo(c.x,y-30);cx.lineTo(c.x,y);cx.stroke();const g=cx.createRadialGradient(c.x,y,4,c.x,y,TW*1.2);g.addColorStop(0,'rgba(255,240,170,.5)');g.addColorStop(1,'rgba(255,240,170,0)');cx.fillStyle=g;cx.beginPath();cx.arc(c.x,y,TW*1.2,0,7);cx.fill();em('🔮',c.x,y+8,TW*.36)}
 /* ---------- 전체 ---------- */
 function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
- drawSky(look,t);drawGround(look,t);drawWalls(look,t);drawFloor(look,t,o.edit,items);
+ drawSky(look,t);drawGround(look,t);drawWalls(look,t,items);drawWallItems(items,t,o);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:(()=>{const C=cells(it);return C.reduce((a,q)=>a+q.x+q.y,0)/C.length})()+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
  L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)});
  if(!o.noCust)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
@@ -385,6 +417,6 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);for(const q of(g.k?cellsOf(g.k,g.x,g.y,g.d):[{x:g.x,y:g.y}]))poly([iso(q.x,q.y),iso(q.x+1,q.y),iso(q.x+1,q.y+1),iso(q.x,q.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{isWide,cells,occAt,fitAt,nextRot,fixWide,seatCount,imgReady:k=>!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+return{isWide,cells,occAt,fitAt,nextRot,fixWide,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
  zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
