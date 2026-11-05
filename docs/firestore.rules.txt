@@ -79,15 +79,23 @@ service cloud.firestore {
         || (request.auth != null && !mine(uid)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lk'])
             && request.resource.data.lk == resource.data.lk + 1
-            && !exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid + '_' + string(dayNow())))
-            && existsAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid + '_' + string(dayNow()))));
+            && existsAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid))
+            && getAfter(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)).data.d == dayNow()
+            && (!exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid))
+                || !('d' in get(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)).data)
+                || get(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)).data.d < dayNow()));
       allow delete: if false;
-      // ❤️ 좋아요: 문서 이름 = {누른 사람}_{오늘 날짜} → 하루 한 번
+      // ❤️ 좋아요: 누른 사람 칸 하나에 d(날짜)를 적어 두고, 날짜가 바뀌면 덮어써요 → 하루 한 번 (방명록과 같은 방식)
       match /likes/{v} {
         allow read: if true;
-        allow create: if request.auth != null && v == request.auth.uid + '_' + string(dayNow()) && request.auth.uid != uid
+        allow create: if request.auth != null && request.auth.uid == v && v != uid
+          && request.resource.data.keys().hasOnly(['t', 'd']) && request.resource.data.d == dayNow()
           && getAfter(/databases/$(database)/documents/shops/$(uid)).data.lk == get(/databases/$(database)/documents/shops/$(uid)).data.lk + 1;
-        allow update, delete: if false;
+        allow update: if request.auth != null && request.auth.uid == v && v != uid
+          && request.resource.data.keys().hasOnly(['t', 'd']) && request.resource.data.d == dayNow()
+          && (!('d' in resource.data) || resource.data.d < dayNow())
+          && getAfter(/databases/$(database)/documents/shops/$(uid)).data.lk == get(/databases/$(database)/documents/shops/$(uid)).data.lk + 1;
+        allow delete: if false;
       }
       // 💌 방명록 스티커: 남긴 사람 칸에 하루 한 번(덮어쓰기). 이름은 남긴 사람 가게 문서와 같아야 해요. 목록은 가게 주인만
       match /notes/{v} {
