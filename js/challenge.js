@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.8';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.8.1';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -73,7 +73,9 @@ const LB=()=>window.LB&&!window.LB.off?window.LB:null;
 /* 매 단계 통과 때 진행 중(live)으로 올리고, 판이 끝나면(fin) 무조건 한 번 더 보내 확정해요. 더 나쁜 기록으로는 덮지 않아요 */
 function submit(withProof,fin){if(!run||run.mode!=='week'||run.wid!==wid()||!save.nick||run.stage<1)return;const lb=LB();if(!lb)return;
  const st=run.stage,net=run.tot,sb=save.sub,same=sb.id===run.wid&&st===sb.stage&&net===sb.net;
- if(sb.id===run.wid&&(st<sb.stage||(st===sb.stage&&net<sb.net)))return;
+ if(sb.id===run.wid&&(st<sb.stage||(st===sb.stage&&net<sb.net))){
+  /* 이번 판이 최고 기록보다 낮게 끝났는데 순위표엔 아직 '진행 중'이면 → 최고 기록을 '끝남'으로 다시 보내요 */
+  if(fin&&sb.live)lb.submit({w:sb.id,n:save.nick,st:sb.stage,net:sb.net,live:false,lg:null}).then(ok=>{if(ok){save.sub.live=false;store()}});return}
  if(same&&!fin&&sb.live)return;if(same&&fin&&!sb.live)return;
  return lb.submit({w:run.wid,n:save.nick,st,net,live:!fin,lg:withProof?run.lg:null}).then(ok=>{if(ok){if(save.sub&&save.sub.id&&save.sub.id!==run.wid)save.subPrev=save.sub;save.sub={id:run.wid,stage:st,net,live:!fin};store()}return ok})}
 function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage||(st===a.stage&&net>a.net);
@@ -203,7 +205,7 @@ async function renderLb(){const L=$('lbl'),w=wid()-lbWk;$('lbt0').className='tab
  if(!rows.length){L.innerHTML='<p class="ht">'+(lbWk===0?'아직 아무도 없어요. 첫 번째 주인공이 되어 보세요! 🏆':'지난 주 기록이 없어요.')+'</p>';return}
  const me=lb.uid;L.innerHTML='';
  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='lr'+(r.u===me?' me':'');
-  const lv=r.live&&Date.now()-r.ts<3*3600e3;d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
+  const lv=r.live&&Date.now()-r.ts<20*60e3; /* 20분 넘게 소식이 없으면 '진행 중' 아님 (앱을 그냥 닫은 경우) */d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="ln"></span>'+(lv?'<span class="lv">🔥 진행 중</span>':'')+'<span class="ls"><i>'+r.st+'단계</i><small>'+fmt(r.net)+'원</small></span>';
   d.querySelector('.ln').textContent=r.n;d.style.cursor='pointer';d.onclick=()=>{location.href='shop.html?visit='+encodeURIComponent(r.u)};
   if(r.u!==me&&lb.report){const f=document.createElement('button');f.className='lrp';f.textContent='🚩';f.setAttribute('aria-label','신고');f.onclick=ev=>{ev.stopPropagation();reportLb(r)};d.appendChild(f)}L.appendChild(d)});
  const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=(rows.length>=30?'위쪽 30명이에요 · ':rows.length+'명 · ')+'이름을 누르면 그 사람 가게를 구경해요 🏪';L.appendChild(f);
