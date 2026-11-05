@@ -66,7 +66,10 @@ const {E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeC
 const seatsN=()=>IS.seatCount((save.fur||[]).filter(it=>IS.inRoom(it.x,it.y,save.room)));
 const bctx=()=>({lv:shopLv(),charm:charmBonus()+skBuf().a,seats:seatsN()});
 let bizPop=0,bizFl=[],bizT=0,bizN=0;
-function bizTick(away){const g=BIZ.settle(save,Date.now(),bctx());if(!g)return null;if(g.whole>0)bizPop+=g.whole;if(away&&g.h>=3/60&&save.name)awayCard(g);return g}
+/* ⭐📅 하루가 바뀌면 평점 정리 · 단체 주문 시간 넘으면 실패 */
+function dayTick(){const ms=Date.now(),R0=BIZ.rtDaily(save,ms,bctx());if(R0&&R0.dv&&save.name)setTimeout(()=>toast('⭐ 가게 평점 '+R0.v.toFixed(1)+' ('+(R0.dv>0?'+':'')+R0.dv.toFixed(2)+')'+(R0.rv[0]?' · '+R0.rv[0]:'')),900);
+ const f=BIZ.evCheck(save,ms);if(f&&f.fail){toast('🚌 단체 주문 시간이 지났어요… 평점 −0.3');store()}}
+function bizTick(away){dayTick();const g=BIZ.settle(save,Date.now(),bctx());if(!g)return null;if(g.whole>0)bizPop+=g.whole;if(away&&g.h>=3/60&&save.name)awayCard(g);return g}
 const hm=h=>{const m=Math.max(1,Math.round(h*60));return m>=60?Math.floor(m/60)+'시간'+(m%60?' '+m%60+'분':''):m+'분'};
 const n1=x=>String(Math.round(x*10)/10);
 const lgRow=(lab,v,minus)=>'<div class="lg'+(minus?' m':'')+'"><span>'+lab+'</span><span>'+(minus?'−':'+')+fmt(Math.round(v))+'</span></div>';
@@ -190,8 +193,12 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=
  h+='<div class="sum"><b>🏪 가게 레벨: Lv'+lv+'</b>';
  if(lv<40)h+=bar(sc-prev,need-prev,'#7ed88a')+'<small>다음 Lv'+(lv+1)+'까지 꾸미기 점수 <b>'+fmt(need-sc)+'</b> ('+fmt(sc)+' / '+fmt(need)+')</small>';else h+='<br><small>최고 레벨이에요! 🎉</small>';
  h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small></div>';
+ {const R0=BIZ.rt(save),W={wait:'⏱️ 기다림',price:'💰 붕어빵 값',deco:'🎨 꾸미기',menu:'🍡 메뉴 수',help:'✨ 도와주기 솜씨'},m=BIZ.rtMul(save);
+  h+='<div class="sum"><b>⭐ 가게 평점: '+R0.v.toFixed(1)+'</b> <small>(손님 '+(m>=1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%)</small>'+bar(R0.v-1,4,'#ffb04a');
+  if(R0.rv&&R0.rv.length)h+='<small>💬 '+R0.rv.map(x=>'"'+x+'"').join(' · ')+'</small><br>';
+  h+='<small>'+(R0.why&&R0.why.length?R0.why.map(([k,v])=>W[k]+' '+(v>0?'▲':'▼')).join(' · ')+'<br>':'')+'하루에 한 번 바뀌어요 · 줄이 밀리지 않게, 값은 알맞게, 예쁘게 꾸미고, 도와주기에서 ✨완벽하게 구우면 올라요</small></div>'}
  bzShow(GR[g].e,'등급 · 레벨 안내',h,'🙋 도와주러 가기',()=>$('h1').click(),'🎨 꾸미러 가기',()=>openDeco('home'))}
-function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
+function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ⭐'+BIZ.rt(save).v.toFixed(1)+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#8fcdff','#e6f4ff'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
 function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
@@ -228,10 +235,28 @@ const live=()=>({perf:s.perf,served:s.served,bc:s.bc,burnt:s.burnt,lost:s.lost,n
 const DXT=[10,30];
 /* ---------- 집 화면 ---------- */
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
-function renderHome(){starDot();noteBadge();noteCheck();const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
- $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>';
+/* ---------- 📅 오늘의 사건 ---------- */
+const grpTxt=g=>!g?'':g.ok?'<div class="sum" style="background:#d8f5dc"><b>🚌 단체 주문 완료!</b> +'+fmt(g.rw)+'🪙 · ⭐ 평점 +0.2</div>':'<div class="sum">🚌 단체 주문 '+g.got+' / '+g.need+'명 · '+hm(Math.max(0,(save.ev.until-Date.now())/3600e3))+' 남았어요</div>';
+const EVT={group:['🚌','단체 주문이 들어왔어요!',c=>'근처 회사에서 붕어빵 단체 주문! <b>3시간 안에</b> 🙋 도와주기(붕어빵·음료)로 <b>손님 '+BIZ.GRP_NEED+'명</b>을 대접하면 <b>+'+fmt(c.grp)+'🪙</b> · ⭐ +0.2<br><small>못 하면 평점 −0.3</small>','🚌 받을게요!','다음에요'],
+ rival:['🏪','옆에 경쟁 가게가 생겼어요',c=>'오늘 하루 어떻게 할까요?<br>🏷️ <b>할인 행사</b>: 손님 +25% · 값 −15% <small>(알바가 밀리면 손해일 수도)</small><br>💪 <b>버티기</b>: 손님 −15%','🏷️ 할인 행사','💪 버티기'],
+ influ:['📸','유명 먹방 유튜버가 왔어요!',c=>'🎁 <b>공짜로 드리기</b>: −'+fmt(c.free)+'🪙 · ⭐ 평점 +0.25 · <b>내일 손님 +15%</b><br>🪙 <b>정가 받기</b>: +'+fmt(c.paid)+'🪙','🎁 공짜로 드리기','🪙 정가 받기'],
+ rain:['🌧️','오늘은 비가 와요',c=>'비 오는 날은 손님이 <b>−20%</b>예요.<br>☂️ <b>우산 빌려주기</b>(−'+fmt(c.umb)+'🪙)를 하면 손님이 그대로 와요','☂️ 우산 빌려주기','그냥 둘게요'],
+ fest:['🎉','동네 축제가 열려요!',c=>'🎪 <b>축제에 노점 내기</b>: −'+fmt(c.fest)+'🪙 · 오늘 손님 <b>+35%</b> <small>(알바가 밀리면 손님이 늘어도 못 받아요)</small>','🎪 노점 내기','오늘은 쉬기']};
+let evShown=false;
+function evCard(){const e=save.ev;if(!e||e.dk!==BIZ.dayKey(Date.now())||e.ch!==-1||!EVT[e.k])return false;const T=EVT[e.k],c=BIZ.evCost(save,bctx());
+ const go=i=>{const r=BIZ.evChoose(save,i,Date.now(),bctx());if(!r)return;if(r.err){toast(r.err);snd('no');setTimeout(evCard,300);return}store();snd(i===0?'win':'tap');toast(r.msg);renderHome()};
+ bzShow(T[0],T[1],'<p style="margin:0;line-height:1.6">'+T[2](c)+'</p><p class="ht" style="margin:6px 0 0">📅 오늘의 사건 · 하루에 하나</p>',T[3],()=>go(0),T[4],()=>go(1));return true}
+function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!EVT[e.k])return'';const T=EVT[e.k];
+ if(e.ch===-1)return'<div class="evl" id="evl">'+T[0]+' 오늘의 사건: '+T[1]+' <b>› 고르기</b></div>';
+ if(e.k==='group'&&e.ch===0){if(e.res==='ok')return'<div class="evl ok">🚌 단체 주문 완료! ✅</div>';if(e.res==='fail')return'<div class="evl">🚌 단체 주문 실패 😢</div>';return'<div class="evl">🚌 단체 주문 '+(e.got|0)+'/'+e.need+'명 · '+hm(Math.max(0,(e.until-Date.now())/3600e3))+' 남음 · 🙋 도와주기!</div>'}
+ return e.msg?'<div class="evl">'+T[0]+' '+e.msg+'</div>':''}
+function renderHome(){starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
+ $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine();{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
-function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm')}
+function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');evAuto(0)}
+/* 오늘의 사건 카드: 다른 창(자리 비운 동안·새 소식·선물 등)이 다 닫힌 뒤 한 번 자동으로 */
+function evAuto(n){if(evShown||!save.name||n>40)return;setTimeout(()=>{if(evShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
+ if(scr!=='home'||busy){evAuto(n+1);return}evShown=true;evCard()},n?1500:1200)}
 /* ---------- 하루 ---------- */
 const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:charmBonus()/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
 function startDay(){au();if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=run0();s=B.newDay(run);{const w=todayWx();s.wea=w.wea;s.ev=w.ev}ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
@@ -251,9 +276,10 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
  save.bestNet=Math.max(save.bestNet,res.net);save.bestCombo=Math.max(save.bestCombo,res.bc);
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
- lastHelp='bread';save.lr={full:res.full|0,lost:res.lost,idle:res.idle,net:res.net};const nd=s.dxNew||[];store();
+ BIZ.rtHelp(save,Date.now(),res.perf,res.served);const grp=BIZ.evHelp(save,res.served,Date.now());lastHelp='bread';save.lr={full:res.full|0,lost:res.lost,idle:res.idle,net:res.net};const nd=s.dxNew||[];store();
  const g1=grade();let h=resTop(gain-bonus,res.net,tax,hm)+'<div class="chips"><span class="chip">🐾 '+res.served+'명</span><span class="chip'+(res.lost?' red':'')+'">😡 '+res.lost+'</span><span class="chip">✨ '+res.perf+'</span><span class="chip">👍 '+(res.good|0)+'</span><span class="chip'+(res.burnt?' red':'')+'">😵 '+res.burnt+'</span><span class="chip">🔥 '+res.bc+'</span></div>';
  h+='<div class="gl3">'+gl.map((x,i)=>'<div class="'+(gd.done[i]?'ok':'')+(x.ok&&!x.was?' new':'')+'"><b>'+(gd.done[i]?'✅':gShort(x.g).e)+'</b>'+gShort(x.g).t+(x.ok&&!x.was?'<br>⭐+1':'')+'</div>').join('')+'</div>'+(bonus?'<div class="chips"><span class="chip ok">🎁 오늘 목표 3개 달성! +'+fmt(bonus)+'🪙</span></div>':'');
+ h+=grpTxt(grp);
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
  if(g1>g0)h+='<div class="sum" style="background:#ffeaa8"><b>🎉 가게 등급이 올랐어요!</b><br>'+GR[g1].e+' <b>'+GR[g1].n+'</b> · 새 꾸미기 상품이 열렸어요</div>';
  h+='<div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">⭐ '+save.stars+'</span><span class="chip">'+GR[g1].e+' '+GR[g1].n+'</span></div>';
@@ -263,9 +289,9 @@ let lastHelp='bread';
 const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
 function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save,mul:BIZ.beanMul(save),dp:d=>BIZ.dPrice(save,d),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
 function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h));
- save.coins+=gain;save.served+=r.served;save.cafeN=(save.cafeN|0)+1;save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
+ save.coins+=gain;save.served+=r.served;save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
  let h=resTop(gain,r.net,tax,hm)+'<div class="chips"><span class="chip">☕ '+r.served+'잔</span><span class="chip">✨ '+r.perf+'</span><span class="chip">👍 '+r.great+'</span><span class="chip">🙂 '+r.good+'</span><span class="chip'+(r.lost?' red':'')+'">😡 '+r.lost+'</span><span class="chip'+(r.wrong?' red':'')+'">😣 '+r.wrong+'</span><span class="chip'+(r.spill?' red':'')+'">💦 '+r.spill+'</span><span class="chip">🔥 '+r.bc+'</span></div>';
- h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
+ h+=grpTxt(grp);h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
  $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 const cafeXY=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]};
 cv.addEventListener('pointerdown',e=>{if(scr!=='cafe'||paused)return;e.preventDefault();au();const [x,y]=cafeXY(e);CF.down(x,y)});
@@ -354,6 +380,7 @@ function openLed(){bzHide();scr='led';renderLed();show('led')}
 function renderLed(){const r=BIZ.rates(save,bctx()),L=BIZ.ledger(save,Date.now()),Y=save.ledY,hp=x=>x&&x.help?'<div class="chips" style="justify-content:flex-start"><span class="chip ok">🙋 도와주기 +'+fmt(Math.round(x.help))+'</span></div>':'';
  const red=k=>r.neck===k||(r.neck==='both'&&(k==='bake'||k==='serve'));
  let h='<div class="flow">'+[['arrive','🐾','오는 손님'],['bake','🍞','굽기'],['serve','🧾','계산']].map(([k,e,n],i)=>(i?'<span class="ar">▶</span>':'')+'<div class="nd'+(red(k)?' red':'')+'">'+e+'<b>'+n1(r[k])+'</b><small>'+n+'/시간</small></div>').join('')+'</div><div style="height:12px"></div>';
+ {const R0=BIZ.rt(save),m=BIZ.rtMul(save),em=BIZ.evMul(save,Date.now()),e=save.ev,T=e&&EVT[e.k];h+='<div class="chips" style="justify-content:flex-start"><span class="chip">⭐ 평점 '+R0.v.toFixed(1)+' · 손님 '+(m>=1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%</span>'+(em.a!==1||em.p!==1?'<span class="chip'+(em.a<1?' red':' ok')+'">📅 오늘 사건: 손님 '+(em.a>=1?'+':'−')+Math.round(Math.abs(em.a-1)*100)+'%'+(em.p!==1?' · 값 −'+Math.round((1-em.p)*100)+'%':'')+'</span>':'')+'</div>'}
  h+=lgBlock(r,'⏱️ 지금 1시간에')+(save.debt>0?'<div class="chips"><span class="chip red">💸 밀린 돈 '+fmt(Math.ceil(save.debt))+' · 다 갚을 때까지 알바 절반</span></div>':'');
  h+=lgBlock(L,'📅 오늘 '+(L.h?'('+hm(L.h)+')':''),hp(L));
  if(Y)h+=lgBlock(Y,'📅 어제 ('+hm(Y.h)+')',hp(Y));

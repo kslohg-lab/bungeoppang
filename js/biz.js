@@ -55,12 +55,12 @@ const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
 function rates(save,ctx){ctx=ctx||{};const s=st(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
- const co=cafeOn(save),pb=prB(save),pd=prD(save),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1)*pb.a;
+ const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
  const bake=4+2.5*(s.bake|0)*debt,serve=4+2.5*(s.serve|0)*debt;
  const cust=Math.min(arrive,bake,serve);
  const nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));let p=0,c=0;for(let f=0;f<nu;f++){p+=B.price(save,f);c+=R.menu[f].c}p/=nu;c/=nu;
  const seatB=Math.min(.3,(ctx.seats|0)*.03);
- const perCust=BPC*p*loc.pm*(1+seatB)*pb.p;
+ const perCust=BPC*p*loc.pm*(1+seatB)*pb.p*em.p;
  /* 카페: 손님 중 일부가 음료도 사요 (음료 종류가 많을수록 많이). 바리스타가 만들 수 있는 만큼만 */
  const md=myDrinks(save);let drk=0,dPer=0,dMat=0,dWant=0,dCap=0;
  if(md.length){const dr=Math.min(.6,Math.min(.5,.25+.04*md.length)+(cafe(save).set?.1:0))*Math.min(1.2,pd.a);dWant=cust*dr;dCap=(2+3*(s.barista|0)*debt);drk=Math.min(dWant,dCap);dPer=md.reduce((a,d)=>a+dPrice(save,d),0)/md.length*beanMul(save)*loc.pm*pd.p;dMat=md.reduce((a,d)=>a+d.c,0)/md.length}
@@ -68,6 +68,52 @@ function rates(save,ctx){ctx=ctx||{};const s=st(save),lv=ctx.lv||1,debt=save.deb
  const rent=rentOf(save),wage=STAFF.reduce((a,x)=>a+wageOf(s[x.k]),0)*debt; /* 밀린 돈이 있으면 알바가 절반만 일하고 월급도 절반 */
  const neck=cust>=arrive-1e-9?'arrive':Math.abs(bake-serve)<1e-9?'both':bake<serve?'bake':'serve';
  return{arrive,bake,serve,cust,perCust,rev,mat,tax,rent,wage,net:rev-mat-tax-rent-wage,neck,seatB,debt:debt<1,drk,dPer,dWant,dCap,dNeck:md.length>0&&dWant>dCap+1e-9}}
+/* ---------- ⭐ 가게 평점 (1.0~5.0, 처음 3.5) ----------
+   하루에 한 번(날짜가 바뀔 때) 목표 점수 쪽으로 35%씩 다가가요. 목표 = 3.5 + 기다림 + 값 + 꾸미기 + 메뉴 + 도와주기 솜씨.
+   손님 수: 3.5보다 높으면 +10%/점(5.0 = +15%), 낮으면 −4%/점(1.0 = −10%). 가게 순위에는 안 들어가요. */
+const rt=(save,ms)=>{if(!save.rt||typeof save.rt!=='object'||!(save.rt.v>0))save.rt={v:3.5,d:dayKey(ms||Date.now()),why:[],rv:[]};return save.rt};
+const rtMul=save=>{const v=rt(save).v;return v>=3.5?1+(v-3.5)*.1:1+(v-3.5)*.04};
+const rtAdd=(save,x)=>{const r=rt(save);r.v=Math.max(1,Math.min(5,Math.round((r.v+x)*100)/100))};
+/* 도와주기 솜씨: 최근 이틀 판의 ✨완벽 비율 */
+function rtHelp(save,ms,perf,served){const dk=dayKey(ms);let h=save.rtH;if(!h||typeof h!=='object'||h.dk!==dk)h=save.rtH={dk,p:0,s:0,pp:h&&h.dk===dk-1?h.p:0,ps:h&&h.dk===dk-1?h.s:0};h.p+=perf|0;h.s+=served|0}
+const RV={wait:['너무 오래 기다렸어요 😡','줄이 너무 길어요 😥'],fast:['금방 나와요 👍','줄 서도 금방이에요 😊'],cheap:['가격이 착해요 💸','싸고 맛있어요 😋'],pricey:['조금 비싸요 😅','값이 좀 세네요 🤔'],deco:['가게가 예뻐요 🥰','사진 찍기 좋아요 📸'],menu:['맛 고르는 재미가 있어요 🍡','메뉴가 다양해요 😍'],crisp:['바삭바삭 최고예요 😋','굽기 장인이에요 ✨']};
+function rtDaily(save,ms,ctx){const R0=rt(save,ms),dk=dayKey(ms);if(R0.d>=dk)return null;const days=Math.min(3,dk-R0.d);
+ const r=rates(save,Object.assign({},ctx,{ms,noEv:1})),pi=(save.pr&&save.pr.b!=null)?save.pr.b:1,nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));
+ const h=save.rtH||{},hp=(h.dk===dk-1?h.p:0)+(h.dk===dk-1?h.pp:h.dk===dk-2?h.p:0),hs=(h.dk===dk-1?h.s:0)+(h.dk===dk-1?h.ps:h.dk===dk-2?h.s:0);
+ const C=[['wait',r.neck==='arrive'?.2:-.6],['price',[.4,0,-.4,-.8][pi]||0],['deco',Math.min(.6,(ctx&&ctx.charm||0)*2.4)],['menu',Math.min(.4,.1*(nu-1))],['help',hs>=5?Math.min(.5,.6*hp/hs):0]];
+ const T=Math.max(1,Math.min(5,3.5+C.reduce((a,c)=>a+c[1],0))),old=R0.v;R0.v=Math.max(1,Math.min(5,Math.round((old+(T-old)*(1-Math.pow(.65,days)))*100)/100));
+ R0.why=C.filter(c=>Math.abs(c[1])>=.05).map(c=>[c[0],Math.round(c[1]*100)/100]);R0.d=dk;R0.dv=Math.round((R0.v-old)*100)/100;
+ const pick=(k,i)=>RV[k][(dk+i)%RV[k].length],L=[];C.forEach(([k,v])=>{if(k==='wait')L.push(pick(v>0?'fast':'wait',0));else if(k==='price'&&v)L.push(pick(v>0?'cheap':'pricey',1));else if(v>=.15)L.push(pick(k==='help'?'crisp':k,2))});
+ R0.rv=L.slice(0,3);return R0}
+/* ---------- 📅 하루 한 번 사건: 매일 첫 접속 때 카드 1장 → 둘 중 하나 고르기 ----------
+   폰 시계를 되돌려도 이미 받은 날보다 앞 날짜 사건은 다시 안 와요(evMax). 고른 건 바로 저장. */
+const EVS=['group','rival','influ','rain','fest'];
+function evNew(save,ms){const dk=dayKey(ms);if((save.evMax|0)>=dk)return null;save.evMax=dk;
+ let x=((save.seed|0)^Math.imul(dk,2654435761))>>>0;x^=x>>>15;x=Math.imul(x,2246822519)>>>0;x=(x^(x>>>13))>>>0;const k=EVS[x%EVS.length];
+ save.ev={dk,k,ch:-1};return save.ev}
+/* 지금 사건이 손님(a)·값(p)에 주는 효과 */
+function evMul(save,ms,off){let a=1,p=1;if(off)return{a,p};const dk=dayKey(ms),e=save.ev;
+ if(e&&e.dk===dk){if(e.k==='rival'){if(e.ch===0){a*=1.25;p*=.85}else if(e.ch===1)a*=.85}
+  if(e.k==='rain'&&e.ch!==0)a*=.8;if(e.k==='fest'&&e.ch===0)a*=1.35}
+ const t=save.evT;if(t&&t.dk===dk)a*=t.a||1;return{a,p}}
+/* 고를 때 드는 돈·받는 돈 (지금 장사 규모에 맞춰요) */
+function evCost(save,ctx){const r=rates(save,Object.assign({},ctx,{noEv:1}));const hr=Math.max(0,r.rev),hn=Math.max(0,r.net),pc=Math.max(200,r.perCust);
+ return{free:Math.round(Math.max(500,pc*4)),paid:Math.round(Math.max(300,pc*2)),umb:Math.round(Math.max(1000,hr*.5)),fest:Math.round(Math.max(2000,hn*1)),grp:Math.round(Math.max(3000,hn*1.5))}}
+const GRP_NEED=30,GRP_H=3;
+function evChoose(save,i,ms,ctx){const e=save.ev;if(!e||e.dk!==dayKey(ms)||e.ch!==-1||(i!==0&&i!==1))return null;const c=evCost(save,ctx);let msg='';
+ if(i===0){if(e.k==='influ'&&save.coins<c.free)return{err:'코인이 부족해요'};if(e.k==='rain'&&save.coins<c.umb)return{err:'코인이 부족해요'};if(e.k==='fest'&&save.coins<c.fest)return{err:'코인이 부족해요'}}
+ e.ch=i;
+ if(e.k==='group'){if(i===0){e.until=ms+GRP_H*3600e3;e.got=0;e.need=GRP_NEED;e.rw=c.grp;msg='🚌 단체 주문을 받았어요! 3시간 안에 도와주기로 손님 '+GRP_NEED+'명'}else msg='단체 주문을 정중히 거절했어요'}
+ if(e.k==='rival')msg=i===0?'🏷️ 할인 행사 시작! 오늘 손님 +25% · 값 −15%':'💪 버티기! 오늘 손님 −15%';
+ if(e.k==='influ'){if(i===0){save.coins-=c.free;rtAdd(save,.25);save.evT={dk:e.dk+1,a:1.15};msg='📸 공짜로 드렸어요! 평점 +0.25 · 내일 손님 +15%'}else{save.coins+=c.paid;msg='정가를 받았어요 +'+c.paid+'🪙'}}
+ if(e.k==='rain')msg=i===0?(save.coins-=c.umb,'☂️ 우산을 빌려줘요! 비가 와도 손님이 그대로'):'🌧️ 오늘은 손님 −20%';
+ if(e.k==='fest')msg=i===0?(save.coins-=c.fest,'🎪 축제 노점! 오늘 손님 +35%'):'오늘은 쉬어 가요';
+ e.msg=msg;return{msg}}
+/* 도와주기 한 판 끝: 단체 주문 진행 */
+function evHelp(save,served,ms){const e=save.ev;if(!e||e.k!=='group'||e.ch!==0||e.res)return null;if(ms>e.until)return null;e.got=(e.got|0)+(served|0);
+ if(e.got>=e.need){e.res='ok';save.coins+=e.rw|0;rtAdd(save,.2);return{ok:1,rw:e.rw|0}}return{got:e.got,need:e.need}}
+/* 시간이 지나면: 단체 주문 실패 확인 */
+function evCheck(save,ms){const e=save.ev;if(e&&e.k==='group'&&e.ch===0&&!e.res&&ms>e.until){e.res='fail';rtAdd(save,-.3);return{fail:1}}return null}
 /* 장부: 오늘(한국 날짜) 합계. 날짜가 바뀌면 어제로 */
 const dayKey=ms=>Math.floor((ms+9*3600e3)/864e5);
 function ledger(save,ms){const dk=dayKey(ms);if(!save.led||save.led.k!==dk){if(save.led&&save.led.k===dk-1)save.ledY=save.led;else if(save.led&&save.led.k<dk-1)save.ledY=null;save.led={k:dk,cust:0,drk:0,rev:0,mat:0,tax:0,rent:0,wage:0,help:0,h:0}}return save.led}
@@ -81,5 +127,5 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
 function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;
