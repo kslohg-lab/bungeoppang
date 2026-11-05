@@ -561,7 +561,10 @@ function shopSnap(){const off=document.createElement('canvas');off.width=900;off
 $('nbs').onclick=()=>{au();syncShop();whenNet(N=>go(N.uid),()=>go(null));
  function go(uid){const url=location.origin+'/shop.html'+(uid?'?visit='+uid:'');const txt='🏪 내 붕어빵 가게 「'+nm()+'」 구경 와! ❤️ 눌러주고, 너도 가게 만들어 봐 🐟';
   SHARE.send(SHARE.shop({name:nm(),lv:shopLv(),sc:decoScore(),lk:0,snap:shopSnap(),url}),txt,url,'붕어빵 가게')}};
-$('vlk').onclick=()=>{if(!vd||$('vlk').className==='done')return;whenNet(N=>{if(vuid===N.uid)return;$('vlk').className='done';N.like(vuid).then(()=>{vd.lk=(vd.lk|0)+1;renderVisit();$('vlk').textContent='❤️ 오늘 눌렀어요';snd('win');toast('❤️ 좋아요를 보냈어요! 내일 또 누를 수 있어요')}).catch(()=>{$('vlk').textContent='❤️ 오늘 눌렀어요';toast('오늘은 이미 눌렀거나 잠시 뒤에 다시 해 주세요')})})};
+/* ❤️ 좋아요: 보냈을 때 · 이미 눌렀을 때 · 못 보냈을 때를 다르게 보여 줘요 (못 보냈으면 이유 코드도) */
+$('vlk').onclick=()=>{if(!vd||$('vlk').className==='done')return;whenNet(N=>{if(vuid===N.uid)return;const uid=vuid;$('vlk').className='done';$('vlk').textContent='❤️ 보내는 중…';
+ N.like(uid).then(()=>{if(vuid!==uid)return;vd.lk=(vd.lk|0)+1;renderVisit();$('vlk').textContent='💖 보냈어요';snd('win');if(window.JUICE)JUICE.burst(330,700,'💖',8);toast('💖 좋아요 +1! 내일 또 누를 수 있어요')})
+ .catch(e=>{const code=(e&&e.code||'').replace('firestore/','');N.liked(uid).then(l=>{if(vuid!==uid)return;if(l){$('vlk').textContent='❤️ 오늘 눌렀어요';toast('❤️ 이 가게엔 오늘 이미 눌렀어요 · 내일 또 눌러요')}else{$('vlk').className='';$('vlk').textContent='❤️ 좋아요';toast((busyMsg()||'좋아요를 못 보냈어요 · 잠시 뒤에 다시 눌러 주세요')+(code?' ('+code+')':''))}}).catch(()=>{$('vlk').className='';$('vlk').textContent='❤️ 좋아요';toast('좋아요를 못 보냈어요'+(code?' ('+code+')':''))})})})};
 /* ---------- 💌 구경 반응: 스티커 방명록 (정해진 스티커만, 가게마다 하루 한 번) ---------- */
 const STK=[['😍','예뻐요'],['🐟','맛있어 보여요'],['🛋️','인테리어 최고'],['🎉','축하해요'],['👍','또 올게요'],['🌸','따뜻해요'],['🔥','대박'],['🙌','배워 갈게요']];
 $('vnt').onclick=()=>{if(!vd||$('vnt').className==='done'){if(vd&&vuid!==(window.NET&&NET.uid))toast('💌 이 가게엔 오늘 남겼어요 · 내일 또 남길 수 있어요');return}
