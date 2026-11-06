@@ -41,7 +41,8 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      await setDoc(doc(db,'shops',uid,'notes',me),{s:st|0,n:m.n,nk:m.nk||'',d:day(),t:serverTimestamp()});return true},
     /* 내 가게 방명록: 최근 20개 · 새 것 개수(since 이후, 최대 9) */
     async notes(){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20))).catch(full);return q.docs.map(x=>{const v=x.data();return{u:x.id,s:v.s|0,n:v.n||'',nk:v.nk||'',t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
-    async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),where('t','>',Timestamp.fromMillis(since|0)),orderBy('t','desc'),limit(9)));return q.size},
+    /* 새 것 세기: 최근 20개를 받아 폰에서 비교 (서버 시간 비교는 1ms보다 잘게 저장돼 어긋날 수 있어서) */
+    async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20)));return q.docs.filter(x=>{const t=x.data().t;return t&&t.toMillis&&Math.floor(t.toMillis())>since}).length},
     /* 🚩 신고 (가게 구경): r 0 이름 · 1 점수 · 2 기타. 한 사람이 한 대상에 한 번 */
     async report(u,r){const me=await login();N.uid=me;if(me===u)return false;await setDoc(doc(db,'reports',me+'_'+u),{u,r:r|0,k:'s',t:serverTimestamp()});return true},
     bust(){cache.clear()}};
