@@ -13,8 +13,8 @@ const SK=[
  {w:'#cfeee0',l:'rgba(60,120,100,.22)',r:'#e8f6ee',roof:'flat',terrace:1},
  {w:'#c8864a',l:'',r:'#ffb0cc',roof:'candy',pat:'candy'},
  {w:'#b8b4ac',l:'rgba(70,70,70,.28)',r:'#a8a49c',roof:'castle',pat:'stone'},
- /* 🏅 메달 스킨 (AI 그림, img/sk/m1~20.webp) — 7번부터 */
- ...Array.from({length:20},(_,i)=>({img:'img/sk/m'+(i+1)+'.webp',w:'#fff1d6',l:'',r:'#b98a5e',roof:'flat'}))];
+ /* 🏅 메달 스킨 (AI 그림, img/sk/m1~28.webp) — 7번부터 (21~28 = 2차, 12월) */
+ ...Array.from({length:28},(_,i)=>({img:'img/sk/m'+(i+1)+'.webp',w:'#fff1d6',l:'',r:'#b98a5e',roof:'flat'}))];
 const AWC=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
 const RB=['#ff5a5a','#ff9a3a','#ffd93a','#6ccf5a','#4aa8ff','#a85aff'];
 const SB=[['#8a5a3a','#fff3c0'],['#ff8ab0','#fff'],['#2a3a32','#f0f0e0'],['#2a1a3a','#e8b0ff'],['#d4a020','#fff6d0'],['#a85aff','#fff'],['#d4a020','#fff6d0'],['#1a2a5a','#fff6c0']];
