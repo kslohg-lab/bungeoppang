@@ -170,9 +170,7 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
   if(inP&&Math.floor(s.t*6)%2)lc='#8dffa0';if(m.p>=M.bad)lc='#ff8a80';
   const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-Mw,'#ffd23a'],[1-Mw,1+Mw,'#3fd46a'],[1+Mw,M.bad,'#ffd23a'],[M.bad,mx,'#e0503a']];
   for(const z of Z){cx.fillStyle=z[2];cx.fillRect(gx+gw*z[0]/mx,gy,gw*(z[1]-z[0])/mx,8)}rr(gx+gw*Math.min(m.p,mx)/mx-2,gy-3,4,14,2,'#fff')}
- /* 뒤집어!·꺼내!는 틀 테두리가 반짝여요 */
- const hot=lab==='뒤집어!'||lab==='꺼내!';if(hot){const pu=.55+.45*Math.sin(s.t*12);cx.save();cx.lineWidth=4;cx.strokeStyle='rgba(120,240,140,'+pu+')';cx.beginPath();cx.roundRect(X+1,Y+1,MW-2,MH-2,15);cx.stroke();cx.restore()}
- tx(lab,X+146,Y+24,hot?20:m.s>=3?15:18,hot?'#8dffa0':lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
+ tx(lab,X+146,Y+24,m.s>=3?16:18,lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
 /* 손님 말풍선 (리액션) */
 const RXP={p:['😍 최고예요!','🤩 PERFECT!','😍 이 맛이야!'],o:['😋 맛있어요!','😊 GREAT!','😋 좋아요!'],g:['🙂 고마워요','🙂 잘 먹을게요','🙂 GOOD']};
 const HELLO={n:'안녕하세요!',reg:'또 왔어요 😊',hurry:'빨리 주세요! ⏱️',vip:'특별 주문이에요 👑',group:'단체 주문이요! 🚌',critic:'평가하러 왔소 🎩'};
