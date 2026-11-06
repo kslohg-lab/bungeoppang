@@ -2,13 +2,14 @@
    작업대에 컵 3개까지 올려 두고 번갈아 만들어요.
    ☕ 샷: 머신이 2.4초 동안 혼자 내려요(한 번에 한 잔) · 🥛 스팀: 우유를 데워 알맞은 온도(초록)에서 멈춰요
    🍦 시럽·가루: 톡 한 번 · 🥛/💧 꾹 눌러 점선까지 붓기 · 완성된 컵을 고르고 손님을 톡 = 내기. 90초.
+   🔔 러시 타임(28~38초·62~72초): 손님 더 빨리, 값 +20% · 👨‍👩‍👧 단체 주문(8명 중 1명꼴 2잔): 다 주면 +15%, 참을성 1.5배.
    CAFE(cx,A,O) O={snd(k),toast(t),onServe(an),coins()} → {start(o),step(dt),draw(t),down(x,y),up(),res(),get done} */
 const CAFE_ING={shot:{n:'샷',e:'☕',c:'#5a2e14',r:.16},milk:{n:'우유',e:'🥛',c:'#fbf3e4',r:.34},water:{n:'물',e:'💧',c:'rgba(140,195,235,.75)',r:.34},
  van:{n:'바닐라',e:'🍦',c:'#f0d27a',r:.16},choco:{n:'초코',e:'🍫',c:'#6b3a1f',r:.16},straw:{n:'딸기',e:'🍓',c:'#ff7fa6',r:.16},matcha:{n:'말차',e:'🍵',c:'#7fbf5a',r:.16}};
 function CAFE(cx,A,O){
 const {rr,tx,em,animal}=A,W=450,H=800,D=BIZ.DK,SX=[80,225,370];
 const SH=['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff','#ffb070'];
-const BASES=['van','choco','straw','matcha'],SLX=[172,272,372],CT=376,CB=486,CTW=74,CBW=54,BREW=2.4,MILK_HOT=[55,72];
+const RUSH=[[28,38],[62,72]],inRush=t=>RUSH.some(w=>t>=w[0]&&t<w[1]),BASES=['van','choco','straw','matcha'],SLX=[172,272,372],CT=376,CB=486,CTW=74,CBW=54,BREW=2.4,MILK_HOT=[55,72];
 let g=null;
 /* 음료 레시피 → {cup, base, shot, liq, tg, bl(시럽 높이)} */
 const rec=d=>{const b=d.st.find(s=>BASES.includes(s[0])),l=d.st[d.st.length-1];return{cup:d.cup,base:b?b[0]:null,bl:b?b[1]:0,shot:d.st.some(s=>s[0]==='shot'),liq:l[0],tg:l[1]}};
@@ -21,7 +22,7 @@ function layout(){const B=[],m=10,gp=8;let y=514;
  const lq=[];if(g.need.milk)lq.push({k:'milk',ty:'pour',l:'🥛 우유 꾹'});if(g.need.water)lq.push({k:'water',ty:'pour',l:'💧 물 꾹'});row(lq,64);
  g.btn=B}
 function start(o){const dr=BIZ.myDrinks(o.save);g={t:0,len:90,o,dr:dr.length?dr:[D.ame],cust:[null,null,null],spawn:1.2,cups:[null,null,null],sel:-1,pour:null,
-  mach:{i:-1,t:0},stm:{amt:0,temp:0,on:false},rev:0,mat:0,served:0,lost:0,perf:0,great:0,good:0,wrong:0,spill:0,combo:0,bc:0,fx:[],done:false,shake:0,seq:0,tut:(o.save&&o.save.cafeN|0)<2};
+  mach:{i:-1,t:0},stm:{amt:0,temp:0,on:false},rev:0,mat:0,served:0,lost:0,perf:0,great:0,good:0,wrong:0,spill:0,combo:0,bc:0,rushN:0,grpN:0,rush0:false,fx:[],done:false,shake:0,seq:0,tut:(o.save&&o.save.cafeN|0)<2};
  const R=g.dr.map(rec);g.need={base:new Set(R.map(r=>r.base).filter(Boolean)),steam:R.some(r=>r.cup==='hot'&&r.liq==='milk'),milk:R.some(r=>r.liq==='milk'),water:R.some(r=>r.liq==='water')};layout()}
 const lvl=c=>c?c.lay.reduce((a,l)=>a+l.a,0):0;
 const selCup=()=>g.sel>=0?g.cups[g.sel]:null;
@@ -31,8 +32,10 @@ function addLay(c,k,a){const top=c.lay[c.lay.length-1];if(top&&top.k===k)top.a+=
 function step(dt){if(!g||g.done)return;g.t+=dt;if(g.shake>0)g.shake-=dt;
  /* 손님 */
  g.spawn-=dt;if(g.spawn<=0){const fr=g.cust.map((c,i)=>c?-1:i).filter(i=>i>=0);if(fr.length&&g.t<g.len-5){const i=fr[Math.floor(Math.random()*fr.length)],dd=g.dr[Math.floor(Math.random()*g.dr.length)],an=BP2.R.an[Math.floor(Math.random()*BP2.R.an.length)];
-  g.cust[i]={id:++g.seq,an,d:dd.k,pat:32,max:32,ag:0,leave:0,happy:0,ang:0,sh:SH[g.seq%SH.length]}}
-  g.spawn=g.t>g.len-30?3.6+Math.random()*2:4.4+Math.random()*2.4}
+  /* 👨‍👩‍👧 단체 주문: 8명 중 1명꼴로 2잔 (절반은 같은 음료) · 참을성 1.5배 */const grp=g.t>8&&Math.random()<.12,d2=grp?(Math.random()<.5?dd.k:g.dr[Math.floor(Math.random()*g.dr.length)].k):null,pt=grp?48:32;
+  g.cust[i]={id:++g.seq,an,d:dd.k,d2,got:[0,0],pay:0,pat:pt,max:pt,ag:0,leave:0,happy:0,ang:0,sh:SH[g.seq%SH.length]}}
+  /* 🔔 러시 타임엔 손님이 2배 빨리 와요 */g.spawn=(g.t>g.len-30?3.6+Math.random()*2:4.4+Math.random()*2.4)*(inRush(g.t)?.62:1)}
+ {const rn=inRush(g.t);if(rn&&!g.rush0){g.spawn=Math.min(g.spawn,.4);fx('🔔 러시 타임! 값 +20%',W/2,170,'#ffcf6a',1.6);O.snd('fanfare')}g.rush0=rn}
  g.cust.forEach((c,i)=>{if(!c)return;c.ag+=dt;if(c.leave>0){c.leave-=dt;if(c.leave<=0)g.cust[i]=null;return}
   c.pat-=dt;if(c.pat<=0){c.leave=.8;c.ang=1;g.lost++;g.combo=0;fx('😡 가 버렸어요',SX[i],150,'#ff8a8a');O.snd('angry')}});
  /* ☕ 머신: 혼자 내려요 */
@@ -48,17 +51,22 @@ function step(dt){if(!g||g.done)return;g.t+=dt;if(g.shake>0)g.shake-=dt;
 /* 손님에게 내기: 고른 컵 → 톡 한 손님 */
 function serveTo(i){const c=g.cust[i],cup=selCup();if(!c||c.leave>0)return;if(!cup){O.toast('완성한 컵을 먼저 골라요 (작업대 컵 톡)');O.snd('no');return}
  if(cup.shot===1){O.toast('☕ 샷을 내리는 중이에요');O.snd('no');return}if(lvl(cup)<.3){O.toast('음료를 먼저 만들어요!');O.snd('no');return}
- const d=D[c.d],r=rec(d),base=cup.lay.find(l=>BASES.includes(l.k)),liqs=cup.lay.filter(l=>l.k==='milk'||l.k==='water');
- const ok=cup.cup===r.cup&&(base?base.k:null)===r.base&&(cup.shot===2)===r.shot&&liqs.length>=1&&liqs.every(l=>l.k===r.liq)&&cup.lay.filter(l=>BASES.includes(l.k)).length<=1;
- if(!ok){g.wrong++;g.combo=0;c.pat=Math.max(1,c.pat-6);g.shake=.4;fx('주문이랑 달라요! 😣',SX[i],150,'#ffb0b0');O.snd('no');dropCup(g.sel,150);return}
- const err=Math.abs(lvl(cup)-r.tg);let q=err<=.035?0:err<=.08?1:err<=.15?2:3;
+ const base=cup.lay.find(l=>BASES.includes(l.k)),liqs=cup.lay.filter(l=>l.k==='milk'||l.k==='water');
+ const fits=dk=>{const r=rec(D[dk]);return cup.cup===r.cup&&(base?base.k:null)===r.base&&(cup.shot===2)===r.shot&&liqs.length>=1&&liqs.every(l=>l.k===r.liq)&&cup.lay.filter(l=>BASES.includes(l.k)).length<=1};
+ /* 아직 안 받은 음료 중 맞는 것 */const want=[[0,c.d],[1,c.d2]].filter(([k,dk])=>dk&&!c.got[k]),hitW=want.find(([k,dk])=>fits(dk));
+ if(!hitW){g.wrong++;g.combo=0;c.pat=Math.max(1,c.pat-6);g.shake=.4;fx('주문이랑 달라요! 😣',SX[i],150,'#ffb0b0');O.snd('no');dropCup(g.sel,150);return}
+ const [wk,dk]=hitW,d=D[dk],r=rec(d),err=Math.abs(lvl(cup)-r.tg);let q=err<=.035?0:err<=.08?1:err<=.15?2:3;
  /* 따뜻한 우유는 온도도 봐요: 초록(55~72도)이 아니면 한 단계 아래 */
  if(r.cup==='hot'&&r.liq==='milk'&&cup.mt!=null&&(cup.mt<MILK_HOT[0]||cup.mt>MILK_HOT[1]))q=Math.min(3,q+1);
- const Q=[['PERFECT',1.5,'#8dffa0'],['GREAT',1.2,'#9fe0ff'],['GOOD',1,'#c8f0b0'],['아쉬워요',.6,'#ffd0c0']][q];
+ const Q=[['PERFECT',1.5,'#8dffa0'],['GREAT',1.2,'#9fe0ff'],['GOOD',1,'#c8f0b0'],['아쉬워요',.6,'#ffd0c0']][q],rn=inRush(g.t);
  if(Q[1]>=1){g.combo++;g.bc=Math.max(g.bc,g.combo)}else g.combo=0;if(q===0)g.perf++;else if(q===1)g.great++;else if(q===2)g.good++;
- const pay=Math.round((g.o.dp?g.o.dp(d):d.p)*g.o.mul*g.o.pm*Q[1]*(1+Math.min(.5,g.combo*.05)));g.rev+=pay;g.mat+=d.c;g.served++;
- c.leave=.9;c.happy=1;fx(Q[0]+'! +'+BP2.fmt(pay),SX[i],140,Q[2],1.4);if(g.combo>=3)fx('🔥 '+g.combo+' 콤보',SX[i],112,'#ffb060',1.2);
- O.snd(q===0?'perf':'coin');O.onServe&&O.onServe(c.an);g.cups[g.sel]=null;g.sel=-1}
+ const pay=Math.round((g.o.dp?g.o.dp(d):d.p)*g.o.mul*g.o.pm*Q[1]*(1+Math.min(.5,g.combo*.05))*(rn?1.2:1));g.rev+=pay;g.mat+=d.c;g.served++;if(rn)g.rushN++;
+ c.got[wk]=1;c.pay+=pay;g.cups[g.sel]=null;g.sel=-1;O.snd(q===0?'perf':'coin');
+ const done=!c.d2||(c.got[0]&&c.got[1]);
+ if(done){let bonus=0;if(c.d2){bonus=Math.round(c.pay*.15);g.rev+=bonus;g.grpN++}c.leave=.9;c.happy=1;O.onServe&&O.onServe(c.an);
+  fx(Q[0]+'! +'+BP2.fmt(pay+bonus)+(bonus?' 👨‍👩‍👧':'')+(rn?' 🔔':''),SX[i],140,Q[2],1.4)}
+ else{c.pat=Math.min(c.max,c.pat+8);fx(Q[0]+'! +'+BP2.fmt(pay)+' · 1잔 더!',SX[i],140,Q[2],1.3)}
+ if(g.combo>=3)fx('🔥 '+g.combo+' 콤보',SX[i],112,'#ffb060',1.2)}
 function hitB(x,y){return g.btn.find(b=>x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)}
 function down(x,y){if(!g||g.done)return;
  /* 손님 톡 = 고른 컵 내기 */
@@ -131,9 +139,11 @@ function draw(t){if(!g)return;cx.save();if(g.shake>0)cx.translate(Math.sin(t*80)
  const cs=selCup();
  g.cust.forEach((c,i)=>{if(!c)return;const x=SX[i],inn=Math.min(1,c.ag/.5),lv=c.leave>0?1-c.leave/.9:0,a=c.leave>0?1-lv:inn,y=212+(1-inn)*20-(c.happy?Math.abs(Math.sin(lv*12))*10:0);
   cx.globalAlpha=Math.max(0,a);const r=c.pat/c.max;animal(c.an,x+(c.ang?-lv*60:0),y,70,{t,ph:i*1.7,mood:c.happy?'h':c.ang?'a':r<.3?'w':'n',shirt:c.sh,tilt:r<.3&&!c.leave?Math.sin(t*9)*.04:0});
-  if(c.leave<=0){const d=D[c.d],hl=cs&&cs.liq&&cs.shot!==1;rr(x-62,62,124,64,16,'#fff');if(hl){cx.save();cx.lineWidth=2.5;cx.setLineDash([5,4]);cx.strokeStyle='#ffb020';cx.beginPath();cx.roundRect(x-62,62,124,64,16);cx.stroke();cx.restore()}
-   cx.fillStyle='#fff';cx.beginPath();cx.moveTo(x-8,125);cx.lineTo(x+8,125);cx.lineTo(x,135);cx.fill();
-   em(d.e,x-36,84,28);tx(d.s,x+14,82,16,'#5a3a22','center','#fff');tx((d.cup==='ice'?'🧊':'🔥')+' '+ingIcons(d),x,110,15,'#5a3a22','center','#fff');
+  if(c.leave<=0){const nx=!c.got[0]?c.d:c.d2,d=D[nx],hl=cs&&cs.liq&&cs.shot!==1;rr(x-62,62,124,64,16,c.d2?'#fff3d6':'#fff');if(hl){cx.save();cx.lineWidth=2.5;cx.setLineDash([5,4]);cx.strokeStyle='#ffb020';cx.beginPath();cx.roundRect(x-62,62,124,64,16);cx.stroke();cx.restore()}
+   cx.fillStyle=c.d2?'#fff3d6':'#fff';cx.beginPath();cx.moveTo(x-8,125);cx.lineTo(x+8,125);cx.lineTo(x,135);cx.fill();
+   if(c.d2){/* 단체: 두 잔 모두 보여 주고 받은 건 ✅ */const a0=D[c.d],a1=D[c.d2];em(a0.e,x-42,82,22,c.got[0]?.35:1);if(c.got[0])em('✅',x-30,90,13);em(a1.e,x-14,82,22,c.got[1]?.35:1);if(c.got[1])em('✅',x-2,90,13);tx('2잔',x+34,82,15,'#c06010','center','#fff3d6')}
+   else{em(d.e,x-36,84,28);tx(d.s,x+14,82,16,'#5a3a22','center','#fff')}
+   tx((d.cup==='ice'?'🧊':'🔥')+' '+ingIcons(d),x,110,15,'#5a3a22','center',c.d2?'#fff3d6':'#fff');
    rr(x-40,140,80,8,4,'rgba(0,0,0,.2)');rr(x-40,140,80*r,8,4,r<.3?'#ff6a5a':r<.6?'#ffc94a':'#7ed88a')}
   cx.globalAlpha=1});
  /* 작업대 */
@@ -143,8 +153,10 @@ function draw(t){if(!g)return;cx.save();if(g.shake>0)cx.translate(Math.sin(t*80)
  rr(0,0,W,58,0,'#6b4a3a');tx('☕ 음료 도와주기',12,20,20,'#fff','left','#6b4a3a');tx('🪙 '+BP2.fmt(Math.round(O.coins()+g.rev-g.mat)),386,20,20,'#ffe9a0','right','#6b4a3a');
  const left=Math.max(0,g.len-g.t);rr(12,38,W-24,12,6,'rgba(0,0,0,.3)');rr(12,38,(W-24)*left/g.len,12,6,left<15?'#ff7a5a':'#7ed88a');tx(Math.ceil(left)+'초',W/2,44,12,'#fff','center','#6b4a3a');
  if(g.combo>=2)tx('🔥 '+g.combo,W-60,44,14,'#ffd060','right','#6b4a3a');
- const tl=g.tut?tutLine():g.t<4?'컵 여러 개를 번갈아 만들어요 · 완성 컵 고르고 손님 톡!':'';if(tl)tx(tl,W/2,310,14,'#fff','center','#6b4a3a');
+ const tl=inRush(g.t)?'':g.tut?tutLine():g.t<4?'컵 여러 개를 번갈아 만들어요 · 완성 컵 고르고 손님 톡!':'';if(tl)tx(tl,W/2,310,14,'#fff','center','#6b4a3a');
+ /* 🔔 러시 타임: 깜빡이지 않는 띠 */{const rn=inRush(g.t),nx=RUSH.find(w=>g.t<w[0]);if(rn){const w=RUSH.find(w=>g.t>=w[0]&&g.t<w[1]);cx.fillStyle='rgba(255,170,60,.13)';cx.fillRect(0,58,W,234);rr(W/2-130,296,260,26,13,'#ff9a3a');tx('🔔 러시 타임! 값 +20% · '+Math.ceil(w[1]-g.t)+'초',W/2,309,15,'#fff','center','#ff9a3a')}
+  else if(nx&&nx[0]-g.t<4&&nx[0]-g.t>0)tx('🔔 곧 러시 타임!',W/2,280,14,'#fff','center','#a8714a')}
  g.fx.forEach(f=>{const u=1-f.l/f.m;cx.globalAlpha=Math.min(1,f.l*2);tx(f.t,f.x,f.y-u*30,19,f.c,'center','#5a3a22');cx.globalAlpha=1});
  cx.restore()}
-function res(){return{net:Math.round(g.rev-g.mat),rev:g.rev,mat:g.mat,served:g.served,lost:g.lost,perf:g.perf,great:g.great,good:g.good,wrong:g.wrong,spill:g.spill,bc:g.bc}}
+function res(){return{net:Math.round(g.rev-g.mat),rev:g.rev,mat:g.mat,served:g.served,lost:g.lost,perf:g.perf,great:g.great,good:g.good,wrong:g.wrong,spill:g.spill,bc:g.bc,rushN:g.rushN,grpN:g.grpN}}
 return{start,step,draw,down,up,res,finish(){if(g){g.done=true;g.pour=null}},get done(){return!!(g&&g.done)},get g(){return g}}}
