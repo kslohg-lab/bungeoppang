@@ -336,22 +336,25 @@ function drawFloor(look,t,edit,items){const f=FLR[look.floor|0]||FLR[0];
 function apron(x,y,s,col){const w=s*.46,h=s*.4,ty=y+s*.3;cx.globalAlpha=.94;rr(x-w/2,ty,w,h,s*.08,col);cx.globalAlpha=1;rr(x-w*.2,ty+h*.38,w*.4,h*.3,s*.04,'rgba(255,255,255,.5)');cx.strokeStyle=col;cx.lineWidth=Math.max(1.5,s*.03);cx.beginPath();cx.moveTo(x-w*.42,ty+2);cx.lineTo(x-w*.2,ty-s*.12);cx.moveTo(x+w*.42,ty+2);cx.lineTo(x+w*.2,ty-s*.12);cx.stroke()}
 function badge(x,y,e,col){const r=TW*.11;cx.fillStyle='#fff';cx.beginPath();cx.arc(x,y,r,0,7);cx.fill();cx.strokeStyle=col;cx.lineWidth=2.5;cx.stroke();em(e,x,y,r*1.35)}
 const SCOL={bake:'#e8a840',serve:'#ff8ab0',promo:'#ff9a3a',barista:'#3a8a5a'};
+/* 직원 전용 그림(img/st_*.webp)이 있으면 그 그림, 없으면 예전처럼 손님 그림 + 앞치마 */
+const stImg=k=>{const im=window.ART_IMG&&window.ART_IMG['st_'+k];return!!(im&&im.complete&&im.naturalWidth)};
+const stKey=(k,e)=>stImg(k)?'st_'+k:e;
 /* 카운터 뒤 직원: 발이 카운터에 가려지게 (발 = 카운터 윗면보다 조금 아래). 왼쪽부터 🐼 바리스타 · 사장님 · 🐶 굽기 알바 */
 const behind=(gx,gy,sc)=>{const p=iso(gx,gy),s=TW*sc;return{x:p.x,y:p.y-TW*.30-s*.9,s}};
 function staffBack(t,look){const S=look.staff||{};
- if(look.cafe&&S.barista>0){const q=behind(1.42,.3,.36);animal('🐼',q.x,q.y,q.s,{t,ph:3,mood:'h'});
+ if(look.cafe&&S.barista>0){const q=behind(1.42,.3,.36);animal(stKey('barista','🐼'),q.x,q.y,q.s,{t,ph:3,mood:'h'});
   const ph=m2(t*.9,1);cx.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';cx.beginPath();cx.ellipse(q.x+q.s*.4,q.y+q.s*.2-ph*q.s*.3,3+ph*3,2+ph*2,0,0,7);cx.fill()}}
 function staffBack2(t,look){const S=look.staff||{};
- if(S.bake>0){const q=behind(2.85,.32,.36);animal('🐶',q.x,q.y,q.s,{t,ph:5,mood:'h'});
+ if(S.bake>0){const q=behind(2.85,.32,.36);animal(stKey('bake','🐶'),q.x,q.y,q.s,{t,ph:5,mood:'h'});
   const hop=m2(t*.8,1);if(hop<.5){const u=hop/.5;A.bread(q.x-q.s*.42,q.y+q.s*.55-Math.sin(u*Math.PI)*q.s*.55,TW*.0024,'#f0b850',{rot:u*Math.PI*2,plain:true})}}}
 /* 앞쪽 직원: 🐰 계산 알바는 카운터 왼쪽 바닥(계산대), 🦊 홍보 알바는 입구 앞 길가 */
 function staffFront(t,look,L){const S=look.staff||{};
  if(S.serve>0){const gx=.5,gy=.42;L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),s=TW*.38,y=p.y-s*.88;shadow(p.x,p.y,s*.3);
   const q=iso(gx+.32,gy+.18);rr(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5,'#a8744a');cx.strokeStyle=OL;cx.lineWidth=Math.max(1.4,TW*.02);cx.beginPath();cx.roundRect(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5);cx.stroke();
-  animal('🐰',p.x,y,s,{t,ph:7,mood:'h'});apron(p.x,y,s,SCOL.serve);
+  animal(stKey('serve','🐰'),p.x,y,s,{t,ph:7,mood:'h'});if(!stImg('serve'))apron(p.x,y,s,SCOL.serve);
   rr(q.x-s*.2,q.y-s*.86,s*.4,s*.26,4,'#7a7a86');rr(q.x-s*.16,q.y-s*.82,s*.32,s*.09,2,'#bfe8bf');badge(p.x-s*.5,y-s*.3,'🧾',SCOL.serve)}})}
- if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal('🦊',p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});apron(p.x,y,s,SCOL.promo);
-  cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore();badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
+ if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal(stKey('promo','🦊'),p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});if(!stImg('promo')){apron(p.x,y,s,SCOL.promo);
+  cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore()}badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
 /* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어
    벽에 붙는 것(메뉴판·조명·줄전구·네온)은 사장님보다 먼저(wall=true), 빵 바구니만 나중에 그려요 → 사장님 얼굴을 안 가려요 */

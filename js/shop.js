@@ -42,7 +42,8 @@ const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h
 const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.h+'%':'');
 const nm=()=>save.name||'붕어빵';
 /* 사장님 그림: 0=기본(코드 그림), 1=곰, 2=얼룩곰 */
-const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp'},{n:'얼룩곰 사장님',f:'img/cook2.webp'}];
+const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp'},{n:'얼룩곰 사장님',f:'img/cook2.webp'},{n:'고양이 사장님',f:'img/cook3.webp'},{n:'너구리 사장님',f:'img/cook4.webp'}];
+/* 직원 전용 그림 */if(typeof ART_LOAD==='function')ART_LOAD({st_bake:'img/st_bake.webp',st_serve:'img/st_serve.webp',st_promo:'img/st_promo.webp',st_barista:'img/st_barista.webp'});
 function applyCook(){const c=COOKS[save.cook|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}
 applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
