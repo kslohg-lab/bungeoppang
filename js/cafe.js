@@ -1,10 +1,10 @@
 /* ===== ☕ 음료 만들기 (가게 '도와주기' 전용 · 챌린지와 상관없음) — 2판: 기계 돌려 놓고 동시에 =====
    작업대에 컵 3개까지 올려 두고 번갈아 만들어요.
    ☕ 샷: 머신이 2.4초 동안 혼자 내려요(한 번에 한 잔) · 🥛 스팀: 우유를 데워 알맞은 온도(초록)에서 멈춰요
-   🍦 시럽·가루: 톡 한 번 · 🥛/💧 꾹 눌러 점선까지 붓기 · 완성된 컵을 고르고 손님을 톡 = 내기. 90초.
+   🍦 시럽·가루: 톡 한 번 · 🥛/💧 누르면 붓기, 한 번 더 누르면 멈춤(점선까지) · 완성된 컵을 고르고 손님을 톡 = 내기. 90초.
    🔔 러시 타임(28~38초·62~72초): 손님 더 빨리, 값 +20% · 👨‍👩‍👧 단체 주문(8명 중 1명꼴 2잔): 다 주면 +15%, 참을성 1.5배.
    CAFE(cx,A,O) O={snd(k),toast(t),onServe(an),coins()} → {start(o),step(dt),draw(t),down(x,y),up(),res(),get done} */
-const CAFE_ING={shot:{n:'샷',e:'☕',c:'#5a2e14',r:.16},milk:{n:'우유',e:'🥛',c:'#fbf3e4',r:.34},water:{n:'물',e:'💧',c:'rgba(140,195,235,.75)',r:.34},
+const CAFE_ING={shot:{n:'샷',e:'☕',c:'#5a2e14',r:.16},milk:{n:'우유',e:'🥛',c:'#fffdf6',r:.34},water:{n:'물',e:'💧',c:'rgba(140,195,235,.75)',r:.34},
  van:{n:'바닐라',e:'🍦',c:'#f0d27a',r:.16},choco:{n:'초코',e:'🍫',c:'#6b3a1f',r:.16},straw:{n:'딸기',e:'🍓',c:'#ff7fa6',r:.16},matcha:{n:'말차',e:'🍵',c:'#7fbf5a',r:.16}};
 function CAFE(cx,A,O){
 const {rr,tx,em,animal}=A,W=450,H=800,D=BIZ.DK,SX=[80,225,370];
@@ -19,7 +19,7 @@ function layout(){const B=[],m=10,gp=8;let y=514;
  row([{k:'ice',ty:'cup',l:'🧊 아이스 컵'},{k:'hot',ty:'cup',l:'🔥 따뜻한 컵'},{k:'trash',ty:'trash',l:'🗑️ 버리기'}],44);
  const bs=BASES.filter(k=>g.need.base.has(k));if(bs.length)row(bs.map(k=>({k,ty:'base',l:CAFE_ING[k].e+' '+CAFE_ING[k].n})),46);
  const mc=[{k:'shot',ty:'shot',l:'☕ 샷 내리기'}];if(g.need.steam)mc.push({k:'steam',ty:'steam',l:'🥛 스팀'});row(mc,60);
- const lq=[];if(g.need.milk)lq.push({k:'milk',ty:'pour',l:'🥛 우유 꾹'});if(g.need.water)lq.push({k:'water',ty:'pour',l:'💧 물 꾹'});row(lq,64);
+ const lq=[];if(g.need.milk)lq.push({k:'milk',ty:'pour',l:'🥛 우유 붓기'});if(g.need.water)lq.push({k:'water',ty:'pour',l:'💧 물 붓기'});row(lq,64);
  g.btn=B}
 function start(o){const dr=BIZ.myDrinks(o.save);g={t:0,len:90,o,dr:dr.length?dr:[D.ame],cust:[null,null,null],spawn:1.2,cups:[null,null,null],sel:-1,pour:null,
   mach:{i:-1,t:0},stm:{amt:0,temp:0,on:false},rev:0,mat:0,served:0,lost:0,perf:0,great:0,good:0,wrong:0,spill:0,combo:0,bc:0,rushN:0,grpN:0,rush0:false,fx:[],done:false,shake:0,seq:0,tut:(o.save&&o.save.cafeN|0)<2};
@@ -76,6 +76,7 @@ function down(x,y){if(!g||g.done)return;
  const b=hitB(x,y);if(!b)return;const c=selCup();
  if(b.ty==='cup'){const i=g.cups.findIndex(v=>!v);if(i<0){O.toast('작업대가 꽉 찼어요! 완성한 컵을 내거나 버려요');O.snd('no');return}g.cups[i]={cup:b.k,lay:[],shot:0,liq:null,mt:null};g.sel=i;O.snd('tap');return}
  if(b.ty==='trash'){if(c){dropCup(g.sel,c.lay.length?150:0);O.snd('tap')}else O.toast('버릴 컵을 먼저 골라요');return}
+ if(b.ty==='pour'&&g.pour&&g.pour.k===b.k){g.pour=null;O.snd('tap');return}
  if(!c&&b.ty!=='steam'){O.toast('작업대에서 컵을 먼저 골라요!');O.snd('no');return}
  if(b.ty==='base'){if(c.liq){O.toast('시럽·가루는 우유·물보다 먼저 넣어요');O.snd('no');return}if(c.lay.some(l=>BASES.includes(l.k))){O.toast('이미 넣었어요');O.snd('no');return}
   const r=g.dr.map(rec).find(r=>r.base===b.k);addLay(c,b.k,r?r.bl:.15);fx(CAFE_ING[b.k].e+' 톡!',SLX[g.sel],CT-6,'#fff0c0',.7);O.snd('pour');return}
@@ -86,8 +87,9 @@ function down(x,y){if(!g||g.done)return;
   if(S.amt<=0){S.amt=1;S.temp=8;g.mat+=60}S.on=true;O.snd('pour');return}
  if(b.ty==='pour'){if(c.shot===1){O.toast('☕ 샷을 내리는 중이에요 · 다른 컵을 먼저 해요');O.snd('no');return}
   if(b.k==='milk'&&c.cup==='hot'&&(g.stm.amt<=0||g.stm.temp<40||g.stm.on)){O.toast(g.stm.on?'🥛 스팀을 먼저 멈춰요 (초록에서 톡)':'따뜻한 컵엔 🥛 스팀으로 데운 우유를 부어요');O.snd('no');return}
-  g.pour={i:g.sel,k:b.k};O.snd('pour')}}
-function up(){if(g)g.pour=null}
+  /* 누르면 붓기 시작 · 한 번 더 누르면 멈춰요 (다른 물을 누르면 바꿔 부어요) */
+  if(g.pour&&g.pour.k===b.k){g.pour=null;O.snd('tap');return}g.pour={i:g.sel,k:b.k};O.snd('pour')}}
+function up(){}
 /* ---------- 그리기 ---------- */
 const yOf=l=>CB-(CB-CT)*l;
 const halfW=y=>{const u=(CB-y)/(CB-CT);return(CBW+(CTW-CBW)*u)/2};
@@ -95,8 +97,10 @@ function cupPath(x){cx.beginPath();cx.moveTo(x-CTW/2,CT);cx.lineTo(x+CTW/2,CT);c
 function drawCupAt(i,t){const x=SLX[i],c=g.cups[i],sel=g.sel===i;
  if(sel){rr(x-48,336,96,166,16,'#ffefb0');cx.save();cx.lineWidth=3;cx.strokeStyle='#ffb020';cx.beginPath();cx.roundRect(x-48,336,96,166,16);cx.stroke();cx.restore()}
  if(!c){cupPath(x);cx.setLineDash([6,6]);cx.lineWidth=2.5;cx.strokeStyle='#e0cbb0';cx.stroke();cx.setLineDash([]);tx('빈 자리',x,CT+52,13,'#c8ad90','center','#fff6e6');return}
- cx.save();cupPath(x);cx.fillStyle='rgba(255,255,255,.6)';cx.fill();cx.clip();let cum=0;
+ cx.save();cupPath(x);cx.fillStyle='#dde6ec';cx.fill();cx.clip();let cum=0;
+ /* 유리컵은 연한 회청색, 층마다 윗면 선 → 흰 우유도 차오르는 게 보여요 */
  c.lay.forEach(l=>{const y0=yOf(cum),y1=yOf(cum+l.a);cx.fillStyle=CAFE_ING[l.k].c;cx.fillRect(x-50,y1,100,y0-y1+.6);cum+=l.a});
+ {const lv=lvl(c);if(lv>.02){const y=yOf(lv),top=c.lay[c.lay.length-1];cx.fillStyle=top&&top.k==='milk'?'#e9d3a8':'rgba(0,0,0,.18)';cx.fillRect(x-50,y,100,3);if(top&&top.k==='milk'){cx.fillStyle='rgba(255,255,255,.9)';cx.fillRect(x-50,y+3,100,2)}}}
  if(c.cup==='ice'){cx.globalAlpha=.5;[[-16,466,15],[10,474,16],[-4,446,13],[16,450,12],[-18,428,12],[6,420,13]].forEach(([dx,y,s],k)=>{cx.save();cx.translate(x+dx,y);cx.rotate(.3*k);cx.fillStyle='#eaf8ff';cx.fillRect(-s/2,-s/2,s,s);cx.strokeStyle='#bfe4f8';cx.lineWidth=1.5;cx.strokeRect(-s/2,-s/2,s,s);cx.restore()});cx.globalAlpha=1}
  if(g.pour&&g.pour.i===i){cx.fillStyle=CAFE_ING[g.pour.k].c;cx.fillRect(x-4,CT-30,8,yOf(lvl(c))-CT+30)}
  cx.restore();cupPath(x);cx.lineWidth=3;cx.strokeStyle=c.cup==='ice'?'#9ccbe6':'#c8a888';cx.stroke();
@@ -117,20 +121,20 @@ function drawBtns(t){const c=selCup();g.btn.forEach(b=>{let base=b.ty==='trash'?
  if(b.ty==='cup'&&!g.cups.some(v=>!v))dis=true;
  if(b.ty==='shot'){if(g.mach.i>=0){sub='내리는 중 '+Math.ceil(BREW-g.mach.t)+'초';dis=true}else if(!c||c.shot||c.liq)dis=true;base=dis?'#f4ece2':'#ffe2b8'}
  if(b.ty==='base'&&(!c||c.liq||c.lay.some(l=>BASES.includes(l.k))))dis=true;
- if(b.ty==='pour'){if(!c||c.shot===1)dis=true;if(g.pour&&g.pour.k===b.k)base='#ffe9a0'}
+ if(b.ty==='pour'){if(!c||c.shot===1)dis=true;if(g.pour&&g.pour.k===b.k){base='#ffe9a0';dis=false;lab='✋ 멈추기 ('+CAFE_ING[b.k].e+' '+Math.round(lvl(g.cups[g.pour.i])*100)+'%)'}}
  const sh=dis?'#e8dccc':b.ty==='shot'?'#d9a060':'#e0c4a0';rr(b.x,b.y+4,b.w,b.h,16,sh);rr(b.x,b.y+(g.pour&&g.pour.k===b.k?3:0),b.w,b.h,16,dis?'#f4ece2':base);
  if(b.ty==='steam'){const S=g.stm,gx=b.x+12,gw=b.w-24,gy=b.y+b.h-18;rr(gx,gy,gw,9,4,'rgba(0,0,0,.15)');rr(gx+gw*MILK_HOT[0]/100,gy,gw*(MILK_HOT[1]-MILK_HOT[0])/100,9,0,'#8ad88a');
   if(S.amt>0){const px=gx+gw*Math.min(1,S.temp/100);cx.fillStyle=S.temp>MILK_HOT[1]?'#ff5a3a':'#5a3a22';cx.beginPath();cx.moveTo(px,gy-3);cx.lineTo(px-5,gy-10);cx.lineTo(px+5,gy-10);cx.fill()}
-  lab=S.on?'⏸ 멈추기 '+Math.round(S.temp)+'°':S.amt>0?'🥛 데운 우유 '+Math.round(S.temp)+'°':'🥛 스팀 시작';
+  lab=S.on?'✋ 멈추기 '+Math.round(S.temp)+'°':S.amt>0?'🥛 데운 우유 '+Math.round(S.temp)+'°':'🥛 스팀 시작';
   if(S.on){cx.save();cx.lineWidth=4;cx.strokeStyle='rgba(255,120,60,'+(.5+.5*Math.sin(t*10))+')';cx.beginPath();cx.roundRect(b.x-2,b.y-2,b.w+4,b.h+4,18);cx.stroke();cx.restore();for(let k=0;k<2;k++){const ph=(t*1.2+k*.5)%1;cx.globalAlpha=(1-ph)*.7;em('💨',b.x+b.w-24-k*14,b.y-4-ph*16,14);cx.globalAlpha=1}}
   tx(lab,b.x+b.w/2,b.y+19,17,'#5a3a22','center','#fff');return}
  tx(lab,b.x+b.w/2,b.y+b.h/2+(sub?-8:0)+(g.pour&&g.pour.k===b.k?3:0),b.ty==='base'?17:b.ty==='cup'||b.ty==='trash'?15:18,dis?'#b8a890':'#5a3a22','center',dis?'#f4ece2':base);
  if(sub)tx(sub,b.x+b.w/2,b.y+b.h/2+12,12,'#a07a58','center',base);
- if(b.ty==='pour'&&!dis)tx('꾹',b.x+b.w-14,b.y+12,11,'#c0a080','center',base)})}
+ })}
 /* 처음 두 판만: 지금 할 일 한 줄 */
 function tutLine(){const c=selCup();if(!g.cups.some(Boolean))return'① 손님 주문을 보고 컵을 골라요';if(!c)return'작업대의 컵을 톡 해서 골라요';
  if(c.shot===1)return'샷이 내려가는 동안 다른 컵을 만들어요!';if(!c.liq&&g.need.steam&&c.cup==='hot'&&g.stm.amt<=0)return'따뜻한 우유 음료는 🥛 스팀 → 초록에서 멈추기';
- if(!c.liq)return'☕ 샷·🍦 시럽을 넣고 🥛/💧 꾹 눌러 점선까지';return'완성! 같은 주문을 한 손님을 톡 하면 내요'}
+ if(!c.liq)return'☕ 샷·🍦 시럽을 넣고 🥛/💧 눌러 붓기 → 점선에서 한 번 더!';return'완성! 같은 주문을 한 손님을 톡 하면 내요'}
 function draw(t){if(!g)return;cx.save();if(g.shake>0)cx.translate(Math.sin(t*80)*4,0);
  const bg=cx.createLinearGradient(0,0,0,330);bg.addColorStop(0,'#f6dcc0');bg.addColorStop(1,'#eac9a2');cx.fillStyle=bg;cx.fillRect(0,0,W,H);
  cx.fillStyle='#d9b48c';for(let x=0;x<W;x+=30)cx.fillRect(x,58,2,236);
