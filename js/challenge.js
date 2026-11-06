@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.9.1';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.9.2';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -239,7 +239,7 @@ JUICE.backGuard(()=>scr==='game'&&s&&s.ph==='play',()=>{pauseGame();askQuit()});
 A=ART(cx,{shape:()=>0,toast:t=>toast(t),snd:k=>snd(k)});const {em,tx,rr,m2,lite,dark}=A;
 cv.addEventListener('pointerdown',e=>{e.preventDefault();au();if(scr==='tut'&&tut){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;if(tut.done){if(tut.done>.4&&y>420&&y<490)endTut(true);return}const st=TS[tut.i];if(st.hold&&!tut.ready)return;tap(x,y);return}if(scr!=='game'||paused||!s||s.ph!=='play')return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
-function tap(x,y){A.tapPlay(x,y);drain()}
+function tap(x,y){if(y<34&&ui.pill&&x>=ui.pill[0]&&x<=ui.pill[1]&&run){const lc=B.L(run),dl=run.up.deco|0,as=run.as?B.ASSIST.find(a=>a.k===run.as):null;toast(lc.e+' '+lc.n+(dl?' · 🏮 장식 '+dl+'단계(손님↑)':'')+(as?' · '+as.e+' '+as.n:''));return}A.tapPlay(x,y);drain()}
 function drain(){A.drainFx()}
 
 /* ---------- 그리기 (가게와 같은 그림 도구, 배경만 챌린지 노점) ---------- */
@@ -249,9 +249,9 @@ function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.
  bg:t=>{cx.fillStyle='#ffe0b5';cx.fillRect(0,0,W,H);cx.fillStyle='#c9935f';cx.fillRect(0,322,W,78);cx.fillStyle='#d9a873';cx.fillRect(0,322,W,6);cx.fillStyle='rgba(0,0,0,.14)';cx.fillRect(0,328,W,4);cx.fillStyle='#6b5344';cx.fillRect(0,394,W,310)},
  front:t=>{awning(t);/* 카운터 앞판 */const g=cx.createLinearGradient(0,318,0,330);g.addColorStop(0,'#b97d4a');g.addColorStop(1,'#a06a3a');cx.fillStyle=g;cx.fillRect(0,318,W,8)},
  head:t=>{rr(0,0,W,58,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(s.d+'일차 '+s.wea.e,50,20,22,'#fff','left');
-  const dc=['','🏮','🏮⛱️','🏮⛱️✨'][run.up.deco|0];tx(lc.e+(dc||'')+(run.as?' '+B.ASSIST.find(a=>a.k===run.as).e:''),160,20,16,'#fff','left');
+  /* 장소·장식·보조칸을 알약 하나로 (톡 하면 설명) */{const dl=run.up.deco|0,as=run.as?B.ASSIST.find(a=>a.k===run.as):null,pt=lc.e+(dl?' 🏮'+dl:'')+(as?' '+as.e:'');cx.font='bold 15px "Jua","Noto Sans KR",sans-serif';const pw=cx.measureText(pt).width+20;rr(150,8,pw,24,12,'rgba(255,255,255,.22)');tx(pt,160,20,15,'#fff','left');ui.pill=[150,150+pw]}
   {const tv=run.coins+s.net;if(ui.cv==null)ui.cv=tv;ui.cv+=(tv-ui.cv)*.16;if(Math.abs(tv-ui.cv)<1)ui.cv=tv;tx('🪙 '+fmt(Math.round(ui.cv)),385,20,ui.hud>0?26:22,ui.hud>0?'#fff6c0':'#ffe9a0','right')}
-  const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,38,258,12,6,'rgba(0,0,0,.35)');rr(128,38,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,36,3,16,1,'#fff');if(ui.gh!=null&&ui.gh>0){const gx=128+258*Math.min(1.25,ui.gh/s.cut)/1.25;rr(gx-1,35,2,18,1,'rgba(200,230,255,.95)');A.em('👻',gx,30,13,.9)}tx('컷트라인 '+fmt(s.cut),122,45,13,'#fff','right')}})}
+  const gr=Math.max(0,Math.min(1.25,s.net/s.cut));rr(128,38,258,12,6,'rgba(0,0,0,.35)');rr(128,38,258*gr/1.25,12,6,gr>=1?'#ffd23a':'#7ed88a');rr(128+258/1.25-1.5,36,3,16,1,'#fff');if(ui.gh!=null&&ui.gh>0){const gx=128+258*Math.min(1.25,ui.gh/s.cut)/1.25;rr(gx-1,35,2,18,1,'rgba(200,230,255,.95)');A.em('👻',gx,30,13,.9)}tx('컷트라인',122,45,13,'#fff','right');/* 막대 위 숫자: 오늘 번 돈 / 컷트라인 */tx(fmt(Math.max(0,Math.round(s.net)))+' / '+fmt(s.cut),128+129,44,11,gr>=1?'#5a3a00':'#fff','center',gr>=1?'#ffd23a':'rgba(0,0,0,.5)')}})}
 
 /* ---------- 도전장 (자랑 링크로 들어온 사람) ---------- */
 const rivalOK=()=>save.rival&&save.rival.w===wid()&&save.rival.n;

@@ -155,7 +155,7 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
  const ox=m.sh>0?Math.sin(s.t*70)*3:0,fx=X+64+ox,fy=Y+29,z0=.74,sc=z0*(1+.08*tp);
  rr(X,Y,MW,MH,16,'#5a4638');rr(X+4,Y+4,MW-8,MH-8,13,'#3f3029');let lab='',lc='#fff';
  const cav=()=>bread(fx,fy,z0,'#2c211c',{rim:'#6a5547',plain:true});
- if(m.s===0){cav();lab='빈 틀';if(s.d<=2)tx('톡!',fx,fy,20)}
+ if(m.s===0){cx.globalAlpha=.6;cav();cx.globalAlpha=1;lab='';if(s.d<=2)tx('톡!',fx,fy,20)}
  else if(m.s===1){cav();const f=Math.min(1,a/.35);cx.save();cx.beginPath();cx.rect(fx-40,fy+20-f*40,96,f*40+3);cx.clip();bread(fx,fy,sc,'#f6dfa0',{rim:'#b8905a',plain:true});cx.restore();
    if(a<.35){cx.fillStyle='#f6dfa0';cx.fillRect(fx-8,fy-30,5,30*Math.min(1,a/.12)+2)}else{cx.strokeStyle='rgba(255,255,255,.5)';cx.lineWidth=1.5;cx.beginPath();cx.ellipse(fx-3,fy-2,8+Math.sin(a*6)*1,4,0,0,7);cx.stroke()}lab='속 넣기'}
  else if(m.s===2){bread(fx,fy,sc,'#f6dfa0',{rim:'#b8905a',plain:true});const u=Math.min(1,a/.3),bz=1+.25*Math.sin(u*Math.PI);cx.fillStyle=BP2.R.menu[m.f].col;cx.strokeStyle='rgba(0,0,0,.25)';cx.lineWidth=1.5;cx.beginPath();cx.ellipse(fx-5,fy,13*u*bz,7*u*bz,0,0,7);cx.fill();cx.stroke();lab='덮개 톡!'}
@@ -170,7 +170,9 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
   if(inP&&Math.floor(s.t*6)%2)lc='#8dffa0';if(m.p>=M.bad)lc='#ff8a80';
   const gx=X+12,gw=MW-24,gy=Y+MH-14,mx=M.burn,Z=[[0,.85,'#8a7a6a'],[.85,1-Mw,'#ffd23a'],[1-Mw,1+Mw,'#3fd46a'],[1+Mw,M.bad,'#ffd23a'],[M.bad,mx,'#e0503a']];
   for(const z of Z){cx.fillStyle=z[2];cx.fillRect(gx+gw*z[0]/mx,gy,gw*(z[1]-z[0])/mx,8)}rr(gx+gw*Math.min(m.p,mx)/mx-2,gy-3,4,14,2,'#fff')}
- tx(lab,X+146,Y+24,m.s>=3?16:18,lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
+ /* 뒤집어!·꺼내!는 틀 테두리가 반짝여요 */
+ const hot=lab==='뒤집어!'||lab==='꺼내!';if(hot){const pu=.55+.45*Math.sin(s.t*12);cx.save();cx.lineWidth=4;cx.strokeStyle='rgba(120,240,140,'+pu+')';cx.beginPath();cx.roundRect(X+1,Y+1,MW-2,MH-2,15);cx.stroke();cx.restore()}
+ tx(lab,X+146,Y+24,hot?20:m.s>=3?15:18,hot?'#8dffa0':lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
 /* 손님 말풍선 (리액션) */
 const RXP={p:['😍 최고예요!','🤩 PERFECT!','😍 이 맛이야!'],o:['😋 맛있어요!','😊 GREAT!','😋 좋아요!'],g:['🙂 고마워요','🙂 잘 먹을게요','🙂 GOOD']};
 const HELLO={n:'안녕하세요!',reg:'또 왔어요 😊',hurry:'빨리 주세요! ⏱️',vip:'특별 주문이에요 👑',group:'단체 주문이요! 🚌',critic:'평가하러 왔소 🎩'};
@@ -226,6 +228,9 @@ function streetBg(o){const t=s.t,lc=BP2.L(run),wea=s.wea.e;
   bub(225,dep(.22).y-34,'줄 서는 중…','rgba(255,255,255,.9)','#7a5a3a')}
 }
 /* 거리 버전 손님: 걸어와서(ag) 카운터 앞에 서고, 떠날 때 걸어가요 */
+const TYI={vip:'👑 VIP 손님! 한 번에 많이 사 가요',group:'🚌 단체 손님! 많이 주문하고 보너스를 줘요',critic:'🎩 평론가! ✨완벽하게 구운 것만 받아요 · 극찬 보너스',reg:'⭐ 단골 손님이 왔어요!',hurry:'⏱️ 급한 손님! 빨리 줘야 해요'};
+const TYS=(()=>{try{return new Set(JSON.parse(localStorage.getItem('bpTyS')||'[]'))}catch(e){return new Set()}})();
+function tySeen(k){if(TYS.has(k))return true;TYS.add(k);try{localStorage.setItem('bpTyS',JSON.stringify([...TYS]))}catch(e){}return false}
 function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
  let d=Math.min(1,ag/WALK);d=1-Math.pow(1-d,2);
  const lv=c.leave>0?1-c.leave/.8:0,r=c.pat/c.max;let x,y,k,a=1;
@@ -240,12 +245,15 @@ function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
  if(c.an==='🧐')em('🧐',x,y+sz*.2,sz*1.05);else animal(c.an,x,y,sz,{walk:(c.leave>0||!arrived)?s.t*11+i:null,t:s.t,ph:i*1.9+(c.an.codePointAt(0)%7),mood,shirt:SHIRT(c),tilt:mood==='w'?Math.sin(s.t*9)*.04:c.rxT>0?Math.sin(s.t*14)*.06:0});
  const bd={vip:'👑',reg:'⭐',hurry:'⏱️',group:'🚌',critic:'🎩'}[c.ty];if(bd)em(bd,x-sz*.72,y-sz*.58,26*k);
  /* 주문 말풍선: 도착하면 */
- if(c.leave<=0&&d>.75){const L=[];for(let f=0;f<6;f++)if(c.ord[f]>0)L.push(f);const hb=12+22*L.length,bx=sx-58,top=Math.max(80,y-sz*.62-hb-40);cx.globalAlpha=Math.min(1,(d-.75)*4);
-  rr(bx,top,116,hb,14,'#fff');cx.beginPath();cx.moveTo(sx-10,top+hb);cx.lineTo(sx,top+hb+10);cx.lineTo(sx+10,top+hb);cx.closePath();cx.fillStyle='#fff';cx.fill();
-  if(c.ty==='critic')tx('✨만!',bx+98,top+hb-9,12,'#c0392b','center','#fff');
-  L.slice(0,6).forEach((f,q)=>{const rm=c.ord[f]-c.got[f],yy=top+17+q*22;if(rm>0){em(R.menu[f].e,bx+30,yy,20);tx('×'+rm,bx+72,yy,20,'#6a3a1a','center','#fff')}else em('✅',bx+30,yy,18,.7)});cx.globalAlpha=a}
- /* 리액션 말풍선 */
- const by=y-sz*.62-16;
+ /* 맛이 3개 이상이면 2칸씩 가로로 (말풍선이 길어져 얼굴·옆 손님을 가리지 않게) */
+ let obB=0;if(c.leave<=0&&d>.75){const L=[];for(let f=0;f<6;f++)if(c.ord[f]>0)L.push(f);const co=L.length>2?2:1,rows=Math.ceil(L.length/co),bw=co===2?136:104,hb=10+26*rows,bx=Math.max(4,Math.min(446-bw,sx-bw/2)),top=Math.max(72,y-sz*.62-hb-34);obB=top+hb;cx.globalAlpha=Math.min(1,(d-.75)*4);
+  rr(bx,top,bw,hb,14,'#fff');cx.beginPath();cx.moveTo(sx-10,top+hb);cx.lineTo(sx,top+hb+10);cx.lineTo(sx+10,top+hb);cx.closePath();cx.fillStyle='#fff';cx.fill();
+  if(c.ty==='critic')tx('✨만!',bx+bw-16,top-6,12,'#c0392b','center','#fff');
+  const cw=bw/co;L.slice(0,6).forEach((f,q)=>{const rm=c.ord[f]-c.got[f],cx0=bx+cw*(q%co)+cw/2,yy=top+18+Math.floor(q/co)*26;if(rm>0){em(R.menu[f].e,cx0-15,yy,co===2?20:22);tx('×'+rm,cx0+17,yy,co===2?18:20,'#6a3a1a','center','#fff')}else em('✅',cx0,yy,18,.7)});cx.globalAlpha=a}
+ /* 처음 보는 특별 손님은 한 번만 무슨 손님인지 알려 줘요 */
+ if(c.leave<=0&&d>=1&&TYI[c.ty]&&!tySeen(c.ty))OPT.toast(TYI[c.ty]);
+ /* 리액션 말풍선 (주문 말풍선과 겹치지 않게 그 아래로) */
+ const by=Math.max(y-sz*.62-16,obB?obB+22:0);
  if(c.leave>0&&c.angry){bub(x,by,'흥! 안 살래요 😤','#ffdcd6','#a0281a');em('💢',x+sz*.6,y-sz*.2,22)}
  else if(c.leave>0&&c.happy){bub(x,by,c.ty==='critic'?'🎩 별 다섯 개!':'또 올게요! 💖','#ffe9f2','#a03060');for(let q=0;q<3;q++){const ph=(s.t*1.5+q/3)%1;em('💖',x-20+q*20,y-sz*.3-ph*36,13,1-ph)}}
  else if(arrived&&c.nb>0)bub(x,by,c.nbt||'아직 없어요? 🥺','#ffefd6','#8a4a10');
@@ -258,14 +266,15 @@ function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
  cx.globalAlpha=1}
 /* 접시 줄: 맛마다 개수, ✨완벽·👍좋음 */
 function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),cap=B.rackCap(run);
- tx('접시',24,338,14,'#fff','center','#7a4a22');tx(lv>=2?'맛별10':s.rack.length+'/'+cap,24,358,lv>=2?11:13,s.rack.length>=cap&&lv<2?'#ff9a8a':'#ffe9a0','center','#7a4a22');
+ tx('접시',24,338,14,'#fff','center','#7a4a22');if(lv>=2){tx('맛마다',24,355,10,'#ffe9a0','center','#7a4a22');tx('10개',24,368,10,'#ffe9a0','center','#7a4a22')}else tx(s.rack.length+'/'+cap,24,358,13,s.rack.length>=cap?'#ff9a8a':'#ffe9a0','center','#7a4a22');
  for(let f=0;f<nf;f++){let ps=0,os=0,n=0;for(const r of s.rack)if(r.f===f){n++;if(r.q==='p')ps++;else if(r.q==='o')os++}const rx=48+f*rw+rw/2,sm=nf>4;
-  rr(rx-rw/2+3,346,rw-6,42,12,lv>=2&&n>=10?'rgba(255,120,100,.35)':'rgba(255,255,255,.28)');
+  /* 0개인 맛은 흐리게 → 구워 둔 맛만 눈에 띄어요 */cx.globalAlpha=n?1:.38;
+  rr(rx-rw/2+3,346,rw-6,42,12,lv>=2&&n>=10?'rgba(255,120,100,.35)':n?'rgba(255,255,255,.45)':'rgba(255,255,255,.2)');
   bread(rx-rw/2+(sm?18:22),362,sm?.24:.3,n?(ps?QC.p:QC.g):'rgba(60,40,30,.5)',{plain:true,rim:n?undefined:'rgba(0,0,0,.2)'});em(R.menu[f].e,rx-rw/2+(sm?34:46),354,sm?12:16);
-  tx('×'+n,rx+rw/2-(sm?14:20),362,sm?15:20,'#fff');let q='';if(ps)q+='✨'+ps;if(os)q+=(q?' ':'')+'👍'+os;if(q)tx(q,rx,381,sm?10:12,'#ffe066','center','#7a4a22')}}
+  tx('×'+n,rx+rw/2-(sm?14:20),362,sm?15:20,'#fff');cx.globalAlpha=1;let q='';if(ps)q+='✨'+ps;if(os)q+=(q?' ':'')+'👍'+os;if(q)tx(q,rx,381,sm?10:12,'#ffe066','center','#7a4a22')}}
 /* 아래 맛 고르기 */
 function menuBar(){const B=BP2,R=B.R,n=run.nf,bw=(450-20-(n-1)*6)/n;for(let i=0;i<n;i++){const x=10+i*(bw+6),sel=s.sel===i,M=R.menu[i],lv=B.fuLv(run,i);rr(x,700,bw,88,16,sel?'#ffd76a':'#fff');if(sel){cx.lineWidth=4;cx.strokeStyle='#e8584a';cx.beginPath();cx.roundRect(x,700,bw,88,16);cx.stroke()}
-  em(M.e,x+bw/2,722,n>4?26:30);if(lv)tx('★'+lv,x+bw-10,712,11,'#ff8a2a','right','#fff');tx(M.n,x+bw/2,748,n>4?12:14,'#5a3a22','center','#fff');tx(B.fmt(B.price(run,i)),x+bw/2,768,n>4?12:14,'#5a3a22','center','#fff');tx('재료 '+B.fmt(M.c),x+bw/2,782,10,'#a4701f','center','#fff')}}
+  em(M.e,x+bw/2,722,n>4?26:30);if(lv)tx('★'+lv,x+bw-10,712,11,'#ff8a2a','right','#fff');tx(M.n,x+bw/2,747,n>4?12:14,'#5a3a22','center','#fff');tx(B.fmt(B.price(run,i)),x+bw/2,sel?765:771,n>4?15:17,'#3a2a1a','center',sel?'#ffd76a':'#fff');if(sel)tx('재료 '+B.fmt(M.c),x+bw/2,782,10,'#a4701f','center','#ffd76a')}}
 function hints(){if(s.d>2||s.ph!=='play'||s.noHint)return;let h='';const B=BP2,act=s.mold.slice(0,B.nMold(run));
  if(act.some(m=>(m.s===3||m.s===4)&&m.p>=1-B.R.menu[m.f].w&&m.p<=1+B.R.menu[m.f].w))h='✨ 초록 구간에 누르면 PERFECT! (한 면만 맞으면 GREAT)';
  else if(s.rack.length&&s.cust.some(c=>c))h='완성된 붕어빵은 손님을 톡! 해서 줘요';
