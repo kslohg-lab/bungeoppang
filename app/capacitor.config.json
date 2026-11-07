@@ -1,0 +1,19 @@
+{
+  "appId": "com.ksgame.bungeoppang",
+  "appName": "붕어빵 챌린지",
+  "webDir": "www",
+  "server": {
+    "url": "https://bungeoppang-shop.vercel.app/",
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#FFC46B"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

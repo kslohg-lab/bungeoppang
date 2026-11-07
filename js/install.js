@@ -3,7 +3,7 @@
 const INSTALL=(()=>{
 const ua=navigator.userAgent||'',kakao=/KAKAOTALK/i.test(ua),ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),
  iosOther=ios&&/CriOS|FxiOS|EdgiOS|NAVER|Whale|DaumApps/i.test(ua),android=/Android/i.test(ua);
-const standalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const standalone=()=>{try{if(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform())return true;return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
 let deferred=null;const btns=[];
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;sync()});
 addEventListener('appinstalled',()=>{deferred=null;sync()});

@@ -1,0 +1,12 @@
+{
+  "name": "bungeoppang-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "붕어빵 챌린지 안드로이드 앱 포장 (사이트를 그대로 불러와요)",
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor-community/admob": "8.3.0"
+  }
+}

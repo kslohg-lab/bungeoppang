@@ -244,6 +244,13 @@ const DXT=[10,30];
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
 /* 🔥 챌린지를 아직 안 해 본 사람: 도와주기 결과에 챌린지 안내 (메달 → 특별 외관) */
 const chLink=()=>{let ch=null;try{ch=JSON.parse(localStorage.getItem('bungeoppang2Pub1'))}catch(e){}if(ch&&ch.runs>0||(save.days|0)%3!==1)return'';return'<a href="./" class="sum" style="display:block;text-decoration:none;color:inherit;background:#ffe9d6;margin-top:6px"><b>🔥 챌린지도 해 봐요!</b><br><small>매주 친구들과 단계 겨루기 · 🏅 메달을 모아 특별한 가게 외관을 사요 ›</small></a>'};
+/* 📺 앱에서만: 광고 보고 도와주기 번 돈 한 번 더 (하루 ADS.MAX번) */
+let adGain=0;
+const adBtn=g=>{adGain=0;if(!window.ADS||!ADS.on||g<=0)return'';const n=ADS.left();if(!n)return'<div class="tip">📺 오늘 광고 보너스를 다 받았어요 · 내일 또 '+ADS.MAX+'번!</div>';adGain=g;
+ return'<button id="adx" class="big" style="background:#7ec8ff;box-shadow:0 4px 0 #3f8fd1;margin-top:8px;height:auto;min-height:0;font-size:18px;line-height:1.3;padding:9px 10px">📺 광고 보고 🪙+'+fmt(g)+' 더 받기<br><small style="font-size:13px">오늘 '+n+'/'+ADS.MAX+'번 남음</small></button>'};
+function adBind(){const b=$('adx');if(!b)return;b.onclick=async()=>{if(b.disabled||!adGain)return;const g=adGain;b.disabled=true;b.style.opacity=.6;b.innerHTML='📺 광고 여는 중…';
+ const ok=await ADS.show();if(ok){adGain=0;save.coins+=g;BIZ.ledger(save,Date.now()).help+=g;store();syncShop();snd('coins');b.innerHTML='✅ 🪙+'+fmt(g)+' 받았어요!';toast('📺 고마워요! 🪙+'+fmt(g))}
+ else{b.disabled=false;b.style.opacity=1;b.innerHTML='📺 못 받았어요 · 다시 누르기<br><small>광고를 끝까지 보면 받아요</small>'}}}
 /* ---------- ✨ 버튼은 하나씩 열려요 (처음엔 꼭 필요한 것만) ----------
    새로 가게를 연 사람만(save.d0). 예전부터 하던 사람은 다 열려 있어요. 열리면 'NEW' 표시 + 알림 */
 const UNL=[{id:'nst',e:'🏙️',n:'붕어빵 동네',ok:a=>a.days>=1||a.age>=1},{id:'nb',e:'🏘️',n:'가게 순위',ok:a=>a.days>=1||a.age>=1},{id:'h4',e:'📖',n:'도감',ok:a=>a.days>=1},{id:'nbs',e:'📤',n:'내 가게 자랑',ok:a=>a.days>=2||a.age>=1},{id:'nnt',e:'📮',n:'방명록',ok:a=>a.age>=1},{id:'nms',e:'🏅',n:'메달 상점',ok:a=>a.age>=1||(window.MEDAL&&MEDAL.get().n>0)}];
@@ -312,9 +319,9 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
  h+=grpTxt(grp);
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
  if(g1>g0)h+='<div class="sum" style="background:#ffeaa8"><b>🎉 가게 등급이 올랐어요!</b><br>'+GR[g1].e+' <b>'+GR[g1].n+'</b> · 새 꾸미기 상품이 열렸어요</div>';
- h+=chLink();
+ h+=adBtn(gain-bonus)+chLink();
  h+='<div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">⭐ '+save.stars+'</span><span class="chip">'+GR[g1].e+' '+GR[g1].n+'</span></div>';
- $('rt').textContent='🌙 도와주기 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;scr='res';s=null;snd('win');setTimeout(()=>snd('coins'),380);show('res')}
+ $('rt').textContent='🌙 도와주기 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;adBind();scr='res';s=null;snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 /* ---------- ☕ 음료 도와주기 (js/cafe.js) ---------- */
 let lastHelp='bread';
 const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
@@ -322,8 +329,8 @@ function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save
 function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h));
  save.coins+=gain;save.served+=r.served;save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
  let h=resTop(gain,r.net,tax,hm)+'<div class="chips"><span class="chip">☕ '+r.served+'잔</span><span class="chip">✨ '+r.perf+'</span><span class="chip">👍 '+r.great+'</span><span class="chip">🙂 '+r.good+'</span><span class="chip'+(r.lost?' red':'')+'">😡 '+r.lost+'</span><span class="chip'+(r.wrong?' red':'')+'">😣 '+r.wrong+'</span><span class="chip'+(r.spill?' red':'')+'">💦 '+r.spill+'</span><span class="chip">🔥 '+r.bc+'</span></div>';
- h+=grpTxt(grp)+chLink();h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
- $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
+ h+=grpTxt(grp)+adBtn(gain)+chLink();h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
+ $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;adBind();scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 const cafeXY=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]};
 cv.addEventListener('pointerdown',e=>{if(scr!=='cafe'||paused)return;e.preventDefault();au();const [x,y]=cafeXY(e);CF.down(x,y)});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev,()=>{if(scr==='cafe')CF.up()}));
@@ -707,5 +714,5 @@ $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🛋️ 2칸 가구로 바뀐 뒤 처음: 겹치는 소파·벤치는 돌려 보고, 안 되면 보관함으로 */
 if(!save.w4&&save.fur){const moved=IS.fixWide(save.fur,save.room);save.w2=save.w3=save.w4=1;store();if(0&&moved.length)setTimeout(()=>bzShow('🛋️','2칸 가구가 됐어요!','<p style="text-align:center;margin:0">소파 · 벤치 · 빵 진열대 · 피아노가 이제 2칸을 차지하고 두 명이 앉아요.<br>자리가 모자란 <b>'+moved.length+'개</b>는 📦 보관함에 넣어 뒀어요. 🎨 꾸미기에서 다시 놓아 주세요!</p>','🎨 꾸미러 가기',()=>openDeco('home'),'좋아요',null),900)}
 fit();{const qm=new URLSearchParams(location.search).get('medal');if(qm!=null&&save.name){try{history.replaceState(null,'',location.pathname)}catch(e){}setTimeout(()=>openMedal('home'),400)}}{const qv=new URLSearchParams(location.search).get('visit');if(qv){try{history.replaceState(null,'',location.pathname)}catch(e){}renderHome();visit(qv,'url')}else if(save.name){const g=bizTick(false);toHome();if(!save.biz)setTimeout(bizIntro,350);else if(giftCheck()){}else if(g&&g.h>=3/60)setTimeout(()=>awayCard(g),350);setTimeout(()=>NEWS.check(false),400);INSTALL.nudge(true)}else{NEWS.check(true);renderHome();openName(true);INSTALL.nudge(false)}}requestAnimationFrame(loop);
-setTimeout(syncShop,1500);
+setTimeout(syncShop,1500);setTimeout(()=>{if(window.ADS)ADS.warm()},4000);
 })();
