@@ -1,1 +1,96 @@
+# 🤖 붕어빵 안드로이드 앱 만들기
+# - app/ 폴더나 이 파일을 올리면 자동으로, 또는 Actions 탭 → '안드로이드 앱 만들기' → Run workflow 로 돌려요.
+# - 🧪 시험용 APK: 저장소 Releases의 '앱 시험판'에 올라가요 → 폰에서 받아 바로 설치.
+# - 🏪 출시용 AAB: 저장소 Settings → Secrets에 KEYSTORE_B64·KEYSTORE_PASS가 있으면 같이 만들어져요 (Actions 실행 화면 아래 Artifacts).
+# - 게임 내용은 앱에 안 들어가요. 앱이 사이트를 불러오니 게임 업데이트는 지금처럼 올리기만 하면 돼요.
+name: 안드로이드 앱 만들기
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['app/**', '.github/workflows/android.yml']
+
+permissions:
+  contents: write
+
+env:
+  # 📺 AdMob 앱 ID — 지금은 구글 시험용이에요. AdMob에서 앱을 만들면 그 'ca-app-pub-…~…' 로 바꿔요.
+  ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      KS_B64: ${{ secrets.KEYSTORE_B64 }}
+      KS_PASS: ${{ secrets.KEYSTORE_PASS }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 준비물 설치
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install --quiet pillow
+
+      - name: 안드로이드 프로젝트 만들기
+        run: |
+          npx cap add android
+          python prep.py ../img/icon-512.png android
+
+      - name: 🧪 시험용 APK
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/bungeoppang-test.apk"
+
+      - name: 🏪 출시용 AAB (서명 비밀값이 있을 때만)
+        if: env.KS_B64 != ''
+        working-directory: app/android
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          ./gradlew bundleRelease --no-daemon --stacktrace \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.jks" \
+            -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias=upload \
+            -Pandroid.injected.signing.key.password="$KS_PASS"
+          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/bungeoppang-${{ github.run_number }}.aab"
+          rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: 시험판을 Releases에 올리기
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete app-test --yes --cleanup-tag || true
+          gh release create app-test bungeoppang-test.apk --prerelease \
+            --title "🧪 앱 시험판 (빌드 ${{ github.run_number }})" \
+            --notes "폰에서 bungeoppang-test.apk 를 눌러 받고 설치하세요. 광고는 구글 시험 광고예요. Play 스토어 버전과는 따로예요."
+
+      - name: 결과 파일 보관
+        uses: actions/upload-artifact@v4
+        with:
+          name: bungeoppang-app-${{ github.run_number }}
+          path: |
+            bungeoppang-test.apk
+            bungeoppang-*.aab
+          if-no-files-found: warn
 
