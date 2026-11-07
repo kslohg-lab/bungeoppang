@@ -287,7 +287,7 @@ function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!E
  if(e.ch===-1)return'<div class="evl" id="evl">'+T[0]+' 오늘의 사건: '+T[1]+' <b>› 고르기</b></div>';
  if(e.k==='group'&&e.ch===0){if(e.res==='ok')return'<div class="evl ok">🚌 단체 주문 완료! ✅</div>';if(e.res==='fail')return'<div class="evl">🚌 단체 주문 실패 😢</div>';return'<div class="evl">🚌 단체 주문 '+(e.got|0)+'/'+e.need+'명 · '+hm(Math.max(0,(e.until-Date.now())/3600e3))+' 남음 · 🙋 도와주기!</div>'}
  return e.msg?'<div class="evl">'+T[0]+' '+e.msg+'</div>':''}
-function renderHome(){unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
+function renderHome(){setTimeout(hmLay,0);unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
  $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+(save.name&&att().n?attLine():'');{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0)}
@@ -662,7 +662,7 @@ let ti=0;
 function tourShow(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
  if(ti>=TOUR.length){$('ttx').innerHTML='준비 끝! 🎉<br>첫 가구를 하나 놓아 볼까요? (선물로 준 의자·탁자도 있어요)';$('tnx').textContent='🎨 꾸미러 가기';$('tsk').textContent='나중에';$('tdot').textContent='';$('tcap').style.top='auto';$('tcap').style.bottom='24px';return}
  const [id,txt]=TOUR[ti],el=$(id);el.classList.add('hl');$('ttx').innerHTML=txt;$('tnx').textContent='다음 ▶';$('tsk').textContent='건너뛰기';$('tdot').textContent=(ti+1)+' / '+TOUR.length;
- const br=$('box').getBoundingClientRect(),sc=br.height/H,y=(el.getBoundingClientRect().top-br.top)/sc;if(y>420){$('tcap').style.top='70px';$('tcap').style.bottom='auto'}else{$('tcap').style.top='auto';$('tcap').style.bottom='24px'}}
+ const br=$('box').getBoundingClientRect(),sc=br.width/W,y=(el.getBoundingClientRect().top-br.top)/sc;if(y>420){$('tcap').style.top='70px';$('tcap').style.bottom='auto'}else{$('tcap').style.top='auto';$('tcap').style.bottom='24px'}}
 function startTour(){if(save.tour)return;ti=0;$('tour').style.display='block';tourShow()}
 function endTour(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));$('tour').style.display='none';save.tour=1;store()}
 $('tnx').onclick=()=>{if(ti>=TOUR.length){endTour();openDeco('home');toast('🪑 아래에서 가구를 고르고 바닥을 톡!');return}ti++;tourShow()};
@@ -702,13 +702,18 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
  else if(scr==='street'){drawStreet(t,dt)}
  else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd);if(vPre!==vd){vPre=vd;IS.draw(t,lk,vfur,{top:60,bottom:600});for(let i=0;i<90;i++)IS.tick(.25,vfur,1)}IS.tick(dt,vfur,1);IS.draw(t,lk,vfur,{top:60,bottom:600})}}
  else{if(!hPre){hPre=1;drawHome(t,scr==='deco');for(let i=0;i<90;i++)IS.tick(.25,save.fur,1)}IS.tick(dt,save.fur,1);drawHome(t,scr==='deco')}
- zfSync();requestAnimationFrame(loop)}
-function fit(){const b=document.body,sc=Math.min(b.clientWidth/W,b.clientHeight/H);$('box').style.transform='translate('+(b.clientWidth-W*sc)/2+'px,'+(b.clientHeight-H*sc)/2+'px) scale('+sc+')'}
-addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));
+ zfSync();if(scr!==fitScr)fit();requestAnimationFrame(loop)}
+/* 📐 세로가 긴 폰: 가게 첫 화면만 판을 아래로 늘려 (최대 +170) 아래 메뉴 판을 넓게. 다른 화면은 그대로 450×800 */
+let EXT=0,fitScr='';
+function boxBg(){if(!EXT){$('box').style.background='';return}try{const d=cx.getImageData(2,cv.height-3,1,1).data;$('box').style.background='rgb('+d[0]+','+d[1]+','+d[2]+')'}catch(e){}}
+function hmLay(){const p=document.querySelector('#hm .pn');if(!p||scr!=='home'||!p.offsetParent)return;const t=p.offsetTop;for(const id of ['nst','nms','zf']){const e=$(id);if(e)e.style.top=Math.min(470+EXT,t-56)+'px'}}
+function fit(){const b=document.body,w=b.clientWidth,h=b.clientHeight,ex=scr==='home'?Math.min(170,h*W/w-H):0;EXT=ex>6?Math.round(ex):0;const BH=H+EXT,sc=Math.min(w/W,h/BH),bx=$('box');
+ bx.style.height=BH+'px';bx.style.transform='translate('+(w-W*sc)/2+'px,'+(h-BH*sc)/2+'px) scale('+sc+')';fitScr=scr;boxBg();hmLay()}
+addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(document.body)}catch(e){}addEventListener('orientationchange',()=>setTimeout(fit,200));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(0){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
-setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home')bizBtn();if(++bizN%5===0)store()},1000);
+setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
 window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🛋️ 2칸 가구로 바뀐 뒤 처음: 겹치는 소파·벤치는 돌려 보고, 안 되면 보관함으로 */
