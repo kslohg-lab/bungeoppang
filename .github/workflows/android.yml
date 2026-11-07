@@ -28,25 +28,27 @@ jobs:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
+      # 안드로이드 SDK는 GitHub 서버에 이미 깔려 있어요 (ANDROID_HOME)
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: 준비물 설치
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           npm install --no-audit --no-fund
           python -m pip install --quiet pillow
 
@@ -93,4 +95,3 @@ jobs:
             bungeoppang-test.apk
             bungeoppang-*.aab
           if-no-files-found: warn
-
