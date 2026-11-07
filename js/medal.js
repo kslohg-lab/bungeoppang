@@ -18,6 +18,8 @@ function next(wid,stage){const got=(load().w[wid|0])||[];for(const [st,n] of msO
 const RK=r=>!(r>=1)?0:r===1?50:r<=3?30:r<=10?20:r<=30?10:5;
 const rankPaid=w=>{const v=load();return!!(v.r&&v.r[w])};
 function payRank(w,rank){const v=load();if(!v.r||typeof v.r!=='object')v.r={};if(v.r[w])return 0;const n=RK(rank);v.r[w]=rank||-1;for(const k in v.r)if(+k<w-8)delete v.r[k];if(n){v.n+=n;v.t+=n}save(v);return n}
+/* 출석 선물 등으로 메달 받기 (합계 t에도 더해요) */
+function add(n){n|=0;if(n<=0)return;const v=load();v.n+=n;v.t+=n;save(v)}
 function spend(n){const v=load();if(v.n<n)return false;v.n-=n;save(v);return true}
-return{get:()=>load(),claim,next,spend,MS,msOf,WK,RWK:2965,RK,rankPaid,payRank}})();
+return{get:()=>load(),claim,next,spend,add,MS,msOf,WK,RWK:2965,RK,rankPaid,payRank}})();
 window.MEDAL=MEDAL;

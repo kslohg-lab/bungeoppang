@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.0.1';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.0.2';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -30,7 +30,7 @@ function startFromCp(){if(!cpOK())return;au();run=clone(save.cp.run);pityApply()
 function renderMenu(){
  if(save.run&&save.run.run&&save.run.run.over){run=save.run.run;record();save.run=null;store();run=null}
  const sr=save.run,wk=save.week.id===wid()?save.week:{stage:0,net:0};
- $('mw').innerHTML=(save.nick?'<span class="pill">🙂 '+esc(save.nick)+'</span>':'')+'<span class="pill">🏅 이번 주 '+wk.stage+'단계</span>';mus('menu');bkGift();if(window.MEDAL&&wk.stage)medalGet(wk.stage);if(window.MEDAL&&wid()>=MEDAL.WK)$('mw').innerHTML+='<a class="pill" href="shop.html?medal=1" style="background:#fff0c0;text-decoration:none;color:inherit">🏅 '+MEDAL.get().n+' 상점 ›</a>';$('ver').textContent='시험판 v'+VER+' · 이번 주 판 #'+wid();
+ $('mw').innerHTML=(save.nick?'<span class="pill">🙂 '+esc(save.nick)+'</span>':'')+'<span class="pill">🏅 이번 주 '+wk.stage+'단계</span>';mus('menu');bkGift();if(window.MEDAL&&wk.stage)medalGet(wk.stage);if(window.MEDAL&&wid()>=MEDAL.WK)$('mw').innerHTML+='<a class="pill" href="shop.html?medal=1" style="background:#fff0c0;text-decoration:none;color:inherit">🏅 '+MEDAL.get().n+' 상점 ›</a>';{let sh=null;try{sh=JSON.parse(localStorage.getItem('bpShopPubV1'))}catch(e){}const dk=Math.floor((Date.now()+9*3600e3)/864e5);if(sh&&sh.name&&(!sh.att||(sh.att.last|0)<dk))$('mw').innerHTML+='<a class="pill" href="shop.html" style="background:#e8f4ff;text-decoration:none;color:inherit">📅 출석 선물 받기 ›</a>'}$('ver').textContent='시험판 v'+VER+' · 이번 주 판 #'+wid();
  {const wr=B.wkRule(wid());$('mi').innerHTML=wr?'<span style="display:inline-block;background:#fff0c8;border-radius:14px;padding:4px 12px;margin-bottom:4px">📅 이번 주 규칙: '+wr.e+' <b>'+wr.n+'</b></span><br><small>'+wr.d+'</small><br><small style="opacity:.7">모두 같은 규칙 · 순위표에서 겨뤄요</small>':'컷트라인을 넘기며 몇 단계까지 갈까요? 🔥<br><small style="opacity:.7">이번 주엔 모두 같은 손님 · 순위표에서 겨뤄요</small>'}
  if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid()){$('m1').textContent='▶ 이어서 하기 · '+sr.run.day+'일차';$('m5').style.display='block';$('m5').textContent='🆕 처음부터 다시 시작'}
  else if(cpOK()){$('m1').textContent='▶ 이번 주 판 1단계부터';$('m5').style.display='block';$('m5').textContent='🔁 '+(save.cp.stage+1)+'단계부터 다시 (체크포인트)'}

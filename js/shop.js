@@ -242,6 +242,19 @@ const live=()=>({perf:s.perf,served:s.served,bc:s.bc,burnt:s.burnt,lost:s.lost,n
 const DXT=[10,30];
 /* ---------- 집 화면 ---------- */
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
+/* ---------- 📅 7일 출석 선물 (날짜가 바뀔 때마다 하루 한 번 · 빠진 날이 있어도 이어서 · 7일 뒤엔 다시 1일부터) ----------
+   폰 시계를 되돌려도 마지막으로 받은 날보다 앞 날짜엔 못 받아요 */
+const ATT=[{c:3000,t:'🪙 3,000'},{c:5000,t:'🪙 5,000'},{f:'tree',t:'🌳 나무 화분'},{c:10000,t:'🪙 10,000'},{m:10,t:'🏅 메달 10개'},{c:20000,t:'🪙 20,000'},{c:30000,m:15,t:'🪙 30,000 + 🏅 15'}];
+const att=()=>{if(!save.att||typeof save.att!=='object')save.att={last:0,n:0};return save.att};
+const attCan=()=>!!save.name&&dayKey()>att().last;
+function attClaim(){if(!attCan())return null;const A=att(),i=A.n%ATT.length,r=ATT[i];A.last=dayKey();A.n++;
+ if(r.c)save.coins+=r.c;if(r.f){save.inv[r.f]=(save.inv[r.f]||0)+1}if(r.m&&window.MEDAL&&MEDAL.add)MEDAL.add(r.m);store();return{i,r,nx:ATT[A.n%ATT.length]}}
+function attCard(){if(!attCan())return false;const A=att(),i=A.n%ATT.length,r=ATT[i],nx=ATT[(A.n+1)%ATT.length];
+ const dots=ATT.map((x,j)=>'<span style="display:inline-block;width:34px;height:34px;line-height:34px;border-radius:10px;margin:2px;font-size:13px;background:'+(j<i?'#d8f5dc':j===i?'#ffd76a':'#f1e6d4')+'">'+(j<i?'✅':j+1)+'</span>').join('');
+ bzShow('📅','출석 '+(A.n+1)+'일째!','<div style="text-align:center">'+dots+'<p style="margin:8px 0 0;font-size:19px">오늘 선물: <b style="color:#e8642a">'+r.t+'</b></p><p class="ht" style="margin:6px 0 0">🎁 내일 오면: <b>'+nx.t+'</b></p></div>','🎁 받기',()=>{const g=attClaim();if(!g)return;snd('fanfare');if(window.JUICE)JUICE.confetti(90);toast('🎁 '+g.r.t+' 받았어요!'+(g.r.f?' (꾸미기 보관함)':'')+' · 내일: '+g.nx.t);renderHome()});return true}
+const attLine=()=>{if(!save.name)return'';const A=att(),done=A.last>=dayKey();return'<div class="evl" id="atl" style="background:#e8f4ff">📅 출석 '+(((A.n-1)%ATT.length)+1)+'/7 · '+(done?'🎁 내일: '+ATT[A.n%ATT.length].t:'<b>오늘 선물 받기 ›</b>')+'</div>'};
+let attShown=false;function attAuto(n){if(attShown||!save.name||n>40)return;setTimeout(()=>{if(attShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
+ if(scr!=='home'||busy){attAuto(n+1);return}attShown=true;attCard()},n?1500:900)}
 /* ---------- 📅 오늘의 사건 ---------- */
 const grpTxt=g=>!g?'':g.ok?'<div class="sum" style="background:#d8f5dc"><b>🚌 단체 주문 완료!</b> +'+fmt(g.rw)+'🪙 · ⭐ 평점 +0.2</div>':'<div class="sum">🚌 단체 주문 '+g.got+' / '+g.need+'명 · '+hm(Math.max(0,(save.ev.until-Date.now())/3600e3))+' 남았어요</div>';
 const EVT={group:['🚌','단체 주문이 들어왔어요!',c=>'근처 회사에서 붕어빵 단체 주문! <b>3시간 안에</b> 🙋 도와주기(붕어빵·음료)로 <b>손님 '+BIZ.GRP_NEED+'명</b>을 대접하면 <b>+'+fmt(c.grp)+'🪙</b> · ⭐ +0.2<br><small>못 하면 평점 −0.3</small>','🚌 받을게요!','다음에요'],
@@ -258,11 +271,11 @@ function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!E
  if(e.k==='group'&&e.ch===0){if(e.res==='ok')return'<div class="evl ok">🚌 단체 주문 완료! ✅</div>';if(e.res==='fail')return'<div class="evl">🚌 단체 주문 실패 😢</div>';return'<div class="evl">🚌 단체 주문 '+(e.got|0)+'/'+e.need+'명 · '+hm(Math.max(0,(e.until-Date.now())/3600e3))+' 남음 · 🙋 도와주기!</div>'}
  return e.msg?'<div class="evl">'+T[0]+' '+e.msg+'</div>':''}
 function renderHome(){starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
- $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine();{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}
+ $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+(save.name&&att().n?attLine():'');{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
-function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');evAuto(0)}
+function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0)}
 /* 오늘의 사건 카드: 다른 창(자리 비운 동안·새 소식·선물 등)이 다 닫힌 뒤 한 번 자동으로 */
-function evAuto(n){if(evShown||!save.name||n>40)return;setTimeout(()=>{if(evShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
+function evAuto(n){if(evShown||!save.name||n>40)return;setTimeout(()=>{if(evShown)return;if(attCan()){evAuto(n+1);return}const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
  if(scr!=='home'||busy){evAuto(n+1);return}evShown=true;evCard()},n?1500:1200)}
 /* ---------- 하루 ---------- */
 const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:charmBonus()/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
@@ -524,7 +537,7 @@ function giftCheck(then){let g=0;try{g=localStorage.getItem('bpGift1')==='1'}cat
  save.g1=1;save.coins+=3000;store();if(window.JUICE)JUICE.confetti(130);snd('fanfare');
  bzShow('🎁','첫 선물 도착!','<p style="text-align:center;margin:0">붕어빵 첫 성공 축하해요!<br>가게 오픈 자금 <b style="font-size:24px;color:#e8642a">🪙3,000</b>을 받았어요</p>','🪙 고마워요!',then);return true}
 function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵 가게 이름을 지어요!':'가게 이름 바꾸기';$('nmx').style.display=first?'none':'block';$('nmi').value=save.name||'행복 붕어빵';$('nme').textContent='';show('nm');setTimeout(()=>{try{$('nmi').focus();$('nmi').select()}catch(e){}},50)}
-$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst)setTimeout(()=>giftCheck(()=>{if(!save.tour)startTour()}),300);if(!nmFirst)toast('간판이 바뀌었어요')};
+$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst)setTimeout(()=>giftCheck(()=>{attShown=true;if(!attCard()){if(!save.tour)startTour();return}const o=$('bz1').onclick;$('bz1').onclick=()=>{o();if(!save.tour)setTimeout(startTour,400)}}),300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 const sndLbl=()=>{const c=AU?AU.get():{mu:0,fx:0};$('smu').textContent=c.mu?'🎵 음악 켜짐':'🎵 음악 꺼짐';$('sfx').textContent=c.fx?'🔊 효과음 켜짐':'🔇 효과음 꺼짐';$('smu').classList.toggle('on',!!c.mu);$('sfx').classList.toggle('on',!!c.fx)};
 $('smu').onclick=()=>{if(AU){AU.set('mu',!AU.get().mu);sndLbl()}};$('sfx').onclick=()=>{if(AU){AU.set('fx',!AU.get().fx);sndLbl();snd('ui')}};
@@ -626,7 +639,7 @@ function openNotes(){au();const L=$('gbl');L.innerHTML='<div style="text-align:c
   /* +1ms: 서버 시간은 1ms보다 잘게 저장돼서, 읽은 것과 같은 ms면 '새 것'으로 또 세어지던 문제 */const mx=rows.reduce((m,r)=>Math.max(m,Math.floor(r.t)),seen);try{localStorage.setItem(NS_KEY,String(mx))}catch(e){}nGen++;nNew=0;noteBadge()}).catch(()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 열어 주세요')+'</div>'})},()=>{L.innerHTML='<div style="text-align:center;padding:30px;opacity:.7">지금은 연결할 수 없어요</div>'})}
 $('nnt').onclick=openNotes;$('gbx').onclick=()=>{$('gbv').style.display='none';toHome()};
 /* ---------- 가게 첫 방문 안내 (건너뛰기 가능) ---------- */
-const TOUR=[['biz','💼 <b>영업 중</b> — 직원들이 알아서 장사해요. 자리를 비워도 8시간까지!<br>누르면 장부(매출·월세·월급·세금)를 봐요'],['h1','🙋 <b>도와주기</b> — 심심할 때 직접 90초 동안 구워서 더 벌어요'],['h2','🎨 <b>꾸미기</b> — 가구를 사서 가게 바닥에 직접 놓아요.<br>예쁠수록 손님이 많이 와요 (가게 Lv)'],['h3','💼 <b>경영</b> — 알바를 뽑고 키우고, 가게를 사서 월세를 없애요'],['nb','🏘️ <b>가게 순위</b> — 다른 사람 가게를 구경하고 ❤️를 눌러요'],['nbs','📤 <b>내 가게 자랑</b> — 카톡으로 "구경 와!" 링크를 보내요'],['hc','🔥 <b>챌린지</b> — 매주 친구들과 단계를 겨루는 서바이벌!']];
+const TOUR=[['biz','💼 <b>영업 중</b> — 알바들이 알아서 장사해요. <b>자리를 비워도 8시간까지</b> 돈이 쌓여요!'],['h1','🙋 <b>도와주기</b> — 직접 90초 구워서 더 벌어요 (하루 첫 20판은 보너스)'],['h2','🎨 <b>꾸미기</b> — 가구를 놓아 가게를 예쁘게! 예쁠수록 손님이 많이 와요']];
 let ti=0;
 function tourShow(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
  if(ti>=TOUR.length){$('ttx').innerHTML='준비 끝! 🎉<br>첫 가구를 하나 놓아 볼까요? (선물로 준 의자·탁자도 있어요)';$('tnx').textContent='🎨 꾸미러 가기';$('tsk').textContent='나중에';$('tdot').textContent='';$('tcap').style.top='auto';$('tcap').style.bottom='24px';return}
