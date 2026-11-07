@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.9.8';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.9.9';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -61,7 +61,7 @@ function openAssist(then){if(!B.canAssist(run)){then&&then();return}scr='cards';
  cdo.style.display='flex';cdo.innerHTML='';const c=document.createElement('div');c.className='thc';c.style.cssText='background:#eef7ff;border-radius:28px;width:100%;box-sizing:border-box;padding:16px;text-align:center;color:#2a4a5a';
  const first=!run.as;c.innerHTML='<div style="font-size:15px;opacity:.75">'+(first?'🎉 10단계 돌파 보상':run.stage+'단계 · 바꿀 수 있어요')+'</div><div style="font-size:27px;margin:2px 0 4px">🧰 보조 칸'+(first?' 열림!':'')+'</div><div style="font-size:14px;opacity:.7;margin-bottom:10px">하나만 쓸 수 있어요 · 5단계마다 바꿀 수 있어요</div>';
  const done=()=>{save.run={run};store();cdo.style.display='none';if(then)then()};
- B.ASSIST.forEach(a=>{const on=run.as===a.k,b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #a8c8e0;font-family:inherit;color:#2a4a5a;border:3px solid '+(on?'#4aa8ff':'#cfe6f8');
+ (B.asList?B.asList(run):B.ASSIST).forEach(a=>{const on=run.as===a.k,b=document.createElement('button');b.className='thb';b.style.cssText='display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 4px 0 #a8c8e0;font-family:inherit;color:#2a4a5a;border:3px solid '+(on?'#4aa8ff':'#cfe6f8');
   b.innerHTML='<span style="font-size:42px;line-height:1">'+a.e+'</span><span style="flex:1"><b style="font-weight:400;font-size:21px">'+a.n+(on?' <small style="font-size:13px;color:#2a7ad0">쓰는 중</small>':'')+'</b><br><span style="font-size:15px;opacity:.85">'+a.d+'</span></span>';
   b.onclick=()=>{if(!B.setAssist(run,a.k))return;snd('pop');toast(a.e+' '+a.n+(on?' 그대로 써요':' 장착!'));done()};c.appendChild(b)});
  cdo.appendChild(c)}

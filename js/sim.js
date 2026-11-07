@@ -44,10 +44,14 @@ const cutRun=(run,d)=>{const v=V5(run),k=run&&run.cards?cn(run,'cut'):0,db=run&&
 /* 💪 응원 보너스: 같은 날(20일차까지)에서 3번 이상 떨어지면 그날 컷트라인 −5% / −10% (기록 ['P',d,p]) */
 function setPity(run,d,p){if(run.lg)run.lg.push(['P',d,p]);if(!V5(run)||d>20||(p!==5&&p!==10))return false;run.pity={d,p};return true}
 /* 🧰 보조 칸: 10단계부터 하나 장착, 5단계마다 바꿀 수 있어요 (기록 ['A',k]) */
-const ASSIST=[{k:'nun',e:'🔮',n:'눈치 반죽',d:'속을 넣을 때 손님이 원하는데 접시에 없는 맛이 저절로 들어가요'},{k:'srv',e:'🙋',n:'자동 서빙',d:'만들어 둔 붕어빵이 '+R.asT+'초마다 손님에게 저절로 나가요 (콤보는 안 쌓여요)'}];
+/* 2967주(11/9)부터 🔮 눈치 반죽 → 🧊 여유 굽기 (내가 고른 맛과 다른 맛이 들어가서 괴리가 컸어요). 옛 주 기록 재생엔 눈치 반죽 그대로 */
+const AS_WK=2967,WIDE=1.3,asNew=run=>!!run&&(run.mode==='free'||(run.wid|0)>=AS_WK);
+const ASSIST_ALL=[{k:'nun',e:'🔮',n:'눈치 반죽',d:'속을 넣을 때 손님이 원하는데 접시에 없는 맛이 저절로 들어가요'},{k:'wide',e:'🧊',n:'여유 굽기',d:'✨ 완벽(초록) 구간이 '+Math.round((WIDE-1)*100)+'% 넓어져요 · 내가 고른 맛은 그대로'},{k:'srv',e:'🙋',n:'자동 서빙',d:'만들어 둔 붕어빵이 '+R.asT+'초마다 손님에게 저절로 나가요 (콤보는 안 쌓여요)'}];
+const asList=run=>ASSIST_ALL.filter(a=>a.k==='srv'||(asNew(run)?a.k==='wide':a.k==='nun'));
+const ASSIST=ASSIST_ALL;
 const asBlock=run=>Math.floor((run.stage|0)/5);
 const canAssist=run=>V5(run)&&run.mode==='week'&&(run.stage|0)>=10&&!run.over&&(run.asB|0)<asBlock(run);
-function setAssist(run,k){if(run.lg)run.lg.push(['A',k]);if(!canAssist(run)||!ASSIST.some(a=>a.k===k))return false;run.as=k;run.asB=asBlock(run);return true}
+function setAssist(run,k){if(run.lg)run.lg.push(['A',k]);if(!canAssist(run)||!asList(run).some(a=>a.k===k))return false;run.as=k;run.asB=asBlock(run);return true}
 const fmt=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
 
 /* ---- 판(run) ---- */
@@ -115,7 +119,8 @@ function newDay(run){
  const ev=evOf(d);if(ev==='fest')wi=0;else if(ev==='bomb')wi=1;
  return{d,ev,wea:R.wea[wi],loc:run.up.loc,rng,t:0,net:0,cut:cutRun(run,d),cust:[null,null,null],mold:Array.from({length:MOLDS},()=>({s:0,f:0,p:0,qa:'g',sh:0})),rack:[],sel:0,combo:0,bc:0,spawnT:1.0,emp:0,served:0,lost:0,burnt:0,perf:0,good:0,made:0,
   tk:0,ph:'play',endT:0,done:false,rushed:false,idleT:0,busyT:0,fx:[],ban:2.6}}
-const wOf=(run,f)=>R.menu[f].w*(run&&run.cards&&cn(run,'hot')?.75:1);
+const wideOn=run=>!!run&&run.as==='wide'&&asNew(run)&&V5(run);
+const wOf=(run,f)=>R.menu[f].w*(run&&run.cards&&cn(run,'hot')?.75:1)*(wideOn(run)?WIDE:1);
 const qOf=(f,p,run)=>{const m=R.menu[f],w=wOf(run,f);return p>1+w+1e-9?(p>m.bad?'b':'g'):p>=1-w-1e-9?'p':'g'};
 const perfMark=(f,run)=>{const w=wOf(run,f);return[1-w,1+w]};
 const fx=(s,o)=>s.fx.push(o);
@@ -212,5 +217,5 @@ function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pi
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
 const weekSeed=(w)=>hs(20260601,w),SIMV=4; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{NEW_WK,V5,ASSIST,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+return{NEW_WK,V5,ASSIST,ASSIST_ALL,asList,AS_WK,WIDE,wideOn,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;
