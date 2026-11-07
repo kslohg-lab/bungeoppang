@@ -242,6 +242,16 @@ const live=()=>({perf:s.perf,served:s.served,bc:s.bc,burnt:s.burnt,lost:s.lost,n
 const DXT=[10,30];
 /* ---------- 집 화면 ---------- */
 const gdone=()=>{const dk=dayKey();if(!save.gd||save.gd.k!==dk)save.gd={k:dk,done:[0,0,0],all:0};return save.gd};
+/* 🔥 챌린지를 아직 안 해 본 사람: 도와주기 결과에 챌린지 안내 (메달 → 특별 외관) */
+const chLink=()=>{let ch=null;try{ch=JSON.parse(localStorage.getItem('bungeoppang2Pub1'))}catch(e){}if(ch&&ch.runs>0||(save.days|0)%3!==1)return'';return'<a href="./" class="sum" style="display:block;text-decoration:none;color:inherit;background:#ffe9d6;margin-top:6px"><b>🔥 챌린지도 해 봐요!</b><br><small>매주 친구들과 단계 겨루기 · 🏅 메달을 모아 특별한 가게 외관을 사요 ›</small></a>'};
+/* ---------- ✨ 버튼은 하나씩 열려요 (처음엔 꼭 필요한 것만) ----------
+   새로 가게를 연 사람만(save.d0). 예전부터 하던 사람은 다 열려 있어요. 열리면 'NEW' 표시 + 알림 */
+const UNL=[{id:'nst',e:'🏙️',n:'붕어빵 동네',ok:a=>a.days>=1||a.age>=1},{id:'nb',e:'🏘️',n:'가게 순위',ok:a=>a.days>=1||a.age>=1},{id:'h4',e:'📖',n:'도감',ok:a=>a.days>=1},{id:'nbs',e:'📤',n:'내 가게 자랑',ok:a=>a.days>=2||a.age>=1},{id:'nnt',e:'📮',n:'방명록',ok:a=>a.age>=1},{id:'nms',e:'🏅',n:'메달 상점',ok:a=>a.age>=1||(window.MEDAL&&MEDAL.get().n>0)}];
+function unlockUI(){const fresh=save.d0>0,a={days:save.days|0,age:fresh?dayKey()-save.d0:99};if(!Array.isArray(save.unl))save.unl=[];const nw=[];
+ for(const u of UNL){const el=$(u.id);if(!el)continue;const on=!fresh||u.ok(a);el.classList.toggle('lk0',!on);
+  if(on&&fresh&&!save.unl.includes(u.id)){save.unl.push(u.id);nw.push(u);el.classList.add('nw0');el.addEventListener('click',()=>el.classList.remove('nw0'),{once:true})}}
+ if(nw.length){store();setTimeout(()=>toast('✨ 새로 열렸어요: '+nw.map(u=>u.e+' '+u.n).join(' · ')),700)}
+ /* 챌린지를 아직 안 해 봤으면 챌린지 버튼에 한 줄 */let ch=null;try{ch=JSON.parse(localStorage.getItem('bungeoppang2Pub1'))}catch(e){}$('hcs').style.display=ch&&ch.runs>0?'none':'block'}
 /* ---------- 📅 7일 출석 선물 (날짜가 바뀔 때마다 하루 한 번 · 빠진 날이 있어도 이어서 · 7일 뒤엔 다시 1일부터) ----------
    폰 시계를 되돌려도 마지막으로 받은 날보다 앞 날짜엔 못 받아요 */
 const ATT=[{c:3000,t:'🪙 3,000'},{c:5000,t:'🪙 5,000'},{f:'tree',t:'🌳 나무 화분'},{c:10000,t:'🪙 10,000'},{m:10,t:'🏅 메달 10개'},{c:20000,t:'🪙 20,000'},{c:30000,m:15,t:'🪙 30,000 + 🏅 15'}];
@@ -270,7 +280,7 @@ function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!E
  if(e.ch===-1)return'<div class="evl" id="evl">'+T[0]+' 오늘의 사건: '+T[1]+' <b>› 고르기</b></div>';
  if(e.k==='group'&&e.ch===0){if(e.res==='ok')return'<div class="evl ok">🚌 단체 주문 완료! ✅</div>';if(e.res==='fail')return'<div class="evl">🚌 단체 주문 실패 😢</div>';return'<div class="evl">🚌 단체 주문 '+(e.got|0)+'/'+e.need+'명 · '+hm(Math.max(0,(e.until-Date.now())/3600e3))+' 남음 · 🙋 도와주기!</div>'}
  return e.msg?'<div class="evl">'+T[0]+' '+e.msg+'</div>':''}
-function renderHome(){starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
+function renderHome(){unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
  $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+(save.name&&att().n?attLine():'');{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0)}
@@ -302,6 +312,7 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
  h+=grpTxt(grp);
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
  if(g1>g0)h+='<div class="sum" style="background:#ffeaa8"><b>🎉 가게 등급이 올랐어요!</b><br>'+GR[g1].e+' <b>'+GR[g1].n+'</b> · 새 꾸미기 상품이 열렸어요</div>';
+ h+=chLink();
  h+='<div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">⭐ '+save.stars+'</span><span class="chip">'+GR[g1].e+' '+GR[g1].n+'</span></div>';
  $('rt').textContent='🌙 도와주기 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;scr='res';s=null;snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 /* ---------- ☕ 음료 도와주기 (js/cafe.js) ---------- */
@@ -311,7 +322,7 @@ function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}CF.start({save
 function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h));
  save.coins+=gain;save.served+=r.served;save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
  let h=resTop(gain,r.net,tax,hm)+'<div class="chips"><span class="chip">☕ '+r.served+'잔</span><span class="chip">✨ '+r.perf+'</span><span class="chip">👍 '+r.great+'</span><span class="chip">🙂 '+r.good+'</span><span class="chip'+(r.lost?' red':'')+'">😡 '+r.lost+'</span><span class="chip'+(r.wrong?' red':'')+'">😣 '+r.wrong+'</span><span class="chip'+(r.spill?' red':'')+'">💦 '+r.spill+'</span><span class="chip">🔥 '+r.bc+'</span></div>';
- h+=grpTxt(grp);h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
+ h+=grpTxt(grp)+chLink();h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
  $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 const cafeXY=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]};
 cv.addEventListener('pointerdown',e=>{if(scr!=='cafe'||paused)return;e.preventDefault();au();const [x,y]=cafeXY(e);CF.down(x,y)});
@@ -537,7 +548,7 @@ function giftCheck(then){let g=0;try{g=localStorage.getItem('bpGift1')==='1'}cat
  save.g1=1;save.coins+=3000;store();if(window.JUICE)JUICE.confetti(130);snd('fanfare');
  bzShow('🎁','첫 선물 도착!','<p style="text-align:center;margin:0">붕어빵 첫 성공 축하해요!<br>가게 오픈 자금 <b style="font-size:24px;color:#e8642a">🪙3,000</b>을 받았어요</p>','🪙 고마워요!',then);return true}
 function openName(first){nmFirst=first;$('nmh').textContent=first?'내 붕어빵 가게 이름을 지어요!':'가게 이름 바꾸기';$('nmx').style.display=first?'none':'block';$('nmi').value=save.name||'행복 붕어빵';$('nme').textContent='';show('nm');setTimeout(()=>{try{$('nmi').focus();$('nmi').select()}catch(e){}},50)}
-$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst)save.biz=1;store();toHome();if(nmFirst)setTimeout(()=>giftCheck(()=>{attShown=true;if(!attCard()){if(!save.tour)startTour();return}const o=$('bz1').onclick;$('bz1').onclick=()=>{o();if(!save.tour)setTimeout(startTour,400)}}),300);if(!nmFirst)toast('간판이 바뀌었어요')};
+$('nm1').onclick=()=>{const n=cleanName($('nmi').value);if(!n){$('nme').textContent='한 글자 이상 써 주세요';return}if(BADW.bad(n)){$('nme').textContent='다른 이름을 써 주세요 🙏';return}save.name=n;if(nmFirst){save.biz=1;if(!save.d0&&!(save.days|0))save.d0=dayKey()}store();toHome();if(nmFirst)setTimeout(()=>giftCheck(()=>{attShown=true;if(!attCard()){if(!save.tour)startTour();return}const o=$('bz1').onclick;$('bz1').onclick=()=>{o();if(!save.tour)setTimeout(startTour,400)}}),300);if(!nmFirst)toast('간판이 바뀌었어요')};
 $('nmi').addEventListener('keydown',e=>{if(e.key==='Enter')$('nm1').click()});$('nmx').onclick=()=>show('set');
 const sndLbl=()=>{const c=AU?AU.get():{mu:0,fx:0};$('smu').textContent=c.mu?'🎵 음악 켜짐':'🎵 음악 꺼짐';$('sfx').textContent=c.fx?'🔊 효과음 켜짐':'🔇 효과음 꺼짐';$('smu').classList.toggle('on',!!c.mu);$('sfx').classList.toggle('on',!!c.fx)};
 $('smu').onclick=()=>{if(AU){AU.set('mu',!AU.get().mu);sndLbl()}};$('sfx').onclick=()=>{if(AU){AU.set('fx',!AU.get().fx);sndLbl();snd('ui')}};
