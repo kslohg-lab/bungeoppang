@@ -261,7 +261,13 @@ function drawCust(c,t){const p=iso(c.x,c.y),sz=TW*.38,bob=c.mv?Math.abs(Math.sin
 /* ---------- 마스코트: 가게 안을 천천히 돌아다녀요 ---------- */
 const pet={x:.5,y:2.5,tx:.5,ty:2.5,w:0};
 function petStep(dt,items){const sp=.6*dt,dx=pet.tx-pet.x,dy=pet.ty-pet.y,L=Math.hypot(dx,dy);if(L>sp){pet.x+=dx/L*sp;pet.y+=dy/L*sp;pet.mv=1}else{pet.mv=0;pet.w-=dt;if(pet.w<=0){pet.w=2+Math.random()*3;for(let k=0;k<12;k++){const gx=Math.floor(Math.random()*N),gy=Math.floor(Math.random()*N);if(canPlace(gx,gy)&&!items.some(it=>it.x===gx&&it.y===gy)){pet.tx=gx+.5;pet.ty=gy+.5;break}}}}}
-function drawPet(look,t){const p=iso(pet.x,pet.y),b=pet.mv?Math.abs(Math.sin(t*10))*3:Math.sin(t*2)*1.5;if(look.mas.e==='🌟'){A.fish2(p.x,p.y-TW*.4-b,TW*.005,'#ffcf3a',{glow:'#ffe066'});return}shadow(p.x,p.y,TW*.12);em(look.mas.e,p.x,p.y-TW*.17-b,TW*.3)}
+/* 🐾 펫 그림(img/pet_*.webp, 왼쪽을 봐요): 가는 방향으로 뒤집고 걸을 땐 통통. 그림이 없으면 예전 이모지 */
+const PETI={'🦄':'unicorn','🐉':'dragon','🦁':'lion','🦊':'fox','🐼':'panda','🐶':'dog','🐱':'cat','🐰':'rabbit'},PETH=new Set(['unicorn','dragon','lion','fox','panda','dog','cat','rabbit']);
+function drawPet(look,t){const p=iso(pet.x,pet.y),b=pet.mv?Math.abs(Math.sin(t*10))*3:Math.sin(t*2)*1.5;if(look.mas.e==='🌟'){A.fish2(p.x,p.y-TW*.4-b,TW*.005,'#ffcf3a',{glow:'#ffe066'});return}
+ const pk=PETI[look.mas.e],im=pk&&PETH.has(pk)?ld('img/pet_'+pk+'.webp'):null;
+ if(im){const h=TW*.42,w=h*im.naturalWidth/im.naturalHeight,dx=pet.tx-pet.x,dy=pet.ty-pet.y;if(pet.mv&&Math.abs(dx-dy)>.01)pet.fr=(dx-dy)>0; /* 화면 오른쪽으로 가면 뒤집기 */
+  shadow(p.x,p.y,w*.38);cx.save();cx.translate(p.x,p.y-b);if(pet.fr)cx.scale(-1,1);if(pet.mv)cx.rotate(Math.sin(t*10)*.04);cx.drawImage(im,-w/2,-h+TW*.03,w,h);cx.restore();return}
+ shadow(p.x,p.y,TW*.12);em(look.mas.e,p.x,p.y-TW*.17-b,TW*.3)}
 /* ---------- 꾸밈 칸 그리기 ---------- */
 const WP=[null,null,null,null,'brick','plank','tile','marble','gold'];
 const FLR=[['#cfc9bd','#c4beb2',0],['#f6f0e4','#d2a46a',1],['#d8a86c','#c99a5e',2],['#9ed27a','#8cc46a',3],['#bdb7aa','#a8a296',4],['#c8283c','#b01e30',5],['#9ad0ff','#c8a8ff',6]];
