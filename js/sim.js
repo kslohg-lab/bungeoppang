@@ -62,7 +62,7 @@ function newRun(seed,mode){return{lg:[],v:1,seed:seed>>>0,mode:mode||'week',day:
 const nMold=run=>Math.min(8,2+run.up.mold+cn(run,'mold')),MOLDS=8;
 const fuLv=(run,f)=>(run.fu&&run.fu[f])|0;
 const fuXf=(run,f)=>(V5(run)?R.fuX5:R.fuX)[f];
-const price=(run,f)=>{let v=R.menu[f].p*(1+(fuXf(run,f)-1)*fuLv(run,f)/R.fuC.length);if(run.cards){for(const c of run.cards)if(c==='flav:'+f)v*=1.25;if(cn(run,'big'))v*=1.12}return Math.round(v)};
+const price=(run,f)=>{let v=R.menu[f].p*(1+(fuXf(run,f)-1)*fuLv(run,f)/R.fuC.length);if(f===0&&wkr(run)==='pat')v*=2;if(run.cards){for(const c of run.cards)if(c==='flav:'+f)v*=1.25;if(cn(run,'big'))v*=1.12}return Math.round(v)};
 const speedF=run=>Math.max(.6,(1-.06*run.up.speed)*(1-.08*cn(run,'fast')));
 const tSide=(run,f)=>R.menu[f].t*speedF(run);
 const L=run=>R.loc[run.up.loc];
@@ -72,6 +72,13 @@ const CARD_WK=2966;
 const NEW_WK=2966,V5=run=>!!run&&(run.mode==='free'||(run.mode==='week'&&(run.wid|0)>=NEW_WK));
 const V6_WK=2968,V6=run=>!!run&&(run.mode==='week'||run.mode==='free')&&(run.wid|0)>=V6_WK;
 const maxSt=run=>V6(run)?R.maxStage6:R.maxStage;
+/* 📅 주간 규칙: 2969주(11/23)부터 매주 하나 (주 번호로 정해져서 모두 같아요) */
+const WKR_WK=2969,WKR=[{k:'pat',e:'🫘',n:'팥의 주간',d:'팥 붕어빵 값이 2배!'},{k:'gold',e:'🌟',n:'황금 러시',d:'황금 주문이 2배 · 대신 완벽 구간이 좁아요'},{k:'rain',e:'🌧️',n:'장마 주간',d:'비 오는 날이 많아요 (손님↓ 팁↑)'},{k:'fest',e:'🎪',n:'축제 주간',d:'축제 날이 더 자주 와요 (손님 몰림 · 팁 ×1.5)'},{k:'vip',e:'👑',n:'큰손 주간',d:'VIP 손님이 2배 더 와요'},{k:'critic',e:'🎩',n:'평론가 주간',d:'평론가가 자주 와요 (✨ 완벽만 받지만 극찬 보너스)'},{k:'cold',e:'❄️',n:'한파 주간',d:'추운 날이 많아요 (손님↑ 참을성↓)'},{k:'card4',e:'🃏',n:'카드 부자',d:'카드를 4장 중에서 골라요'}];
+/* 8주마다 한 바퀴: 축제 → 팥 → 장마 → 큰손 → 황금 → 한파 → 평론가 → 카드 부자 */
+const WKO=['fest','pat','rain','vip','gold','cold','critic','card4'],wkIdx=w=>w<WKR_WK?-1:WKR.findIndex(x=>x.k===WKO[(w-WKR_WK)%WKO.length]);
+const wkRule=w=>{const i=wkIdx(w|0);return i<0?null:WKR[i]};
+const wkr=run=>run&&run.mode==='week'&&(run.wid|0)>=WKR_WK?(wkRule(run.wid)||{}).k:null;
+const evRun=(run,d)=>{const e=evOf(d);if(!e&&wkr(run)==='fest'&&d%5===3)return'fest';return e};
 /* 🔥 식는 붕어빵: 접시에 놓인 지 오래될수록 품질이 내려가요 (p→o→g→c) */
 const QL=['p','o','g','c'];function rq(s,run,r){if(!V6(run)||r.t==null)return r.q;const a=s.t-r.t,C=R.cool;let i=QL.indexOf(r.q);if(i<0)return r.q;if(a>=C[2])return'c';if(a>=C[1])i+=2;else if(a>=C[0])i+=1;return QL[Math.min(2,i)]}
 const CARDS=[
@@ -101,7 +108,7 @@ const canCard=run=>run.mode==='week'&&(run.wid|0)>=CARD_WK;
 /* 이번에 고를 단계 (넘긴 단계가 5의 배수이고 아직 안 골랐으면) */
 const cardStage=run=>{const st=run.stage|0;return canCard(run)&&st>0&&st%5===0&&st<maxSt(run)&&!(run.ck||[]).includes(st)?st:0};
 function cardOffer(run){const st=cardStage(run);if(!st)return[];const rng=mul(hs(run.seed,st*977+31)),idx=CARDS.map((_,i)=>i).filter(i=>!(CARDS[i].r&&cn(run,CARDS[i].k))&&!(CARDS[i].k==='cut'&&V5(run)&&cn(run,'cut')>=2));
- for(let i=idx.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}return idx.slice(0,3).map(i=>CARDS[i].k)}
+ for(let i=idx.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}return idx.slice(0,wkr(run)==='card4'?4:3).map(i=>CARDS[i].k)}
 function pickCard(run,k){const st=cardStage(run);if(!st||!cardOffer(run).includes(k))return false;if(run.lg)run.lg.push(['C',k]);
  if(!run.cards)run.cards=[];if(!run.ck)run.ck=[];run.ck.push(st);
  if(k==='flav')run.cards.push('flav:'+(run.nf-1));else run.cards.push(k);
@@ -122,12 +129,12 @@ function buyTicket(run){if(run.lg)run.lg.push(['T']);const c=ticketCost(run);if(
 /* ---- 하루 ---- */
 function newDay(run){
  if(run.lg)run.lg.push(['D']);
- const d=run.day,rng=mul(hs(run.seed,d*7919+13));let r=rng()*100,wi=0,acc=0;for(let i=0;i<R.wea.length;i++){acc+=R.wea[i].w;if(r<acc){wi=i;break}}
- const ev=evOf(d);if(ev==='fest')wi=0;else if(ev==='bomb')wi=1;
+ const d=run.day,rng=mul(hs(run.seed,d*7919+13)),wk=wkr(run),WW=wk==='rain'?[30,55,15]:wk==='cold'?[30,15,55]:R.wea.map(x=>x.w);let r=rng()*100,wi=0,acc=0;for(let i=0;i<R.wea.length;i++){acc+=WW[i];if(r<acc){wi=i;break}}
+ const ev=evRun(run,d);if(ev==='fest')wi=0;else if(ev==='bomb')wi=1;
  return{d,ev,wea:R.wea[wi],loc:run.up.loc,rng,t:0,net:0,cut:cutRun(run,d),cust:[null,null,null],mold:Array.from({length:MOLDS},()=>({s:0,f:0,p:0,qa:'g',sh:0})),rack:[],sel:0,combo:0,bc:0,spawnT:1.0,emp:0,served:0,lost:0,burnt:0,perf:0,good:0,made:0,
   tk:0,ph:'play',endT:0,done:false,rushed:false,idleT:0,busyT:0,fx:[],ban:2.6}}
 const wideOn=run=>!!run&&run.as==='wide'&&asNew(run)&&V5(run);
-const wOf=(run,f)=>R.menu[f].w*(run&&run.cards&&cn(run,'hot')?.75:1)*(wideOn(run)?WIDE:1);
+const wOf=(run,f)=>R.menu[f].w*(run&&run.cards&&cn(run,'hot')?.75:1)*(wideOn(run)?WIDE:1)*(f===5&&wkr(run)==='gold'?.8:1);
 const qOf=(f,p,run)=>{const m=R.menu[f],w=wOf(run,f);return p>1+w+1e-9?(p>m.bad?'b':'g'):p>=1-w-1e-9?'p':'g'};
 const perfMark=(f,run)=>{const w=wOf(run,f);return[1-w,1+w]};
 const fx=(s,o)=>s.fx.push(o);
@@ -163,11 +170,11 @@ function serve(s,run,ci,auto){if(run.lg&&!auto)run.lg.push([s.tk,1,ci]);if(s.ph!
   let ex=0;if(c.ty==='critic'){ex=Math.round((1500+s.d*150)*(1+.6*cn(run,'critic')));fx(s,{k:'ft',t:'평론가 극찬! 🎩 +'+fmt(ex),a:'c',i:ci,dy:-40,c:'#ffe066'})}else if(c.ty==='group')ex=1000+s.d*100;
   s.net+=tp+ex;fx(s,{k:'ft',t:'팁 +'+fmt(tp)+' 💝',a:'c',i:ci,dy:-20,c:'#ffd0e0'});c.leave=.8;c.happy=1;s.served++;fx(s,{k:'rx',i:ci,done:1});fx(s,{k:'pf',e:'💖',a:'c',i:ci,n:3})}}
 function spawnC(s,run){const free=[0,1,2].filter(i=>!s.cust[i]);if(!free.length)return false;const rng=s.rng,sl=free[Math.floor(rng()*free.length)],d=s.d,r=rng()*100,lc=run.up.loc,ev=s.ev;
- const crit=(d>=10?(ev==='critic'?12:3):0)*(1+2*cn(run,'critic')),grp=d>=8?(ev==='bomb'?14:5)+(lc===3?4:0):0,vp=(d>=6?5+(lc===3?5:0):0)*(1+cn(run,'vip')),rg=d>=2?9+(lc===1?8:0):0,hu=d>=3?18+(lc===2?14:0):0;
+ const wk=wkr(run),crit=(d>=(wk==='critic'?6:10)?(ev==='critic'?12:3)*(wk==='critic'?2.5:1):0)*(1+2*cn(run,'critic')),grp=d>=8?(ev==='bomb'?14:5)+(lc===3?4:0):0,vp=(d>=6?5+(lc===3?5:0):0)*(1+cn(run,'vip'))*(wk==='vip'?2:1),rg=d>=2?9+(lc===1?8:0):0,hu=d>=3?18+(lc===2?14:0):0;
  let ty='n',c=crit;if(r<c)ty='critic';else if(r<(c+=grp))ty='group';else if(r<(c+=vp))ty='vip';else if(r<(c+=rg))ty='reg';else if(r<(c+=hu))ty='hurry';
  let n=ty==='vip'?3+Math.floor(rng()*3):ty==='group'?6+Math.floor(rng()*3):ty==='critic'?2:1+Math.floor(rng()*(d<5?2:d<12?3:4));
  if(ev==='bomb'&&!['vip','group','critic'].includes(ty))n+=1;
- const ord=[0,0,0,0,0,0],nf=run.nf,wt=[],v5=V5(run),v6=V6(run);let tot=0,wv=1;for(let f=0;f<nf;f++){const w=v5?wv*(1+(v6?R.fuOrd6:R.fuOrd)*fuLv(run,f)):wv;wt.push(w);tot+=w;wv*=v6?R.ordG6:v5?R.ordG5:R.ordG}
+ const ord=[0,0,0,0,0,0],nf=run.nf,wt=[],v5=V5(run),v6=V6(run);let tot=0,wv=1;const gk=wkr(run)==='gold';for(let f=0;f<nf;f++){const w=(v5?wv*(1+(v6?R.fuOrd6:R.fuOrd)*fuLv(run,f)):wv)*(gk&&f===5?2:1);wt.push(w);tot+=w;wv*=v6?R.ordG6:v5?R.ordG5:R.ordG}
  for(let i=0;i<n;i++){let x=rng()*tot,f=0;while(f<nf-1&&x>=wt[f]){x-=wt[f];f++}ord[f]++}
  const an=ty==='critic'?'🧐':R.an[Math.floor(rng()*R.an.length)];
  const base=({n:34,reg:38,hurry:19,vip:52,group:80,critic:42})[ty]*Math.max(.7,1-d*.02)*(1+.08*run.up.pat)*s.wea.pat*(1+.15*cn(run,'pat'))*Math.max(.6,1-.08*cn(run,'rush'))*(cn(run,'big')?.75:1);
@@ -224,5 +231,5 @@ function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pi
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
 const weekSeed=(w)=>hs(20260601,w),SIMV=4; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{NEW_WK,V5,V6,V6_WK,maxSt,rq,ASSIST,ASSIST_ALL,asList,AS_WK,WIDE,wideOn,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+return{WKR,WKR_WK,wkRule,wkr,evRun,NEW_WK,V5,V6,V6_WK,maxSt,rq,ASSIST,ASSIST_ALL,asList,AS_WK,WIDE,wideOn,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;
