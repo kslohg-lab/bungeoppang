@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='4.9.9';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.0';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -85,11 +85,11 @@ function record(){const st=run.stage,net=run.tot,m=run.mode,gt=(a,b)=>st>a.stage
  if(run.clear)save.clears++;return submit(true,true)}
 function finishDay(){const res=B.dayResult(s,run),dd=run.day,kind=B.endDay(run,res);if((kind==='pass'||kind==='clear')&&run.mode==='week'&&run.wid===wid())medalGet(run.stage);ghostSet(dd,res.net);if(kind==='pass'&&save.pf&&save.pf.wid===run.wid&&dd>=save.pf.d){save.pf=null}
  if(kind==='pass'||kind==='revive'){
-  if(kind==='pass'&&run.mode==='week'&&run.stage%10===0&&run.stage<R.maxStage&&(!cpOK()||run.stage>=save.cp.stage))save.cp={wid:run.wid,stage:run.stage,run:clone(run)};
+  if(kind==='pass'&&run.mode==='week'&&run.stage%10===0&&run.stage<B.maxSt(run)&&(!cpOK()||run.stage>=save.cp.stage))save.cp={wid:run.wid,stage:run.stage,run:clone(run)};
   save.run={run};store();let pr=null;if(kind==='pass')pr=submit(run.stage%5===0,false);goShop(res,kind);rankInto('srk',pr,'shop');if(kind==='pass'&&B.cardStage(run))setTimeout(()=>openCards(()=>{scr='shop';renderShop();$('s1').textContent='▶ '+run.day+'일차 시작 (컷트라인 '+fmt(B.cutRun(run,run.day))+')'}),350)}
  else if(kind==='over'&&run.mode==='week'&&B.canLateRevive(run)){save.run={run};store();openRevive(res)}
  else endRun(res,kind)}
-/* 🏅 메달: 이번 주 판 10·20·30·40·50·60단계 도달 보상 */
+/* 🏅 메달: 이번 주 판 단계 도달 보상 (medal.js msOf: 40단계 규칙은 10·20·30·40) */
 function medalGet(st){if(!window.MEDAL)return;const g=MEDAL.claim(wid(),st);if(!g.length)return;const n=g.reduce((a,x)=>a+x.n,0);setTimeout(()=>{toast('🏅 '+g[g.length-1].st+'단계 달성! 메달 +'+n);snd('fanfare');if(window.JUICE)JUICE.confetti(70)},600)}
 const medalLine=()=>{if(!window.MEDAL||wid()<MEDAL.WK)return'';const st=save.week.id===wid()?save.week.stage:0,nx=MEDAL.next(wid(),st);return'🏅 메달 <b>'+MEDAL.get().n+'</b>개'+(nx?' · 다음: '+nx.st+'단계 +'+nx.n:' · 이번 주 다 받았어요!')};
 /* 🏆 지난 주 등수 보상 (11/9부터): 내 지난 주 점수로 순위를 세고(읽기 1번), 숨김 목록(hidden.json)에 없으면 메달 */
@@ -103,8 +103,8 @@ function endRun(res,kind){if(res&&!res.pass&&run.mode==='week'&&!run.giveUp&&!ru
 /* 👻 이번 주 같은 날 내 최고 수익 (다시 할 때 막대에 표시) */
 function ghostGet(d){const g=save.gh;return g&&g.w===wid()&&g.d?g.d[d]:undefined}
 function ghostSet(d,net){if(!run||run.mode!=='week')return;if(!save.gh||save.gh.w!==run.wid)save.gh={w:run.wid,d:{}};if(save.gh.d[d]==null||net>save.gh.d[d])save.gh.d[d]=net}
-/* 💪 응원 보너스: 같은 날 3번 떨어지면 −5%, 4번부터 −10% (20일차까지) */
-const pityP=()=>{const f=save.pf;return f&&f.wid===wid()&&f.d<=20&&f.n>=3?(f.n>=4?10:5):0};
+/* 💪 응원 보너스: 같은 날 3번 떨어지면 −5%, 4번부터 −10% (20일차까지 · 40단계 규칙은 15일차까지) */
+const NEWR=()=>wid()>=B.V6_WK,pityP=()=>{const f=save.pf;return f&&f.wid===wid()&&f.d<=(NEWR()?15:20)&&f.n>=3?(f.n>=4?10:5):0};
 function pityApply(){const p=pityP();if(p&&run&&run.mode==='week'&&B.setPity)B.setPity(run,save.pf.d,p)}
 /* 떨어진 이유 한 줄 + 아깝다 */
 function failTip(res){if(!res)return'';const gap=res.cut-res.net;let h='<div class="sum" style="margin-top:6px;text-align:center">';
@@ -148,7 +148,7 @@ function renderShop(){
  const tc=B.ticketCost(run);
  if(run.ticket)row('🎫','부활권','탈락할 때 같은 날을 한 번 더 해요','보유 ✅',false,()=>{});
  else row('🎫','부활권','컷트라인에 못 미쳐도 같은 날을 한 번 더 해요 (탈락한 순간에도 살 수 있어요)',fmt(tc)+'🪙',run.coins>=tc,()=>{if(!B.buyTicket(run)){toast('코인이 부족해요!');snd('no');return}save.run={run};store();snd('win');renderShop()})}
-function goOver(res,kind){scr='over';const st=run.stage;$('ot').textContent=run.clear?'🎉 '+R.maxStage+'단계 완주!':(run.giveUp?'🏳️ 포기했어요':'💥 '+(st+1)+'일차에서 탈락');
+function goOver(res,kind){scr='over';const st=run.stage;$('ot').textContent=run.clear?'🎉 '+B.maxSt(run)+'단계 완주!':(run.giveUp?'🏳️ 포기했어요':'💥 '+(st+1)+'일차에서 탈락');
  let h=run.clear?'모든 단계를 통과했어요!':(run.giveUp?'':sumHtml(res,kind).replace('💰 순수익','💰 오늘 수익')+failTip(res));
  h+='<br>🏅 도달 단계 <b>'+st+'</b> · 누적 순수익 '+fmt(run.tot)+'원';
  const w=save.week.id===run.wid?save.week:null;if(run.mode==='week'&&w)h+='<br>이번 주 내 최고 <b>'+w.stage+'단계</b>';{const ml=medalLine();if(ml)h+='<br>'+ml}
@@ -165,7 +165,7 @@ $('m1').onclick=()=>{au();const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.
 $('m5').onclick=()=>{const sr=save.run;if(sr&&sr.run&&!sr.run.over&&sr.run.mode==='week'&&sr.run.wid===wid())ask($('m5'),'⚠️ 지금 판이 사라져요. 한 번 더!',()=>startRun('week'));else startFromCp()};
 function renderHow(){const wk=save.week.id===wid()?save.week:{stage:0,net:0};
  $('hw').innerHTML='<p class="ht"><b>🏅 내 기록</b></p><div class="sum">이번 주 판: <b>'+wk.stage+'단계</b> ('+fmt(wk.net)+'원)<br>전체 최고: <b>'+save.best.stage+'단계</b> · 도전 '+save.runs+'번 · 완주 '+save.clears+'번</div>'+
- '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 새 맛을 열면 손님 주문이 여러 맛으로 나뉘어요. 강화한 맛은 주문이 조금 더 들어와요.<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🃏 5단계마다 카드 3장 중 1장! ⚖️ <b>양날 카드</b>는 보너스가 크지만 손해도 있어요.<br>• 🧰 <b>10단계</b>부터 보조 칸: 🔮 눈치 반죽(손님이 원하는 맛 자동) 또는 🙋 자동 서빙 중 하나, 5단계마다 바꿀 수 있어요.<br>• 💪 같은 날(20일차까지)에서 3번 떨어지면 다음 도전에 응원 보너스(컷트라인 −5~10%).<br>• 51~60단계는 마지막 구간! 컷트라인이 가파르게 올라요. 60단계를 깬 사람끼리는 누적 수익으로 겨뤄요.<br>• 🏅 <b>메달</b>: 이번 주 판에서 10·20·30·40단계마다 +5, 50단계 +10, 60단계 완주 +20 (한 주 최대 50개). 🏆 지난 주 순위 보상: 1위 50 · 2~3위 30 · 4~10위 20 · 11~30위 10 · 그 밖 참가상 5 (월요일부터 들어오면 받아요). 메달로는 🏪 가게의 특별 스킨을 살 수 있어요 (곧 공개).<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
+ '<p class="ht"><b>📖 이렇게 해요</b></p><div class="sum">• 하루는 90초! 번 돈이 <b>컷트라인</b>을 넘어야 다음 단계로 가요. 못 넘으면 끝!<br>• 빈 틀을 톡 → 속 넣기 → 덮개 톡 → 앞면 굽기 → 뒤집기 → 꺼내기. <b style="color:#2a9a4a">초록 구간</b>에 누르면 좋은 빵이 돼요.<br>• <b>빵 등급</b>: 양면 모두 초록 구간 ✨<b>PERFECT</b>(값 ×1.4) · 한 면만 👍<b>GREAT</b>(×1.15) · 둘 다 노랑 🙂<b>GOOD</b> · 빨강은 😵<b>BURNT</b>(버려요)<br>• 손님을 톡 하면 좋은 빵부터 줘요. 평론가🎩는 PERFECT만 받아요. PERFECT를 이어서 주면 🔥콤보!<br>• 번 돈으로 업그레이드를 사요. <b>새 메뉴</b>는 비싸지만 굽기가 어렵고, <b>🫘 맛 강화</b>로 쉬운 맛의 값을 올릴 수도 있어요. 새 맛을 열면 손님 주문이 여러 맛으로 나뉘어요. 강화한 맛은 주문이 조금 더 들어와요.<br>• 틀은 최대 8개, 🍽️ 접시를 넓히면 미리 많이 구워 둘 수 있어요.<br>• 🃏 5단계마다 카드 3장 중 1장! ⚖️ <b>양날 카드</b>는 보너스가 크지만 손해도 있어요.<br>• 🧰 <b>10단계</b>부터 보조 칸: '+(wid()>=B.AS_WK?'🧊 여유 굽기(완벽 구간 +30%)':'🔮 눈치 반죽(손님이 원하는 맛 자동)')+' 또는 🙋 자동 서빙 중 하나, 5단계마다 바꿀 수 있어요.<br>'+(NEWR()?'• 🔥 접시에 둔 붕어빵은 식어요! 12초마다 한 등급씩 내려가고 40초가 지나면 🥶 식어서 값이 깎여요. 주문을 보고 제때 구워요.<br>':'')+'• 💪 같은 날('+(NEWR()?15:20)+'일차까지)에서 3번 떨어지면 다음 도전에 응원 보너스(컷트라인 −5~10%).<br>'+(NEWR()?'• 판은 <b>40단계</b>까지! 20단계부터 컷트라인이 가파르게 올라요. 40단계를 깬 사람끼리는':'• 51~60단계는 마지막 구간! 컷트라인이 가파르게 올라요. 60단계를 깬 사람끼리는')+' 누적 수익으로 겨뤄요.<br>• 🏅 <b>메달</b>: 이번 주 판에서 '+(NEWR()?'10단계 +5 · 20단계 +10 · 30단계 +15 · 40단계 완주 +20':'10·20·30·40단계마다 +5, 50단계 +10, 60단계 완주 +20')+' (한 주 최대 50개). 🏆 지난 주 순위 보상: 1위 50 · 2~3위 30 · 4~10위 20 · 11~30위 10 · 그 밖 참가상 5 (월요일부터 들어오면 받아요). 메달로는 🏪 가게의 특별 스킨을 살 수 있어요 (곧 공개).<br>• 🎫 부활권: 탈락한 날을 한 번 더 해요. 미리 사 두거나, 탈락한 순간에 사도 돼요.<br>• 🔁 <b>체크포인트</b>: 10·20·30…단계를 통과하면 저장돼요. 예를 들어 27단계에서 탈락하면 21단계부터 다시 할 수 있어요 (그 주 판 안에서).<br>• 이번 주 판은 모두 같은 손님·날씨·이벤트로 겨뤄요. 🏆 순위표에서 친구들과 비교해요 (월요일 0시에 새로 시작).</div>'}
 $('m4').onclick=()=>{au();renderHow();show('how')};$('hx').onclick=()=>show('menu');
 $('m6').onclick=()=>{au();openLb(0)};$('m7').onclick=()=>share();
 $('o6').onclick=()=>share({stage:run?run.stage:0,net:run?run.tot:0});

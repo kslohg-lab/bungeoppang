@@ -172,7 +172,7 @@ function mold(i){const X=mpos(i).x,Y=mpos(i).y;
   for(const z of Z){cx.fillStyle=z[2];cx.fillRect(gx+gw*z[0]/mx,gy,gw*(z[1]-z[0])/mx,8)}rr(gx+gw*Math.min(m.p,mx)/mx-2,gy-3,4,14,2,'#fff')}
  tx(lab,X+146,Y+24,m.s>=3?16:18,lc,'center','#2a1a12');if(m.s===1||m.s===2)em(BP2.R.menu[s.sel].e,X+MW-24,Y+MH-22,20,m.s===1?.6:0)}
 /* 손님 말풍선 (리액션) */
-const RXP={p:['😍 최고예요!','🤩 PERFECT!','😍 이 맛이야!'],o:['😋 맛있어요!','😊 GREAT!','😋 좋아요!'],g:['🙂 고마워요','🙂 잘 먹을게요','🙂 GOOD']};
+const RXP={c:['🥶 식었네요…','😕 좀 차가워요','🥶 미지근해요'],p:['😍 최고예요!','🤩 PERFECT!','😍 이 맛이야!'],o:['😋 맛있어요!','😊 GREAT!','😋 좋아요!'],g:['🙂 고마워요','🙂 잘 먹을게요','🙂 GOOD']};
 const HELLO={n:'안녕하세요!',reg:'또 왔어요 😊',hurry:'빨리 주세요! ⏱️',vip:'특별 주문이에요 👑',group:'단체 주문이요! 🚌',critic:'평가하러 왔소 🎩'};
 function bub(x,y,t,bg='#fff',fg='#5a3a22'){cx.font='bold 13px "Jua","Noto Sans KR",sans-serif';const w=cx.measureText(t).width+16;rr(x-w/2,y-12,w,24,12,bg);cx.beginPath();cx.moveTo(x-5,y+11);cx.lineTo(x,y+18);cx.lineTo(x+5,y+11);cx.closePath();cx.fillStyle=bg;cx.fill();tx(t,x,y,13,fg,'center',bg)}
 function custDraw(c,i){const x0=i*150;rr(x0+8,76,134,244,18,'rgba(255,255,255,.35)');if(!c)return;
@@ -265,11 +265,11 @@ function custStreet(c,i){if(!c)return;const ag=c.ag||0,R=BP2.R;
 /* 접시 줄: 맛마다 개수, ✨완벽·👍좋음 */
 function rackRow(){const B=BP2,R=B.R,nf=run.nf,rw=(450-50)/nf,lv=B.rackLv(run),cap=B.rackCap(run);
  tx('접시',24,338,14,'#fff','center','#7a4a22');if(lv>=2){tx('맛마다',24,355,10,'#ffe9a0','center','#7a4a22');tx('10개',24,368,10,'#ffe9a0','center','#7a4a22')}else tx(s.rack.length+'/'+cap,24,358,13,s.rack.length>=cap?'#ff9a8a':'#ffe9a0','center','#7a4a22');
- for(let f=0;f<nf;f++){let ps=0,os=0,n=0;for(const r of s.rack)if(r.f===f){n++;if(r.q==='p')ps++;else if(r.q==='o')os++}const rx=48+f*rw+rw/2,sm=nf>4;
+ for(let f=0;f<nf;f++){let ps=0,os=0,n=0,cs=0;for(const r of s.rack)if(r.f===f){n++;const q=B.rq?B.rq(s,run,r):r.q;if(q==='p')ps++;else if(q==='o')os++;else if(q==='c')cs++}const rx=48+f*rw+rw/2,sm=nf>4;
   /* 0개인 맛은 흐리게 → 구워 둔 맛만 눈에 띄어요 */cx.globalAlpha=n?1:.38;
   rr(rx-rw/2+3,346,rw-6,42,12,lv>=2&&n>=10?'rgba(255,120,100,.35)':n?'rgba(255,255,255,.45)':'rgba(255,255,255,.2)');
   bread(rx-rw/2+(sm?18:22),362,sm?.24:.3,n?(ps?QC.p:QC.g):'rgba(60,40,30,.5)',{plain:true,rim:n?undefined:'rgba(0,0,0,.2)'});em(R.menu[f].e,rx-rw/2+(sm?34:46),354,sm?12:16);
-  tx('×'+n,rx+rw/2-(sm?14:20),362,sm?15:20,'#fff');cx.globalAlpha=1;let q='';if(ps)q+='✨'+ps;if(os)q+=(q?' ':'')+'👍'+os;if(q)tx(q,rx,381,sm?10:12,'#ffe066','center','#7a4a22')}}
+  tx('×'+n,rx+rw/2-(sm?14:20),362,sm?15:20,'#fff');cx.globalAlpha=1;let q='';if(ps)q+='✨'+ps;if(os)q+=(q?' ':'')+'👍'+os;if(cs)q+=(q?' ':'')+'🥶'+cs;if(q)tx(q,rx,381,sm?10:12,cs?'#bfe6ff':'#ffe066','center','#7a4a22')}}
 /* 아래 맛 고르기 */
 function menuBar(){const B=BP2,R=B.R,n=run.nf,bw=(450-20-(n-1)*6)/n;for(let i=0;i<n;i++){const x=10+i*(bw+6),sel=s.sel===i,M=R.menu[i],lv=B.fuLv(run,i);rr(x,700,bw,88,16,sel?'#ffd76a':'#fff');if(sel){cx.lineWidth=4;cx.strokeStyle='#e8584a';cx.beginPath();cx.roundRect(x,700,bw,88,16);cx.stroke()}
   em(M.e,x+bw/2,722,n>4?26:30);if(lv)tx('★'+lv,x+bw-10,712,11,'#ff8a2a','right','#fff');tx(M.n,x+bw/2,747,n>4?12:14,'#5a3a22','center','#fff');tx(B.fmt(B.price(run,i)),x+bw/2,sel?765:771,n>4?15:17,'#3a2a1a','center',sel?'#ffd76a':'#fff');if(sel)tx('재료 '+B.fmt(M.c),x+bw/2,782,10,'#a4701f','center','#ffd76a')}}

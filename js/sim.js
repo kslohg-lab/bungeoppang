@@ -30,6 +30,9 @@ const R={
  ordG5:1.25,fuOrd:.12,fuX5:[2.05,1.8,1.6,1.45,1.35,1.2],
  cut5:[[1,1500],[2,1900],[3,2400],[4,3100],[5,4100],[8,6700],[10,10800],[12,14300],[14,21500],[16,33000],[18,52000],[20,70000],[25,115000],[30,160000],[35,200000],[40,255000],[45,335000],[50,440000],[55,530000],[60,650000]],
  asT:3.5,
+ /* 2968주(11/16)부터 V6: 40단계 · 식는 붕어빵(접시에 둔 시간 cool초마다 한 단계 아래, 마지막은 🥶 식음 값×coldM) · 주문 비율 더 완만 · 새 컷트라인 */
+ maxStage6:40,cool:[12,24,40],coldM:.6,ordG6:1.12,fuOrd6:.06,
+ cut6:[[1,1500],[2,1900],[3,2400],[4,3100],[5,4100],[8,6700],[10,10800],[12,14300],[14,24000],[16,38000],[18,62000],[20,88000],[25,165000],[30,245000],[35,345000],[40,520000]],
  ordG:1.9,ivBase:5.2,ivDay:.06,ivMin:2.9,emptyMax:4,maxStage:60,ticketMul:1.0,
  an:['🐶','🐱','🐰','🐻','🐼','🦊','🐯','🐸','🐵','🐧','🐹','🦁','🐿️','🍁','🦔','🦆','🐑','🦝','🦌','🦦','🦉','🐮','🐷','🐨'] /* 🍁 = 레서판다. 손님 동물은 그림만 달라요 (rng 한 번 그대로 → 기록 재생 같음) */
 };
@@ -38,11 +41,11 @@ function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15
 const hs=(s,d)=>{let h=Math.imul(2166136261^s,16777619);h=Math.imul(h^d,2246822507);h^=h>>>15;h=Math.imul(h,3266489917);h^=h>>>13;return h>>>0};
 const evOf=d=>d%5?null:d%25===0?'critic':(d/5)%2?'fest':'bomb';
 function cutOf(d,A){A=A||R.cut;if(d<=A[0][0])return A[0][1];for(let i=1;i<A.length;i++){if(d<=A[i][0]){const a=A[i-1],b=A[i];return a[1]+(b[1]-a[1])*(d-a[0])/(b[0]-a[0])}}const z=A[A.length-1];return z[1]*Math.pow(1.05,d-z[0])}
-const cutline=(d,v5)=>{const ev=evOf(d);return Math.round(cutOf(d,v5?R.cut5:null)*(ev?R.evCut[ev]:1)/50)*50};
+const cutline=(d,v5,v6)=>{const ev=evOf(d);return Math.round(cutOf(d,v6?R.cut6:v5?R.cut5:null)*(ev?R.evCut[ev]:1)/50)*50};
 /* 카드(사장님 인맥)까지 반영한 컷트라인 */
-const cutRun=(run,d)=>{const v=V5(run),k=run&&run.cards?cn(run,'cut'):0,db=run&&run.cards?cn(run,'debt'):0,pt=v&&run.pity&&run.pity.d===d?run.pity.p/100:0;let m=Math.max(.7,1-.05*k)*(1+.03*db)*(1-pt);return m!==1?Math.round(cutline(d,v)*m/50)*50:cutline(d,v)};
+const cutRun=(run,d)=>{const v=V5(run),k=run&&run.cards?cn(run,'cut'):0,db=run&&run.cards?cn(run,'debt'):0,pt=v&&run.pity&&run.pity.d===d?run.pity.p/100:0;let m=Math.max(.7,1-.05*k)*(1+.03*db)*(1-pt),v6=V6(run);return m!==1?Math.round(cutline(d,v,v6)*m/50)*50:cutline(d,v,v6)};
 /* 💪 응원 보너스: 같은 날(20일차까지)에서 3번 이상 떨어지면 그날 컷트라인 −5% / −10% (기록 ['P',d,p]) */
-function setPity(run,d,p){if(run.lg)run.lg.push(['P',d,p]);if(!V5(run)||d>20||(p!==5&&p!==10))return false;run.pity={d,p};return true}
+function setPity(run,d,p){if(run.lg)run.lg.push(['P',d,p]);if(!V5(run)||d>(V6(run)?15:20)||(p!==5&&p!==10))return false;run.pity={d,p};return true}
 /* 🧰 보조 칸: 10단계부터 하나 장착, 5단계마다 바꿀 수 있어요 (기록 ['A',k]) */
 /* 2967주(11/9)부터 🔮 눈치 반죽 → 🧊 여유 굽기 (내가 고른 맛과 다른 맛이 들어가서 괴리가 컸어요). 옛 주 기록 재생엔 눈치 반죽 그대로 */
 const AS_WK=2967,WIDE=1.3,asNew=run=>!!run&&(run.mode==='free'||(run.wid|0)>=AS_WK);
@@ -67,6 +70,10 @@ const L=run=>R.loc[run.up.loc];
 const CARD_WK=2966;
 /* V5 = 새 규칙이 켜진 판: 챌린지 이번 주 판(2966주부터)·연습 판. 가게(shop)는 그대로 */
 const NEW_WK=2966,V5=run=>!!run&&(run.mode==='free'||(run.mode==='week'&&(run.wid|0)>=NEW_WK));
+const V6_WK=2968,V6=run=>!!run&&(run.mode==='week'||run.mode==='free')&&(run.wid|0)>=V6_WK;
+const maxSt=run=>V6(run)?R.maxStage6:R.maxStage;
+/* 🔥 식는 붕어빵: 접시에 놓인 지 오래될수록 품질이 내려가요 (p→o→g→c) */
+const QL=['p','o','g','c'];function rq(s,run,r){if(!V6(run)||r.t==null)return r.q;const a=s.t-r.t,C=R.cool;let i=QL.indexOf(r.q);if(i<0)return r.q;if(a>=C[2])return'c';if(a>=C[1])i+=2;else if(a>=C[0])i+=1;return QL[Math.min(2,i)]}
 const CARDS=[
  {k:'pat',e:'🤗',n:'따뜻한 미소',d:'손님 참을성 +15%'},
  {k:'tip',e:'💝',n:'단골 서비스',d:'팁 +50%'},
@@ -92,7 +99,7 @@ const CK={};CARDS.forEach(c=>CK[c.k]=c);
 const cn=(run,k)=>{let n=0;if(run.cards)for(const c of run.cards)if(c===k||c.startsWith(k+':'))n++;return n};
 const canCard=run=>run.mode==='week'&&(run.wid|0)>=CARD_WK;
 /* 이번에 고를 단계 (넘긴 단계가 5의 배수이고 아직 안 골랐으면) */
-const cardStage=run=>{const st=run.stage|0;return canCard(run)&&st>0&&st%5===0&&st<R.maxStage&&!(run.ck||[]).includes(st)?st:0};
+const cardStage=run=>{const st=run.stage|0;return canCard(run)&&st>0&&st%5===0&&st<maxSt(run)&&!(run.ck||[]).includes(st)?st:0};
 function cardOffer(run){const st=cardStage(run);if(!st)return[];const rng=mul(hs(run.seed,st*977+31)),idx=CARDS.map((_,i)=>i).filter(i=>!(CARDS[i].r&&cn(run,CARDS[i].k))&&!(CARDS[i].k==='cut'&&V5(run)&&cn(run,'cut')>=2));
  for(let i=idx.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}return idx.slice(0,3).map(i=>CARDS[i].k)}
 function pickCard(run,k){const st=cardStage(run);if(!st||!cardOffer(run).includes(k))return false;if(run.lg)run.lg.push(['C',k]);
@@ -106,7 +113,7 @@ const rackFull=(s,run,f)=>rackLv(run)>=2?s.rack.filter(r=>r.f===f).length>=10:s.
 function upCost(run,k){if(k==='fl')return run.nf>=R.menu.length?null:R.menu[run.nf].unlock;
  if(k[0]==='f'&&k[1]==='u'){const f=+k[2];if(!(f<run.nf))return null;const lv=fuLv(run,f);return lv>=R.fuC.length?null:Math.round(R.menu[f].p*R.fuC[lv]/100)*100}const u=R.up[k],lv=run.up[k]|0;return lv>=u.max?null:u.cost[lv]}
 function buy(run,k){if(run.lg)run.lg.push(['B',k]);const c=upCost(run,k);if(c==null||run.coins<c)return false;run.coins-=c;if(k==='fl')run.nf++;else if(k[0]==='f'&&k[1]==='u'){if(!run.fu)run.fu=[0,0,0,0,0,0];run.fu[+k[2]]++}else run.up[k]=(run.up[k]|0)+1;return true}
-const ticketCost=run=>Math.round(cutline(run.day,V5(run))*R.ticketMul/100)*100;
+const ticketCost=run=>Math.round(cutline(run.day,V5(run),V6(run))*R.ticketMul/100)*100;
 /* 탈락 직후 부활권을 사서 같은 날을 다시 (기록 ['V']). 옛 기록에는 없어서 재생 결과가 그대로예요 */
 const canLateRevive=run=>!!run.over&&!!run.failed&&!run.clear&&!run.giveUp&&run.coins>=ticketCost(run);
 function lateRevive(run){if(run.lg)run.lg.push(['V']);if(!canLateRevive(run))return false;run.coins-=ticketCost(run);run.over=false;run.failed=0;run.tused++;return true}
@@ -141,14 +148,14 @@ function moldTap(s,run,i){if(run.lg)run.lg.push([s.tk,0,i]);if(s.ph!=='play'||i>
   if(rackFull(s,run,m.f)){s.full=(s.full|0)+1;fx(s,{k:'toast',t:rackLv(run)>=2?R.menu[m.f].e+' '+R.menu[m.f].n+' 접시가 꽉 찼어요! 먼저 손님에게 주세요':'접시가 꽉 찼어요! 먼저 손님에게 주세요'});fx(s,{k:'snd',n:'no'});return}
   const q=qOf(m.f,m.p,run),fq=(m.qa==='b'||q==='b')?'b':(m.qa==='p'&&q==='p')?'p':(m.qa==='p'||q==='p')?'o':'g';m.s=0;
   if(fq==='b'){s.burnt++;s.combo=0;fx(s,{k:'ft',t:'BURNT 😵',a:'m',i,c:'#ffb0a0'});fx(s,{k:'snd',n:'burn'})}
-  else{s.rack.push({f:m.f,q:fq});s.made++;if(fq==='p'){s.perf++;fx(s,{k:'ft',t:'PERFECT! ✨',a:'m',i,c:'#ffe066'});fx(s,{k:'snd',n:'perf'});fx(s,{k:'pf',e:'✨',a:'m',i,n:4})}else if(fq==='o'){s.good++;fx(s,{k:'ft',t:'GREAT! 👍',a:'m',i,c:'#bff0b0'});fx(s,{k:'snd',n:'ready'})}else{fx(s,{k:'ft',t:'GOOD',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'ready'})}}}
+  else{s.rack.push(V6(run)?{f:m.f,q:fq,t:s.t}:{f:m.f,q:fq});s.made++;if(fq==='p'){s.perf++;fx(s,{k:'ft',t:'PERFECT! ✨',a:'m',i,c:'#ffe066'});fx(s,{k:'snd',n:'perf'});fx(s,{k:'pf',e:'✨',a:'m',i,n:4})}else if(fq==='o'){s.good++;fx(s,{k:'ft',t:'GREAT! 👍',a:'m',i,c:'#bff0b0'});fx(s,{k:'snd',n:'ready'})}else{fx(s,{k:'ft',t:'GOOD',a:'m',i,c:'#fff'});fx(s,{k:'snd',n:'ready'})}}}
  else if(m.s===5){m.s=0;fx(s,{k:'snd',n:'tap'})}}
 function selFl(s,run,f){if(run.lg)run.lg.push([s.tk,2,f]);if(f<run.nf&&f>=0){s.sel=f;fx(s,{k:'snd',n:'tap'})}}
-const pickR=(s,c,f,run)=>{const Rk=s.rack;let k=Rk.findIndex(r=>r.f===f&&r.q==='p');if(k<0&&c.ty!=='critic'){k=Rk.findIndex(r=>r.f===f&&r.q==='o');if(k<0)k=Rk.findIndex(r=>r.f===f)}return k};
+const pickR=(s,c,f,run)=>{const Rk=s.rack,Q=r=>rq(s,run,r);let k=Rk.findIndex(r=>r.f===f&&Q(r)==='p');if(k<0&&c.ty!=='critic'){k=Rk.findIndex(r=>r.f===f&&Q(r)==='o');if(k<0)k=Rk.findIndex(r=>r.f===f&&Q(r)==='g');if(k<0)k=Rk.findIndex(r=>r.f===f)}return k};
 function canServe(s,c,run){return !!c&&c.leave<=0&&c.ord.some((o,f)=>o-c.got[f]>0&&pickR(s,c,f,run)>=0)}
 function serve(s,run,ci,auto){if(run.lg&&!auto)run.lg.push([s.tk,1,ci]);if(s.ph!=='play')return;const c=s.cust[ci];if(!c||c.leave>0)return;let gave=0;const lc=L(run),nf=R.menu.length;
- for(let f=0;f<nf;f++)while(c.ord[f]-c.got[f]>0){const k=pickR(s,c,f,run);if(k<0)break;const r=s.rack.splice(k,1)[0];c.got[f]++;gave++;
-  const kc=cn(run,'combo'),cm=1+Math.min(.5+.3*kc,s.combo*(.05+.03*kc)),pk=cn(run,'picky'),qmv=(r.q==='p'?R.qm.p+.2*cn(run,'perf')+.5*cn(run,'hot'):(R.qm[r.q]||1))*(pk?(r.q==='g'?.5:1.3):1),val=Math.round(price(run,f)*qmv*cm*({vip:1.5,reg:1.2,group:1.1,critic:3}[c.ty]||1)*lc.pm*(s.ev==='bomb'?1.25:1));
+ for(let f=0;f<nf;f++)while(c.ord[f]-c.got[f]>0){const k=pickR(s,c,f,run);if(k<0)break;const r0=s.rack.splice(k,1)[0],r={f:r0.f,q:rq(s,run,r0)};c.got[f]++;gave++;
+  const kc=cn(run,'combo'),cm=1+Math.min(.5+.3*kc,s.combo*(.05+.03*kc)),pk=cn(run,'picky'),qmv=(r.q==='p'?R.qm.p+.2*cn(run,'perf')+.5*cn(run,'hot'):(r.q==='c'?R.coldM:(R.qm[r.q]||1)))*(pk?(r.q==='g'||r.q==='c'?.5:1.3):1),val=Math.round(price(run,f)*qmv*cm*({vip:1.5,reg:1.2,group:1.1,critic:3}[c.ty]||1)*lc.pm*(s.ev==='bomb'?1.25:1));
   s.net+=val;fx(s,{k:'rx',i:ci,q:r.q});fx(s,{k:'ft',t:'+'+fmt(val),a:'c',i:ci,dy:gave*10,c:'#fff0a0'});fx(s,{k:'snd',n:'coin'});if(r.q==='p'&&!auto){s.combo++;s.bc=Math.max(s.bc,s.combo)}}
  if(!gave){if(auto)return;c.sh=.25;fx(s,{k:'nob',i:ci,t:c.ty==='critic'&&s.rack.length?'✨ PERFECT만 받아요!':'아직 없어요? 🥺'});fx(s,{k:'snd',n:'no'});return}
  if(c.ord.every((n,f)=>c.got[f]>=n)){let sum=0;c.ord.forEach((n,f)=>sum+=n*price(run,f));sum*=lc.pm;
@@ -160,7 +167,7 @@ function spawnC(s,run){const free=[0,1,2].filter(i=>!s.cust[i]);if(!free.length)
  let ty='n',c=crit;if(r<c)ty='critic';else if(r<(c+=grp))ty='group';else if(r<(c+=vp))ty='vip';else if(r<(c+=rg))ty='reg';else if(r<(c+=hu))ty='hurry';
  let n=ty==='vip'?3+Math.floor(rng()*3):ty==='group'?6+Math.floor(rng()*3):ty==='critic'?2:1+Math.floor(rng()*(d<5?2:d<12?3:4));
  if(ev==='bomb'&&!['vip','group','critic'].includes(ty))n+=1;
- const ord=[0,0,0,0,0,0],nf=run.nf,wt=[],v5=V5(run);let tot=0,wv=1;for(let f=0;f<nf;f++){const w=v5?wv*(1+R.fuOrd*fuLv(run,f)):wv;wt.push(w);tot+=w;wv*=v5?R.ordG5:R.ordG}
+ const ord=[0,0,0,0,0,0],nf=run.nf,wt=[],v5=V5(run),v6=V6(run);let tot=0,wv=1;for(let f=0;f<nf;f++){const w=v5?wv*(1+(v6?R.fuOrd6:R.fuOrd)*fuLv(run,f)):wv;wt.push(w);tot+=w;wv*=v6?R.ordG6:v5?R.ordG5:R.ordG}
  for(let i=0;i<n;i++){let x=rng()*tot,f=0;while(f<nf-1&&x>=wt[f]){x-=wt[f];f++}ord[f]++}
  const an=ty==='critic'?'🧐':R.an[Math.floor(rng()*R.an.length)];
  const base=({n:34,reg:38,hurry:19,vip:52,group:80,critic:42})[ty]*Math.max(.7,1-d*.02)*(1+.08*run.up.pat)*s.wea.pat*(1+.15*cn(run,'pat'))*Math.max(.6,1-.08*cn(run,'rush'))*(cn(run,'big')?.75:1);
@@ -187,7 +194,7 @@ function dayResult(s,run){const net=Math.round(s.net);return{net,cut:s.cut,pass:
 function endDay(run,res){
  if(run.lg)run.lg.push(['E']);
  if(res.pass){run.coins=Math.max(0,run.coins+res.net);run.tot+=res.net;run.stage=run.day;run.bestNet=Math.max(run.bestNet,res.net);
-  if(run.day>=R.maxStage){run.clear=true;run.over=true;return'clear'}run.day++;return'pass'}
+  if(run.day>=maxSt(run)){run.clear=true;run.over=true;return'clear'}run.day++;return'pass'}
  if(run.ticket){run.ticket=0;run.tused++;return'revive'}
  run.over=true;run.failed=1;return'over'}
 /* 기록(lg)을 처음부터 다시 돌려 결과를 확인 (같은 시드·같은 입력이면 항상 같음) */
@@ -217,5 +224,5 @@ function recUp(run,keys,r){const can=k=>keys.includes(k)&&upCost(run,k)!=null,pi
  for(const [k,why] of ord)if(can(k))return{k,why:why+' (돈을 모아 봐요)'};return null}
 const weekId=(ms)=>Math.floor((Math.floor((ms+9*3600e3)/864e5)+3)/7);
 const weekSeed=(w)=>hs(20260601,w),SIMV=4; /* SIMV: 규칙 숫자를 바꾸면 올린다 (옛 기록 검증 구분용) */
-return{NEW_WK,V5,ASSIST,ASSIST_ALL,asList,AS_WK,WIDE,wideOn,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
+return{NEW_WK,V5,V6,V6_WK,maxSt,rq,ASSIST,ASSIST_ALL,asList,AS_WK,WIDE,wideOn,canAssist,setAssist,setPity,nunF,wOf,CARD_WK,CARDS,CK,cn,canCard,cardStage,cardOffer,pickCard,cutRun,BURN_WK,canToss,tossable,SIMV,weekSeed,R,DT,MOLDS,canLateRevive,lateRevive,upInfo,fuLv,price,rackLv,rackCap,rackFull,recUp,mul,hs,evOf,cutline,cutOf,fmt,newRun,nMold,speedF,tSide,upCost,buy,ticketCost,buyTicket,newDay,replay,qOf,perfMark,moldTap,selFl,serve,canServe,pickR,step,dayResult,endDay,weekId,L}})();
 if(typeof module!=='undefined')module.exports=BP2;
