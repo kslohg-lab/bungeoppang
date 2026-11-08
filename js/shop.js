@@ -544,7 +544,7 @@ let zfK='';function zfSync(){const b=$('zf'),hm=scr==='home'&&$('hm').style.disp
  $('nst').style.display=hm?'block':'none';$('nms').style.display=hm?'block':'none';b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 $('dx').onclick=()=>{if(dMed){dMed=false;prev=null;dtab=0;dsub=0;if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}scr='home';toHome();return}const pd=pendList();if(pd.n){const buy=()=>{if(save.coins<pd.sum){toast('코인이 부족해요! 🪙'+fmt(pd.sum-save.coins)+' 모자라요');snd('no');renderDeco();return}save.coins-=pd.sum;pd.L.forEach(f=>{delete f.pend;save.inv[f.k]=(save.inv[f.k]||0)+1});store();snd('buy');if(window.JUICE)JUICE.confetti(50);toast('🛒 '+pd.n+'개 구입! −🪙'+fmt(pd.sum));$('dx').onclick()},drop=()=>{save.fur=save.fur.filter(f=>!f.pend);dsel=null;store();renderDeco();toast('담아 둔 가구를 뺐어요')};
   JUICE.ask('🛒 '+pd.n+'개를 살까요?','합계 🪙'+fmt(pd.sum)+' · 가진 돈 🪙'+fmt(save.coins),'↩️ 사지 않고 빼기',drop,'🪙 '+fmt(pd.sum)+' 사기',buy);return}
- if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}prev=null;dsel=null;dpick=null;syncShop();bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
+ if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}prev=null;dsel=null;dpick=null;syncShop(true);bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  let h='<div class="srow"><span>⭐ 별<b>'+save.stars+'</b></span><span>🏅 등급<b>'+GR[g].e+'</b></span><span>📖 도감<b>'+nd+'/'+R.an.length+'</b></span></div>';
@@ -600,7 +600,8 @@ const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppan
 function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
-function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(sc=>{/* 점수가 천천히 올라가는 중이면 다음에 또 보내요 */if(!(typeof sc==='number'&&sc<d.sc))save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
+/* 11/8 5.6.6: 꾸미기 완료(force)는 늘 올리고 결과를 보여 줘요 · 실패하면 이유(에러 이름)를 화면에 */
+function syncShop(force){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(!force&&h===save.upH)return;N.save(d).then(sc=>{/* 점수가 천천히 올라가는 중이면 다음에 또 보내요 */if(!(typeof sc==='number'&&sc<d.sc))save.upH=h;save.upE=0;store();if(force)toast('🏪 가게 순위에 올렸어요')}).catch(e=>{const c=String(e&&(e.code||e.message)||e).slice(0,60);console.warn('shop sync',c);save.upH='';save.upE={t:Date.now(),c};store();if(force||!save.upEs){save.upEs=1;toast('⚠️ 가게를 순위에 못 올렸어요 · '+c+' · '+String(N.uid||'?').slice(0,6))}})},()=>{if(force)toast('⚠️ 가게 순위 서버에 연결이 안 돼요')})}
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
 function openRank(by){rkBy=by||rkBy;scr='rk';show('rk');renderRank()}
