@@ -153,14 +153,14 @@ const STK={};
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
 const FIMG={chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
- stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:.92},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
+ stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:1.15,r:7},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
 /* 11/8 파란 배경 그림자 다시 지운 그림 → 새로 받게 */const FV=new Set(['stool','wchair','ptable','rattan','barstool','beanbag','bartable','marble','leather','cloud','gtable']);
 function fuImg(k,back){if(!FK[k]||!(FK[k].emo||FIMG[k]))return null;const q=FV.has(k)?'?v=2':'';if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp'+q);if(b)return b}return ld('img/fu/'+k+'.webp'+q)}
 function drawImgF(it,t){const fi=FIMG[it.k];if(!fi)return false;const d=it.d|0,back=d>=2&&!!fi.b,im=fuImg(it.k,back);if(!im)return false;
  const C=cells(it),c=iso(C.reduce((a,q)=>a+q.x,0)/C.length+.5,C.reduce((a,q)=>a+q.y,0)/C.length+.5),ww=TW*fi.w*(C.length>1?1.12:.86),hh=ww*im.naturalHeight/im.naturalWidth,flip=flipOf(it.k,d);
- shadow(c.x,c.y+2,Math.min(ww*.45,TW*.42));cx.save();cx.translate(c.x,c.y+TH*(C.length>1?.55:.3));if(flip)cx.scale(-1,1);cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();return true}
+ shadow(c.x,c.y+2,Math.min(ww*.45,TW*.42));cx.save();cx.translate(c.x,c.y+TH*(C.length>1?.55:.3));if(flip)cx.scale(-1,1);if(fi.r){/* 윗면 방향을 칸 격자(26.6°)에 맞추려고 윗면 가운데 기준으로 살짝 돌림 */cx.translate(0,-hh*.66);cx.rotate(fi.r*Math.PI/180);cx.drawImage(im,-ww/2,-hh*.34,ww,hh)}else cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();return true}
 function stk(e,z){z=Math.max(8,Math.round(z));const k=e+'|'+z;let c=STK[k];if(c)return c;
  const pad=Math.ceil(z*.14)+2,S=Math.ceil(z*1.4)+pad*2,a=document.createElement('canvas');a.width=a.height=S;const ax=a.getContext('2d');ax.font=z+'px '+A.E;ax.textAlign='center';ax.textBaseline='middle';ax.fillText(e,S/2,S/2);
  /* 흰 스티커 테두리 대신: 얇은 진한 테두리 + 아래쪽 그늘 → 바닥에 놓인 물건처럼 */
