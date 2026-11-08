@@ -3,7 +3,7 @@
   "appName": "붕어빵 가게",
   "webDir": "www",
   "server": {
-    "url": "https://bungeoppang-shop.vercel.app/",
+    "url": "https://bungeoppang-shop.pages.dev/",
     "errorPath": "offline.html"
   },
   "android": {
