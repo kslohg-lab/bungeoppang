@@ -1,9 +1,9 @@
-/* 🚚 새 주소로 이사 (11/9 월 00:00 KST부터)
+/* 🚚 새 주소로 이사 — 지금은 꺼 둠(AT=Infinity)
    옛 주소(vercel 등)로 들어오면 이 기기의 기록(localStorage)을 # 뒤에 담아 새 주소로 보내요.
    # 뒤는 서버로 가지 않아요. 새 주소는 비어 있거나 옛 기록이 더 많을 때 받아서 넣고(원래 것은 bpMoveBak) 바로 주소창에서 지워요.
    다른 스크립트보다 먼저 (head 맨 앞) 읽혀야 해요. */
 (function(){
-var NEW='bungeoppang-shop.pages.dev',AT=Date.UTC(2026,10,8,15,0,0),h=location.hostname,ls=null;
+var NEW='bungeoppang-shop.pages.dev',AT=Infinity /* ⏸️ 11/8 사용자 결정: 이사 미룸 (로그인 먼저 → 출시 직전에 한 번만). 켤 때 Date.UTC(...)로 */,h=location.hostname,ls=null;
 try{ls=window.localStorage}catch(e){}
 function enc(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function dec(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))}
