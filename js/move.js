@@ -1,6 +1,6 @@
 /* 🚚 새 주소로 이사 (11/9 월 00:00 KST부터)
    옛 주소(vercel 등)로 들어오면 이 기기의 기록(localStorage)을 # 뒤에 담아 새 주소로 보내요.
-   # 뒤는 서버로 가지 않아요. 새 주소는 기록이 비어 있을 때만 받아서 넣고 바로 주소창에서 지워요.
+   # 뒤는 서버로 가지 않아요. 새 주소는 비어 있거나 옛 기록이 더 많을 때 받아서 넣고(원래 것은 bpMoveBak) 바로 주소창에서 지워요.
    다른 스크립트보다 먼저 (head 맨 앞) 읽혀야 해요. */
 (function(){
 var NEW='bungeoppang-shop.pages.dev',AT=Date.UTC(2026,10,8,15,0,0),h=location.hostname,ls=null;
@@ -8,14 +8,20 @@ try{ls=window.localStorage}catch(e){}
 function enc(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function dec(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))}
 var SAVE=['bpShopPubV1','bungeoppang2Pub1'];
+function prog(o){var p=0;try{var sh=o.bpShopPubV1&&JSON.parse(o.bpShopPubV1);if(sh)p+=(sh.served|0)+(sh.days|0)*20+Math.min(2000,(sh.coins|0)/1000)}catch(e){}try{var c=o.bungeoppang2Pub1&&JSON.parse(o.bungeoppang2Pub1);if(c)p+=(c.runs|0)*10}catch(e){}return p}
 function hasSave(){if(!ls)return false;for(var i=0;i<SAVE.length;i++){try{if(ls.getItem(SAVE[i]))return true}catch(e){}}return false}
 
 if(h===NEW){ /* 받는 쪽 */
  var m=location.hash.match(/[#&]mv=([^&]*)/);if(!m)return;
  var msg='';
  try{var d=JSON.parse(dec(m[1]));
-  if(d&&d.k&&ls){if(!hasSave()){for(var k in d.k){try{ls.setItem(k,d.k[k])}catch(e){}}try{ls.setItem('bpMoved',String(Date.now()))}catch(e){}msg='🚚 새 주소로 이사 왔어요! 기록은 그대로예요.'}
-   else msg='🚚 새 주소예요! 이 기기엔 이미 새 주소 기록이 있어서 그걸 그대로 써요.'}
+  if(d&&d.k&&ls){
+   /* 새 주소에 이미 기록이 있어도, 옛 기록이 더 많이 한 쪽이면 옛 기록으로 (새 기록은 bpMoveBak에 보관) */
+   var cur={};for(var i=0;i<SAVE.length;i++){try{var v=ls.getItem(SAVE[i]);if(v)cur[SAVE[i]]=v}catch(e){}}
+   if(!hasSave()||prog(d.k)>prog(cur)){
+    if(hasSave()){try{ls.setItem('bpMoveBak',JSON.stringify({t:Date.now(),k:cur}))}catch(e){}}
+    for(var k in d.k){try{ls.setItem(k,d.k[k])}catch(e){}}try{ls.setItem('bpMoved',String(Date.now()))}catch(e){}msg='🚚 새 주소로 이사 왔어요! 기록은 그대로예요.'}
+   else msg='🚚 새 주소예요! 이 기기엔 새 주소 기록이 더 많아서 그걸 그대로 써요.'}
  }catch(e){}
  try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
  if(msg)document.addEventListener('DOMContentLoaded',function(){
