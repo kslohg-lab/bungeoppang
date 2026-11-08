@@ -38,7 +38,9 @@ const starter=()=>{if(Array.isArray(save.fur))return;save.inv=Object.assign({cha
 const gradeOf=n=>{let g=0;for(let i=0;i<GR.length;i++)if(n>=GR[i].at)g=i;return g};
 const grade=()=>gradeOf(save.served);
 const eqIt=(k,pv)=>{const sl=SLOTS.find(x=>x.k===k);const id=pv&&pv.k===k?pv.id:save.eq[k];return sl.L[id]||sl.L[0]};
-const charm=()=>SLOTS.reduce((a,s)=>a+charmOf(eqIt(s.k)),0)+(save.fur||[]).reduce((a,it)=>{const f=IS.CK(it.k);return a+(f?charmOf(f):0)},0);
+/* 11/8 다양하게 놓기 보너스: 가구 종류 하나마다 꾸미기 점수 +150 · 매력 +1 (같은 걸 여러 개 놓아도 깎이진 않아요) */
+const KIND_PT=150,kindsN=()=>{const k=new Set();(save.fur||[]).forEach(it=>{if(IS.CK(it.k))k.add(it.k)});return k.size};
+const charm=()=>SLOTS.reduce((a,s)=>a+charmOf(eqIt(s.k)),0)+(save.fur||[]).reduce((a,it)=>{const f=IS.CK(it.k);return a+(f?charmOf(f):0)},0)+kindsN();
 const charmBonus=()=>Math.min(.25,charm()*.0023);
 /* 🏅 메달 스킨 효과 (쓰고 있는 스킨만): a = 손님 +%, h = 도와주기 수익 +% · 가게에만, 챌린지엔 없음 */
 const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h|0)/100}};
@@ -51,7 +53,7 @@ function applyCook(){const c=COOKS[save.cook|0]||COOKS[0];if(c.f){const im=new I
 applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
 function decoScore(){let sc=0;SLOTS.forEach(sl=>{const it=sl.L[save.eq[sl.k]]||sl.L[0];const v=it.p>0?it.p:(it.st?it.st*1500:0);sc+=Math.floor(v/100)});
- const kinds=new Set();(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*25+((save.room-1)*(save.room-1)-16)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
+ const kinds=new Set();(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*KIND_PT+((save.room-1)*(save.room-1)-16)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
  /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc}
 function setDone(k,kinds){kinds=kinds||new Set((save.fur||[]).map(it=>it.k));return IS.FUR.filter(f=>f.set===k).every(f=>kinds.has(f.k))}
 const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
@@ -203,7 +205,7 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=
  h+='<br><small>🙋 <b>도와주기</b>로 손님을 직접 대접하면 올라요 · 오르면 새 가구·꾸밈이 열리고 카운터에 메뉴판·조명이 생겨요</small></div>';
  h+='<div class="sum"><b>🏪 가게 레벨: Lv'+lv+'</b>';
  if(lv<40)h+=bar(sc-prev,need-prev,'#7ed88a')+'<small>다음 Lv'+(lv+1)+'까지 꾸미기 점수 <b>'+fmt(need-sc)+'</b> ('+fmt(sc)+' / '+fmt(need)+')</small>';else h+='<br><small>최고 레벨이에요! 🎉</small>';
- h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small></div>';
+ h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small><br><small>🌈 <b>여러 가지 가구</b>를 놓으면 종류마다 +'+KIND_PT+'점 · 매력 +1 (지금 '+kindsN()+'가지 → +'+fmt(kindsN()*KIND_PT)+'점)</small></div>';
  {const R0=BIZ.rt(save),W={wait:'⏱️ 기다림',price:'💰 붕어빵 값',deco:'🎨 꾸미기',menu:'🍡 메뉴 수',help:'✨ 도와주기 솜씨'},m=BIZ.rtMul(save);
   h+='<div class="sum"><b>⭐ 가게 평점: '+R0.v.toFixed(1)+'</b> <small>(손님 '+(m>=1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%)</small>'+bar(R0.v-1,4,'#ffb04a');
   if(R0.rv&&R0.rv.length)h+='<small>💬 '+R0.rv.map(x=>'"'+x+'"').join(' · ')+'</small><br>';
@@ -462,7 +464,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
  let msg='';
  if(tk==='fur'){
   const fc=FCAT[fcat].k,fcard=f=>{const lk=lockOf(f),sp=spare(f.k),pl=placed(f.k),b=document.createElement('button');b.className='cd fu'+(dpick===f.k?' on':'')+(lk?' lk':'');
-   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+Math.floor(f.p/100)+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
+   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(f.p/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+IS.SET_BONUS:' · 다 놓으면 ✨+'+IS.SET_BONUS)+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else if(fc==='wall')IS.WFUR.forEach(fcard);

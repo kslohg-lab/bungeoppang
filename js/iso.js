@@ -23,6 +23,13 @@ const FUR=[
  {k:'fountain',n:'분수대',e:'⛲',p:120000,g:4,emo:1,b:'#b8c8d8',z:.85,c:'sp'},{k:'train',n:'기차 모형',e:'🚂',p:150000,g:4,emo:1,b:'#6a8a5a',z:.62,c:'sp'},
  {k:'trophy',n:'황금 트로피',e:'🏆',p:300000,g:5,emo:1,b:'#3a2a3a',z:.62,glow:1,c:'sp'},{k:'wheel',n:'미니 관람차',e:'🎡',p:500000,g:5,emo:1,b:'#7a8aa8',z:1,c:'sp'},
  {k:'dragon',n:'용 조각상',e:'🐉',p:800000,g:5,emo:1,b:'#4a3a30',z:.86,c:'sp'},{k:'throne',n:'왕좌',e:'👑',p:1500000,g:6,rot:1,seat:1,c:'sit'},
+ /* ---- 11/8 의자·탁자 더 (다양하게 놓으면 점수·매력 보너스) ---- */
+ {k:'stool',n:'둥근 스툴',e:'🪑',p:900,g:0,seat:1,c:'sit'},{k:'wchair',n:'원목 의자',e:'🪑',p:1200,g:0,rot:1,seat:1,c:'sit'},
+ {k:'ptable',n:'체크무늬 식탁',e:'🍽️',p:8000,g:2,c:'sit'},{k:'rattan',n:'라탄 의자',e:'🪑',p:9000,g:2,rot:1,seat:1,c:'sit'},
+ {k:'barstool',n:'바 의자',e:'🪑',p:12000,g:2,seat:1,c:'sit'},{k:'beanbag',n:'빈백',e:'🛋️',p:15000,g:2,seat:1,c:'sit'},
+ {k:'bartable',n:'바 테이블',e:'🍸',p:25000,g:3,c:'sit'},{k:'marble',n:'대리석 원탁',e:'🍽️',p:60000,g:3,c:'sit'},
+ {k:'leather',n:'가죽 소파',e:'🛋️',p:120000,g:4,rot:1,seat:1,c:'sit'},{k:'cloud',n:'구름 소파',e:'☁️',p:400000,g:5,rot:1,seat:1,c:'sit'},
+ {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
  /* ---- 테마 세트 (다 놓으면 꾸미기 점수 보너스) ---- */
  {k:'ctable',n:'카페 원탁',e:'☕',p:3500,g:1,as:'table',c1:'#f4efe6',c2:'#5a4a40',cup:1,set:'cafe',c:'sit'},
@@ -146,6 +153,7 @@ const STK={};
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
 const FIMG={chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
+ stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:.92},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
 function fuImg(k,back){if(!FK[k]||!(FK[k].emo||FIMG[k]))return null;if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp');if(b)return b}return ld('img/fu/'+k+'.webp')}
