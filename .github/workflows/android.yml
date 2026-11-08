@@ -14,6 +14,11 @@ on:
 permissions:
   contents: write
 
+# 새로 올리면 아직 돌고 있는 예전 빌드는 취소 (늦게 끝난 예전 앱이 시험판을 덮어쓰지 않게)
+concurrency:
+  group: android-build
+  cancel-in-progress: true
+
 env:
   # 📺 AdMob 앱 ID — 지금은 구글 시험용이에요. AdMob에서 앱을 만들면 그 'ca-app-pub-…~…' 로 바꿔요.
   ADMOB_APP_ID: ca-app-pub-3940256099942544~3347511713
