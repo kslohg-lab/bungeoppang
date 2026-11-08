@@ -1,6 +1,6 @@
 {
-  "appId": "com.ksgame.bungeoppang",
-  "appName": "붕어빵 챌린지",
+  "appId": "com.jagame.bungeoppang",
+  "appName": "붕어빵 가게",
   "webDir": "www",
   "server": {
     "url": "https://bungeoppang-shop.vercel.app/",
