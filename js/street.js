@@ -18,6 +18,8 @@ const SK=[
 const AWC=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
 const RB=['#ff5a5a','#ff9a3a','#ffd93a','#6ccf5a','#4aa8ff','#a85aff'];
 const SB=[['#8a5a3a','#fff3c0'],['#ff8ab0','#fff'],['#2a3a32','#f0f0e0'],['#2a1a3a','#e8b0ff'],['#d4a020','#fff6d0'],['#a85aff','#fff'],['#d4a020','#fff6d0'],['#1a2a5a','#fff6c0']];
+/* 11/8: 가게가 +1칸 커져도 동네 건물은 예전 모습 그대로 (r5 표시가 있으면 한 단계 아래 건물) */
+const RM=d=>Math.max(4,(d.room|0)-(d.r5?1:0));
 function size(room){const r=Math.max(4,Math.min(10,room|0));return{w:[1.9,2.6,3.0,3.4,3.8,4.2,4.6][r-4],d:[1.1,2.2,2.4,2.6,2.8,3.0,3.2][r-4],fl:r>=9?3:r>=7?2:1}}
 /* ---------- 동네 배치 (칸 단위) ---------- */
 const BX=12,BY=10,RB_=3.4,SW=.9; /* 블록 크기, 길 폭(인도 포함), 인도 폭 */
@@ -69,15 +71,15 @@ function cart(Q,ori,d,t,st){const S=size(4),Wd=S.w,D=S.d,h=T*.62,s=T/40,fsl=ori=
  return{Wd,D,h:ph+24*s}}
 /* 그림 스킨: 바닥 크기에 맞춰 그림을 놓고, 오른쪽을 보는 자리는 좌우로 뒤집어요 (간판 글자가 없어서 괜찮아요). 이름은 동네 이름표로 */
 const IMC={};function skImg(src){let im=IMC[src];if(!im){im=new Image();im.src=src;IMC[src]=im}return im.complete&&im.naturalWidth?im:null}
-function imgBld(Q,ori,d,t,st){const big=(d.room|0)>4,S=size(d.room),Wd=big?S.w:1.9,D=big?S.d:1.6,im=skImg(st.img);if(!im)return cart(Q,ori,d,t,SK[0]);
+function imgBld(Q,ori,d,t,st){const big=RM(d)>4,S=size(RM(d)),Wd=big?S.w:1.9,D=big?S.d:1.6,im=skImg(st.img);if(!im)return cart(Q,ori,d,t,SK[0]);
  const pts=[Q(0,0),Q(Wd,0),Q(Wd,D),Q(0,D)],x0=Math.min(...pts.map(p=>p.x)),x1=Math.max(...pts.map(p=>p.x)),yb=Math.max(...pts.map(p=>p.y)),w=(x1-x0)*1.18,h=w*im.naturalHeight/im.naturalWidth;
  cx.save();cx.translate((x0+x1)/2,0);if(ori==='R')cx.scale(-1,1);cx.drawImage(im,-w/2,yb-h+w*.05,w,h);cx.restore();return{Wd,D,h:h*.8}}
 /* 기본 외관(0번)도 그림으로: 노점은 수레(d0), 가게는 아담한 가게(d1). 그림을 못 불러오면 예전 코드 그림 */
 const DEF0={img:'img/sk/d0.webp'},DEF1={img:'img/sk/d1.webp'};
 /* 코인 외관 1~6도 그림으로 (img/sk/c1~c6), 못 불러오면 예전 코드 그림 */
 const CPIC=[null,'c1','c2','c3','c4','c5','c6'];
-function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];{const cp=CPIC[d.skin|0];if(cp){const o={img:'img/sk/'+cp+'.webp'};if(skImg(o.img))return imgBld(Q,ori,d,t,o)}}if(!(d.skin|0)){const df=(d.room|0)<=4?DEF0:DEF1;if(skImg(df.img))return imgBld(Q,ori,d,t,df)}if(st.img)return imgBld(Q,ori,d,t,st);if((d.room|0)<=4)return cart(Q,ori,d,t,st);
- const S=size(d.room),Wd=S.w,D=S.d,s=T/40,gh=T*1.32,fh=T*.92,h=gh+fh*(S.fl-1),F=ori==='F',fsl=F?.5:-.5,ssl=F?-.5:.5,aS=F?Wd:0,lite_=c=>c,drk=c=>dark(c,.16);
+function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];{const cp=CPIC[d.skin|0];if(cp){const o={img:'img/sk/'+cp+'.webp'};if(skImg(o.img))return imgBld(Q,ori,d,t,o)}}if(!(d.skin|0)){const df=RM(d)<=4?DEF0:DEF1;if(skImg(df.img))return imgBld(Q,ori,d,t,df)}if(st.img)return imgBld(Q,ori,d,t,st);if(RM(d)<=4)return cart(Q,ori,d,t,st);
+ const S=size(RM(d)),Wd=S.w,D=S.d,s=T/40,gh=T*1.32,fh=T*.92,h=gh+fh*(S.fl-1),F=ori==='F',fsl=F?.5:-.5,ssl=F?-.5:.5,aS=F?Wd:0,lite_=c=>c,drk=c=>dark(c,.16);
  const fcol=F?st.w:drk(st.w),scol=F?drk(st.w):st.w;
  poly([Q(-.15,-.2),Q(Wd+.2,-.2),Q(Wd+.2,D+.15),Q(-.15,D+.15)],'rgba(0,0,0,.13)');
  const tower=(q)=>{const tw=.62*T/2,th=h*1.32,base=q;poly([{x:base.x-tw,y:base.y},{x:base.x,y:base.y+tw/2},{x:base.x,y:base.y+tw/2-th},{x:base.x-tw,y:base.y-th}],st.w,OL);poly([{x:base.x,y:base.y+tw/2},{x:base.x+tw,y:base.y},{x:base.x+tw,y:base.y-th},{x:base.x,y:base.y+tw/2-th}],dark(st.w,.18),OL);
@@ -144,9 +146,9 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
  ground(o.night);
  const D=[],hits=[],lab=[];
  /* 가게: 자리·크기로 미리 칸을 재서, 내 가게를 가리는 앞 건물은 반투명(엑스레이) */
- const est=(Q,d)=>{const S=size(d.room),st=SK[d.skin|0]||SK[0],s=T/40,h=d.room<=4?T*1.3+24*s:T*1.32+T*.92*(S.fl-1),top=st.img?T*2.6:d.room<=4?h:st.roof==='castle'?h*1.32+T*.7:st.roof==='flat'?h+6*s:h+T*1.15,Wd=d.room<=4?1.9:S.w,Dd=S.d;
+ const est=(Q,d)=>{const S=size(RM(d)),st=SK[d.skin|0]||SK[0],s=T/40,h=RM(d)<=4?T*1.3+24*s:T*1.32+T*.92*(S.fl-1),top=st.img?T*2.6:RM(d)<=4?h:st.roof==='castle'?h*1.32+T*.7:st.roof==='flat'?h+6*s:h+T*1.15,Wd=RM(d)<=4?1.9:S.w,Dd=S.d;
   const pts=[Q(-.3,-.4),Q(Wd+.3,-.4),Q(Wd,Dd,top),Q(0,Dd,top),Q(0,0,top),Q(Wd,0,top)];return{x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))}};
- const PL=list.map((it,i)=>{const l=LOTS[i];if(!l)return null;const S=size(it.d.room),w=it.d.room<=4?1.9:S.w,pad=(l.L-w)/2,ox=l.o==='F'?l.a0+pad:l.fx,oy=l.o==='F'?l.fx-.15:l.a0-pad,Q=l.o==='F'?mk('F',ox,oy):mk('R',ox-.15,oy);return{l,Q,bb:est(Q,it.d)}});
+ const PL=list.map((it,i)=>{const l=LOTS[i];if(!l)return null;const S=size(RM(it.d)),w=RM(it.d)<=4?1.9:S.w,pad=(l.L-w)/2,ox=l.o==='F'?l.a0+pad:l.fx,oy=l.o==='F'?l.fx-.15:l.a0-pad,Q=l.o==='F'?mk('F',ox,oy):mk('R',ox-.15,oy);return{l,Q,bb:est(Q,it.d)}});
  const mi=list.findIndex(it=>it.me),mb=mi>=0&&PL[mi]?PL[mi].bb:null,mz=mb?PL[mi].l.cx+PL[mi].l.cy:0;
  list.forEach((it,i)=>{const pl=PL[i];if(!pl)return;const {l,Q}=pl;
   const ctr=P(l.cx,l.cy);if(ctr.x<-260||ctr.x>W+260||ctr.y<-200||ctr.y>1000)return;
@@ -167,7 +169,7 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
  return{hits}}
 /* 꾸미기 미리보기: 내 건물 하나를 크게 */
 function preview(t,d,top,bottom){const g=cx.createLinearGradient(0,top,0,bottom);g.addColorStop(0,'#9fd8ff');g.addColorStop(1,'#fff1d6');cx.fillStyle=g;cx.fillRect(0,top,W,bottom-top);
- const sv={T,OX,OY},S=size(d.room);T=Math.min(70,(bottom-top-60)/((d.room<=4?1.9:1.45+1.1*(S.fl-1))+1.2+S.d*.25+.9),300/((S.w+S.d)/2+.6));
+ const sv={T,OX,OY},S=size(RM(d));T=Math.min(70,(bottom-top-60)/((RM(d)<=4?1.9:1.45+1.1*(S.fl-1))+1.2+S.d*.25+.9),300/((S.w+S.d)/2+.6));
  OX=225-((S.w/2)+(S.d/2))*T/2;OY=bottom-70-(S.w/2)*T/4;
  const G=(y0,y1,c)=>poly([P(-3,y0),P(S.w+3,y0),P(S.w+3,y1),P(-3,y1)],c);G(-S.d-2,0,'#cfe6b4');G(0,1.1,'#e4d8c2');G(1.1,4,'#8f8a85');
  bldg(mk('F',0,0),'F',d,t);T=sv.T;OX=sv.OX;OY=sv.OY}

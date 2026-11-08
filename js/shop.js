@@ -30,8 +30,8 @@ const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
 /* ---------- 저장 ---------- */
-const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{skin:[0],shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{skin:0,shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:4,st:{bake:1,serve:1,promo:0},bought:[]});
-let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){if(Array.isArray(o.fur))o.fur=o.fur.filter(f=>!f.pend);save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);if(!save.st||typeof save.st!=='object')save.st=DEF().st;if(!Array.isArray(save.bought))save.bought=[];save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!save.dexS)save.dexS={}}}catch(e){}
+const DEF=()=>({v:1,name:'',seed:(Math.random()*4294967296)>>>0,coins:0,day:1,up:{mold:0,speed:0,auto:0,pat:0,deco:0,loc:0},nf:1,nfUse:1,fu:[0,0,0,0,0,0],served:0,days:0,stars:0,dex:{},dexS:{},dexAll:0,own:{skin:[0],shape:[0],top:[0],sign:[0],awn:[0],wall:[0],floor:[0],sL:[0],sR:[0],mas:[0],lit:[0],sky:[0]},eq:{skin:0,shape:0,top:0,sign:0,awn:0,wall:0,floor:0,sL:0,sR:0,mas:0,lit:0,sky:0},avg:0,bestNet:0,bestCombo:0,snd:true,fur:null,inv:{},room:5,r5:1,st:{bake:1,serve:1,promo:0},bought:[]});
+let save=DEF();try{const o=JSON.parse(localStorage.getItem(KEY));if(o&&typeof o==='object'){if(Array.isArray(o.fur))o.fur=o.fur.filter(f=>!f.pend);save=Object.assign(DEF(),o);save.up=Object.assign(DEF().up,o.up);save.own=Object.assign(DEF().own,o.own);if(!save.st||typeof save.st!=='object')save.st=DEF().st;if(!Array.isArray(save.bought))save.bought=[];save.eq=Object.assign(DEF().eq,o.eq);if(!save.dex)save.dex={};if(!Array.isArray(save.fu))save.fu=[0,0,0,0,0,0];if(!save.inv||typeof save.inv!=='object')save.inv={};if(!(save.room>=4))save.room=4;if(!o.r5){/* 📐 11/8 모든 가게 +1칸 */save.room=Math.min(11,save.room+1);save.bought=save.bought.map(x=>(x|0)+1);save.r5=1}if(!save.dexS)save.dexS={}}}catch(e){}
 const store=()=>{if(window.__noStore)return;/* 기록 옮겨 받는 중엔 덮어쓰지 않기 */try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}};
 /* 처음 가구: 새 가게(또는 업데이트 전 가게)에 탁자·의자 2개·화분을 놓아 드려요 */
 const starter=()=>{if(Array.isArray(save.fur))return;save.inv=Object.assign({chair:2,table:1,plant:1},save.inv);save.fur=[{k:'table',x:0,y:2,d:0},{k:'chair',x:0,y:3,d:1},{k:'chair',x:1,y:2,d:1},{k:'plant',x:0,y:1,d:0}];store()};starter();
@@ -51,7 +51,7 @@ function applyCook(){const c=COOKS[save.cook|0]||COOKS[0];if(c.f){const im=new I
 applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
 function decoScore(){let sc=0;SLOTS.forEach(sl=>{const it=sl.L[save.eq[sl.k]]||sl.L[0];const v=it.p>0?it.p:(it.st?it.st*1500:0);sc+=Math.floor(v/100)});
- const kinds=new Set();(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*25+(save.room*save.room-16)*15;
+ const kinds=new Set();(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*25+((save.room-1)*(save.room-1)-16)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
  /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc}
 function setDone(k,kinds){kinds=kinds||new Set((save.fur||[]).map(it=>it.k));return IS.FUR.filter(f=>f.set===k).every(f=>kinds.has(f.k))}
 const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
@@ -388,7 +388,7 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
   if(nx){const q=BIZ.PLACE[nx.n],lk=nx.g>grade();h+='<div class="dn2">▼</div><div class="nx"><div class="av">'+q.e+'</div><div class="tx"><b>'+q.n+' '+nx.n+'×'+nx.n+'</b><div class="chips" style="justify-content:flex-start;margin:3px 0 0"><span class="chip">🐾 +'+Math.round((q.mul-1)*100)+'%</span><span class="chip">💸 '+fmt(q.rent)+'</span><span class="chip">🪑 칸 +'+(nx.n*nx.n-n*n)+'</span></div></div><button class="ub'+(lk?' no':save.coins>=nx.p?'':' no')+'" data-act="'+act(()=>{if(lk){toast(GR[nx.g].e+' '+GR[nx.g].n+' 등급이 되면 넓힐 수 있어요');snd('no');return}openDeco('up',true)})+'">'+(lk?'🔒 '+GR[nx.g].e:'📐 '+fmt(nx.p))+'</button></div>'}
   else h+='<div class="tip">🎉 가장 넓은 가게예요!</div>';
   h+='<button class="more" data-act="'+act(()=>{upAll=!upAll;renderUp()})+'">📐 모든 크기 '+(upAll?'접기 ▴':'보기 ▾')+'</button>';
-  if(upAll){h+='<div class="gr3">';[4,5,6,7,8,9,10].forEach(k=>{const q=BIZ.PLACE[k];h+='<div class="uc'+(k===n?' hot':'')+'" style="padding-bottom:6px"><div class="av">'+q.e+'</div><div class="nm">'+k+'×'+k+'</div><div class="st">🐾 +'+Math.round((q.mul-1)*100)+'%<br>💸 '+fmt(q.rent)+(save.bought.includes(k)?' ✅':'')+'</div></div>'});h+='</div>'}}
+  if(upAll){h+='<div class="gr3">';[5,6,7,8,9,10,11].forEach(k=>{const q=BIZ.PLACE[k];h+='<div class="uc'+(k===n?' hot':'')+'" style="padding-bottom:6px"><div class="av">'+q.e+'</div><div class="nm">'+k+'×'+k+'</div><div class="st">🐾 +'+Math.round((q.mul-1)*100)+'%<br>💸 '+fmt(q.rent)+(save.bought.includes(k)?' ✅':'')+'</div></div>'});h+='</div>'}}
  else if(utab===3){const cf=BIZ.cafe(save);
   if(!cf.on){h+='<div class="hero"><div class="av">☕</div><h3>카페 열기</h3><div class="chips"><span class="chip">🐾 손님 +10%</span><span class="chip">🥤 음료도 팔아요</span><span class="chip">🙋 직접 만들기</span></div><button class="ub'+(save.coins>=BIZ.MACHINE?'':' no')+'" data-act="'+act(()=>{if(!BIZ.buyMachine(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');renderUp(true);bizBtn();bzShow('☕','카페를 열었어요!','• 🧊 아이스 아메리카노 · ☕ 카페라떼를 팔아요<br>• <b>🙋 도와주기 → ☕ 음료 만들기</b>로 직접 만들 수 있어요<br>• 👥 직원에서 🐼 바리스타를 뽑아요','좋아요!')})+'">'+fmt(BIZ.MACHINE)+'🪙</button></div><div class="gr3">';
    BIZ.DRINKS.forEach(d=>{h+='<div class="uc'+(d.un?' lk':'')+'"><div class="av">'+d.e+'</div><div class="nm">'+d.s+'</div><div class="st">'+fmt(d.p)+'원</div></div>'});h+='</div>'}
@@ -595,7 +595,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
-function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
+function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
 function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(()=>{save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
@@ -612,7 +612,7 @@ $('nb').onclick=()=>{au();syncShop();openRank('sc')};$('rk0').onclick=()=>openRa
 /* 구경 */
 let vd=null,vuid=null,vfur=[],vFrom='home';
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');
- return{g:d.g|0,n:Math.max(4,Math.min(10,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
+ return{g:d.g|0,n:Math.max(4,Math.min(11,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
 /* 구경·처음 화면은 손님이 이미 와 있는 모습으로 (20초쯤 미리 돌려요) */
 let vPre=null,hPre=0;
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';$('vnt').className='';$('vnt').textContent='💌';
@@ -678,8 +678,8 @@ $('tsk').onclick=()=>endTour();
    하루 한 번 가게 40곳쯤(비슷한 가게·큰 가게·상위권)을 불러와 저장(bpTown) → '🔄 다른 동네'는 그 안에서 새로 섞어요(서버 안 읽음, 제한 없음).
    한 동네 = 내 가게 + 11곳: 가까운 자리엔 비슷한 가게 6, 그다음 큰 가게 3, 끝에 상위권 2 */
 const SV=STREET(cx,A);
-const myD=pv=>({room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
-const dD=r=>{const e=r.eq||{};return{room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
+const myD=pv=>({r5:1,room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
+const dD=r=>{const e=r.eq||{};return{r5:e.r5|0,room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
 let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown';
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
