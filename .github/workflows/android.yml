@@ -2,6 +2,7 @@
 # - app/ 폴더나 이 파일을 올리면 자동으로, 또는 Actions 탭 → '안드로이드 앱 만들기' → Run workflow 로 돌려요.
 # - 🧪 시험용 APK: 저장소 Releases의 '앱 시험판'에 올라가요 → 폰에서 받아 바로 설치.
 # - 🏪 출시용 AAB: 저장소 Settings → Secrets에 KEYSTORE_B64·KEYSTORE_PASS가 있으면 같이 만들어져요 (Actions 실행 화면 아래 Artifacts).
+#   그때는 시험용 APK도 같은 키로 서명돼요 → 앱 구글 로그인(키 지문 등록)이 시험판에서도 돼요.
 # - 게임 내용은 앱에 안 들어가요. 앱이 사이트를 불러오니 게임 업데이트는 지금처럼 올리기만 하면 돼요.
 name: 안드로이드 앱 만들기
 
@@ -54,26 +55,28 @@ jobs:
 
       - name: 안드로이드 프로젝트 만들기
         run: |
+          # google-services.json 이 없으면 앱 구글 로그인 부품을 빼요 (없이 넣으면 앱이 켜지자마자 꺼져요)
+          if [ ! -f google-services.json ]; then npm uninstall --no-audit --no-fund @capacitor-firebase/authentication; fi
           npx cap add android
           python prep.py ../img/icon-512.png android
 
-      - name: 🧪 시험용 APK
+      - name: 🧪 시험용 APK (서명 키가 없을 때 — 앱 구글 로그인은 안 돼요)
+        if: env.KS_B64 == ''
         working-directory: app/android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/bungeoppang-test.apk"
 
-      - name: 🏪 출시용 AAB (서명 비밀값이 있을 때만)
+      - name: 🏪 출시용 AAB + 같은 키로 서명한 시험용 APK (서명 비밀값이 있을 때)
         if: env.KS_B64 != ''
         working-directory: app/android
         run: |
+          chmod +x gradlew
           echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-          ./gradlew bundleRelease --no-daemon --stacktrace \
-            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.jks" \
-            -Pandroid.injected.signing.store.password="$KS_PASS" \
-            -Pandroid.injected.signing.key.alias=upload \
-            -Pandroid.injected.signing.key.password="$KS_PASS"
+          SIGN="-Pandroid.injected.signing.store.file=$RUNNER_TEMP/upload.jks -Pandroid.injected.signing.store.password=$KS_PASS -Pandroid.injected.signing.key.alias=upload -Pandroid.injected.signing.key.password=$KS_PASS"
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace $SIGN
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/bungeoppang-test.apk"
           cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/bungeoppang-${{ github.run_number }}.aab"
           rm -f "$RUNNER_TEMP/upload.jks"
 
