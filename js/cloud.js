@@ -4,7 +4,7 @@
    - 다른 기기에서 바뀐 걸 알아보는 건 시계가 아니라 r(무작위 번호)로: 내가 마지막으로 맞춘 r과 다르면 서버가 바뀐 것
    - 서버 기록을 불러올 땐 코인·메달을 규칙을 통과한 c·m 보다 크게 못 가져와요 (조작 방지)
    - 계정 지우기: 서버 기록·가게·이번 주 순위를 지우고 구글 계정 연결도 지워요 (이 기기 기록은 남아요)
-   - 앱(안드로이드) 안에서는 구글이 웹 로그인을 막아서, 앱 전용 로그인이 생길 때까지 안내만 해요
+   - 앱(안드로이드) 안에서는 구글이 웹 로그인 창을 막아서, 앱 부품(FirebaseAuthentication)으로 계정을 고르고 그 토큰으로 연결해요 (부품 없는 옛 앱은 안내만)
    window.CLOUD = {ready, isG(), email(), link(), save(), render()} */
 import {CFG} from './firebase-config.js';
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}};
@@ -20,6 +20,9 @@ const st=()=>J(ls('bpCloud'))||{};
 const setSt=o=>ls('bpCloud',JSON.stringify(Object.assign(st(),o)));
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
 const native=()=>!!(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform());
+/* 📱 앱: 안드로이드 구글 로그인 부품 (@capacitor-firebase/authentication, skipNativeAuth) — 없으면 안내만 */
+const NFA=()=>native()&&window.Capacitor.Plugins&&Capacitor.Plugins.FirebaseAuthentication||null;
+const canLogin=()=>!native()||!!NFA();
 const toast=t=>{if(window.JUICE&&JUICE.toast)JUICE.toast(t);else{const b=document.createElement('div');b.textContent=t;b.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(60,40,25,.92);color:#fff;padding:10px 16px;border-radius:14px;z-index:99999;font:15px system-ui;max-width:86%;text-align:center';document.body.appendChild(b);setTimeout(()=>b.remove(),2600)}};
 
 window.CLOUD={off:true,isG:()=>false,render(){}};
@@ -29,22 +32,25 @@ async function backend(){
  if(window.__cloudFake)return window.__cloudFake;
  const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
  const [{initializeApp,getApps,getApp},A,F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
- const {getAuth,onAuthStateChanged,GoogleAuthProvider,linkWithPopup,signInWithCredential,signInAnonymously,reauthenticateWithPopup,deleteUser}=A;
+ const {getAuth,onAuthStateChanged,GoogleAuthProvider,linkWithPopup,linkWithCredential,signInWithCredential,signInAnonymously,reauthenticateWithPopup,reauthenticateWithCredential,deleteUser}=A;
  const {getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,serverTimestamp}=F;
  const app=getApps().length?getApp():initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
  await new Promise(r=>{const u=onAuthStateChanged(auth,()=>{u();r()})});
  const prov=()=>{const p=new GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});return p};
+ /* 앱: 안드로이드 계정 고르기 창 → 구글 토큰 → 웹 Firebase 자격 */
+ const ncred=async()=>{const r=await NFA().signInWithGoogle({skipNativeAuth:true});const t=r&&r.credential&&r.credential.idToken;if(!t){const e=new Error('no token');e.code='auth/popup-closed-by-user';throw e}return GoogleAuthProvider.credential(t)};
  const wk=()=>Math.floor((Math.floor((Date.now()+9*3600e3)/864e5)+3)/7);
  return{
   user(){const u=auth.currentUser;return u?{uid:u.uid,g:u.providerData.some(p=>p.providerId==='google.com'),email:(u.providerData.find(p=>p.providerId==='google.com')||{}).email||u.email||''}:null},
   async anon(){if(!auth.currentUser)await signInAnonymously(auth)},
   /* 연결: 성공 'linked' · 이미 다른 기기에서 쓰던 구글 계정이면 그 계정으로 들어가고 'switched' */
   async link(){if(!auth.currentUser)await signInAnonymously(auth);
-   try{await linkWithPopup(auth.currentUser,prov());await auth.currentUser.getIdToken(true);return'linked'}
-   catch(e){if(e&&e.code==='auth/credential-already-in-use'){const c=GoogleAuthProvider.credentialFromError(e);if(!c)throw e;await signInWithCredential(auth,c);await auth.currentUser.getIdToken(true);return'switched'}throw e}},
+   const nc=NFA()?await ncred():null;
+   try{if(nc)await linkWithCredential(auth.currentUser,nc);else await linkWithPopup(auth.currentUser,prov());await auth.currentUser.getIdToken(true);return'linked'}
+   catch(e){if(e&&e.code==='auth/credential-already-in-use'){const c=GoogleAuthProvider.credentialFromError(e)||nc;if(!c)throw e;await signInWithCredential(auth,c);await auth.currentUser.getIdToken(true);return'switched'}throw e}},
   async get(){const s=await getDoc(doc(db,'saves',auth.currentUser.uid));return s.exists()?s.data():null},
   async put(o){await setDoc(doc(db,'saves',auth.currentUser.uid),Object.assign({},o,{t:serverTimestamp()}))},
-  async wipe(){const u=auth.currentUser,uid=u.uid;await reauthenticateWithPopup(u,prov());
+  async wipe(){const u=auth.currentUser,uid=u.uid;if(NFA())await reauthenticateWithCredential(u,await ncred());else await reauthenticateWithPopup(u,prov());
    const del=async p=>{try{await deleteDoc(p)}catch(e){}};
    for(const sub of ['notes','likes']){try{const q=await getDocs(collection(db,'shops',uid,sub));for(const d of q.docs)await del(d.ref)}catch(e){}}
    await del(doc(db,'shops',uid));await del(doc(db,'saves',uid));
@@ -85,7 +91,7 @@ async function backend(){
   if(!local.days&&!local.coins&&!local.runs){apply(doc);return}
   const k=await choose(doc,first?'이 구글 계정에 이미 저장된 기록이 있어요':'다른 기기에서 기록이 바뀌었어요');
   if(k==='c')apply(doc);else{setSt({g:doc.g?1:0});const ok=await upload(true);if(!ok)toast('☁️ 서버 기록과 차이가 너무 커서 이 기기 기록을 올리지 못했어요')}}
- async function link(){if(native()){toast('📱 앱에서는 곧 지원돼요 · 지금은 📦 기록 옮기기를 써 주세요');return}
+ async function link(){if(!canLogin()){toast('📱 앱을 새 버전으로 업데이트하면 로그인할 수 있어요 · 지금은 📦 기록 옮기기를 써 주세요');return}
   if(busy)return;busy=true;let how;try{how=await B.link()}catch(e){busy=false;const c=e&&e.code||'';
    if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
    toast(c==='auth/popup-blocked'?'🔐 팝업이 막혔어요 · 브라우저에서 팝업을 허용해 주세요':'🔐 로그인하지 못했어요 ('+(c||'오류')+')');return}
@@ -102,7 +108,7 @@ async function backend(){
   catch(e){const c=e&&e.code||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;toast('🗑️ 지우지 못했어요 ('+(c||'오류')+') · 문의 메일로 알려 주세요')}}
  /* 설정 칸 (#cloudBox) */
  function render(){const box=document.getElementById('cloudBox');if(!box)return;const u=B.user(),s=st();
-  if(native()&&!isG()){box.innerHTML='<div style="font-size:13px;color:#8a6a50;margin:4px 0 8px">🔐 구글 로그인은 앱에서도 곧 열려요 · 지금은 📦 기록 옮기기를 써 주세요</div>';return}
+  if(!canLogin()&&!isG()){box.innerHTML='<div style="font-size:13px;color:#8a6a50;margin:4px 0 8px">🔐 앱을 새 버전으로 업데이트하면 구글 로그인을 할 수 있어요 · 지금은 📦 기록 옮기기를 써 주세요</div>';return}
   if(!isG()){box.innerHTML='<button class="big sm" data-c="link" style="background:#d9f0ff">🔐 기록 지키기 (구글 로그인) · 🏅'+GIFT+'</button><div style="font-size:12.5px;color:#8a6a50;margin:-2px 0 8px">폰을 바꾸거나 앱을 지워도 기록이 돌아와요</div>'}
   else{const em=(u.email||'').replace(/^(.{2}).*(@.*)$/,'$1***$2'),at=s.at?new Date(s.at):null;
    box.innerHTML='<div style="font-size:13.5px;color:#4a6a30;margin:2px 0 6px">🔐 '+em+' 에 저장 중'+(at?' · ☁️ '+at.getHours()+':'+String(at.getMinutes()).padStart(2,'0'):'')+'</div><div class="throw" style="margin-bottom:8px"><button data-c="save">☁️ 지금 저장</button><button data-c="wipe">🗑️ 계정 지우기</button></div>'}
@@ -115,7 +121,7 @@ async function backend(){
  setInterval(()=>{if(isG()&&Date.now()-lastUp>120000&&dirty())upload(false)},60000);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&isG()&&dirty())upload(false)});
  /* 💡 3일째 한 번: 기록 지키기 권유 (가게 화면, 앱 제외) */
- if(!native()&&!isG()&&!ls('bpLoginAsk')&&/shop/.test(location.pathname)){
+ if(canLogin()&&!isG()&&!ls('bpLoginAsk')&&/shop/.test(location.pathname)){
   const s=J(ls('bpShopPubV1'))||{},dk=Math.floor((Date.now()+9*3600e3)/864e5),age=s.d0?dk-s.d0:99;
   if((s.d0&&age>=2)||(!s.d0&&(s.days|0)>=3)){let n=0;const iv=setInterval(()=>{if(++n>40){clearInterval(iv);return}
     const busyOv=[...document.querySelectorAll('.ov')].some(x=>x.offsetParent!==null&&x.id!=='hm');if(busyOv||document.hidden)return;clearInterval(iv);ls('bpLoginAsk','1');

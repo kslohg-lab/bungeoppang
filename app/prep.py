@@ -103,3 +103,17 @@ s, b = re.subn(r'versionName "[^"]*"', 'versionName "%s"' % ver, s)
 assert a == 1 and b == 1, '버전 줄을 못 찾았어요'
 open(bg, 'w', encoding='utf-8').write(s)
 print('버전:', ver, '(번호 %d)' % code)
+
+# 🔐 구글 로그인(앱): 플러그인이 구글 로그인 부품을 넣도록 + google-services.json 복사
+vg = os.path.join(AND, 'variables.gradle')
+v = open(vg, encoding='utf-8').read()
+if 'rgcfaIncludeGoogle' not in v:
+    v = v.replace('ext {', 'ext {\n    rgcfaIncludeGoogle = true', 1)
+    open(vg, 'w', encoding='utf-8').write(v)
+gs = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google-services.json')
+if os.path.exists(gs):
+    import shutil
+    shutil.copy(gs, os.path.join(AND, 'app/google-services.json'))
+    print('google-services.json 넣음 (앱 구글 로그인 켜짐)')
+else:
+    print('⚠️ google-services.json 없음 → 앱 구글 로그인은 아직 안 돼요')
