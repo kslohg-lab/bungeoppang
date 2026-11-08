@@ -8,11 +8,13 @@ else{
  (async()=>{
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
-   const [{initializeApp},{getAuth,signInAnonymously},{getFirestore,doc,getDoc,collection,query,orderBy,limit,getDocs,setDoc,serverTimestamp,where,getCountFromServer}]=
+   const [{initializeApp},{getAuth,signInAnonymously,onAuthStateChanged},{getFirestore,doc,getDoc,collection,query,orderBy,limit,getDocs,setDoc,serverTimestamp,where,getCountFromServer}]=
      await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
    let authP=null;
-   const login=()=>authP||(authP=signInAnonymously(auth).then(c=>c.user.uid).catch(e=>{authP=null;throw e}));
+   /* 구글로 로그인해 둔 사람이면 그 계정 그대로 (익명으로 새로 들어가면 안 돼요) */
+   const ready=new Promise(r=>{const u=onAuthStateChanged(auth,x=>{u();r(x)})});
+   const login=()=>authP||(authP=ready.then(u=>auth.currentUser?auth.currentUser.uid:signInAnonymously(auth).then(c=>c.user.uid)).catch(e=>{authP=null;throw e}));
    const cache=new Map();
    const b64=u8=>{let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)};
    async function pack(lg){const j=JSON.stringify(lg);

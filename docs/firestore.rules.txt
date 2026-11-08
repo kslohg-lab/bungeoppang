@@ -36,7 +36,7 @@ service cloud.firestore {
       allow create: if mine(uid) && okScore(request.resource.data);
       allow update: if mine(uid) && okScore(request.resource.data)
                     && request.resource.data.sc >= resource.data.sc;
-      allow delete: if false;
+      allow delete: if mine(uid);   // 계정 지우기
     }
 
     // 다시 재생해서 확인할 수 있는 플레이 기록 (verify.html 에서 읽음)
@@ -49,7 +49,7 @@ service cloud.firestore {
         && request.resource.data.v is int
         && request.resource.data.p is string
         && request.resource.data.p.size() < 400000;
-      allow delete: if false;
+      allow delete: if mine(uid);   // 계정 지우기
     }
 
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
@@ -84,7 +84,7 @@ service cloud.firestore {
             && (!exists(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid))
                 || !('d' in get(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)).data)
                 || get(/databases/$(database)/documents/shops/$(uid)/likes/$(request.auth.uid)).data.d < dayNow()));
-      allow delete: if false;
+      allow delete: if mine(uid);   // 계정 지우기
       // ❤️ 좋아요: 누른 사람 칸 하나에 d(날짜)를 적어 두고, 날짜가 바뀌면 덮어써요 → 하루 한 번 (방명록과 같은 방식)
       match /likes/{v} {
         allow read: if true;
@@ -95,7 +95,7 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['t', 'd']) && request.resource.data.d == dayNow()
           && (!('d' in resource.data) || resource.data.d < dayNow())
           && getAfter(/databases/$(database)/documents/shops/$(uid)).data.lk == get(/databases/$(database)/documents/shops/$(uid)).data.lk + 1;
-        allow delete: if false;
+        allow delete: if mine(uid);   // 가게 주인이 계정 지울 때
       }
       // 💌 방명록 스티커: 남긴 사람 칸에 하루 한 번(덮어쓰기). 이름은 남긴 사람 가게 문서와 같아야 해요. 목록은 가게 주인만
       match /notes/{v} {
@@ -165,6 +165,24 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if mine(uid) && okSeen(request.resource.data);
       allow delete: if false;
+    }
+
+    // ☁️ 기록 지키기: 구글로 로그인한 본인만. 코인·메달이 시간에 비해 말도 안 되게 늘면 거부 (불러올 땐 c·m보다 많이 못 가져와요)
+    function gl() {
+      return request.auth != null && ('google.com' in request.auth.token.firebase.identities);
+    }
+    function okSave(d) {
+      return d.keys().hasOnly(['v', 't', 'r', 'c', 'm', 'g', 'd'])
+        && d.v is int && d.t == request.time && d.r is string && d.r.size() <= 20
+        && d.c is int && d.c >= 0 && d.m is int && d.m >= 0 && d.g is int
+        && d.d is string && d.d.size() < 900000;
+    }
+    match /saves/{uid} {
+      allow read, delete: if mine(uid) && gl();
+      allow create: if mine(uid) && gl() && okSave(request.resource.data);
+      allow update: if mine(uid) && gl() && okSave(request.resource.data)
+        && request.resource.data.c <= resource.data.c + (request.time.toMillis() - resource.data.t.toMillis()) / 1000 * 200 + 3000000
+        && request.resource.data.m <= resource.data.m + (request.time.toMillis() - resource.data.t.toMillis()) / 604800000 * 60 + 60;
     }
 
     match /{document=**} {

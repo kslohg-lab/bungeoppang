@@ -8,11 +8,13 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
  (async()=>{
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
-   const [{initializeApp},{getAuth,signInAnonymously},F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+   const [{initializeApp},{getAuth,signInAnonymously,onAuthStateChanged},F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
    const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where,Timestamp}=F;
    /* 한국 시간 날짜 번호 (규칙과 같은 계산) */const day=()=>Math.floor((Date.now()+32400000)/86400000);
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
-   let authP=null;const login=()=>authP||(authP=signInAnonymously(auth).then(c=>c.user.uid).catch(e=>{authP=null;throw e}));
+   let authP=null;/* 구글로 로그인해 둔 사람이면 그 계정 그대로 (익명으로 새로 들어가면 안 돼요) */
+   const ready=new Promise(r=>{const u=onAuthStateChanged(auth,x=>{u();r(x)})});
+   const login=()=>authP||(authP=ready.then(u=>auth.currentUser?auth.currentUser.uid:signInAnonymously(auth).then(c=>c.user.uid)).catch(e=>{authP=null;throw e}));
    const cache=new Map();
    /* 🙈 숨김 목록 · ⏳ 무료 한도(resource-exhausted)에 걸렸는지 기억 */
    const hid=async()=>{try{if(window.HIDE)await window.HIDE.load()}catch(e){}return u=>!!(window.HIDE&&window.HIDE.has(u))};
