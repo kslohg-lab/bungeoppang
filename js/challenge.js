@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.5.0';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.5.2';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -263,7 +263,7 @@ function showInvite(){if(!inv)return false;const same=inv.w===wid();if(same&&!BA
  $('chl').style.display='block';inv=null;return true}
 /* 🗓️ 월요일: 새 주 판 알림 (한 주에 한 번) */
 function newWeek(){if(!(save.runs>0)||!save.week.id||save.week.id>=wid()||save.nwk===wid())return false;save.nwk=wid();store();
- $('nwb').innerHTML=(save.week.id===wid()-1?'지난 주':'지난번')+' 내 기록 <b style="font-size:24px;color:#e8642a">'+save.week.stage+'단계</b><br>새 손님 · 새 날씨 · 새 카드!'+(B.wkRule(wid())?'<br>📅 이번 주 규칙: '+B.wkRule(wid()).e+' <b>'+B.wkRule(wid()).n+'</b><br><small>'+B.wkRule(wid()).d+'</small>':'')+'<br>순위표도 0부터 다시 시작해요 🏁';scr='nwk';show('nwk');snd('pop');return true}
+ $('nwb').innerHTML=(save.week.id===wid()-1?'지난 주':'지난번')+' 내 기록 <b style="font-size:24px;color:#e8642a">'+save.week.stage+'단계</b><br>'+(wid()===B.V6_WK?'🎢 이번 주부터 <b>40단계 새 규칙</b>! 붕어빵이 식어요 🥶<br>':'')+'새 손님 · 새 날씨 · 새 카드!'+(B.wkRule(wid())?'<br>📅 이번 주 규칙: '+B.wkRule(wid()).e+' <b>'+B.wkRule(wid()).n+'</b><br><small>'+B.wkRule(wid()).d+'</small>':'')+'<br>순위표도 0부터 다시 시작해요 🏁';scr='nwk';show('nwk');snd('pop');return true}
 $('nw1').onclick=()=>{toMenu();$('m1').click()};$('nw2').onclick=()=>toMenu();
 $('chl1').onclick=()=>{$('chl').style.display='none';au();if(!save.tut){startTut(true);return}$('m1').click()};
 $('chl2').onclick=()=>{$('chl').style.display='none'};
