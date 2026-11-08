@@ -5,8 +5,11 @@ const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv
 /* ---------- 꾸미기 목록 (p=가격, g=필요한 가게 등급, st=필요한 ⭐, 가격 0이고 st가 있으면 ⭐ 보상) ---------- */
 const SIGN=[{n:'나무 간판',e:'🪵',p:0,g:0},{n:'리본 간판',e:'🎀',p:900,g:0},{n:'칠판 간판',e:'📝',p:2800,g:1},{n:'네온 간판',e:'💜',p:9000,g:2},{n:'금박 간판',e:'🥇',p:32000,g:3},{n:'무지개 간판',e:'🌈',p:95000,g:4},{n:'황금 왕관 간판',e:'👑',p:300000,g:5},{n:'별빛 간판',e:'✨',p:0,g:0,st:60}];
 const AWN=[{n:'빨강 줄무늬',e:'🟥',p:0,g:0},{n:'파랑 줄무늬',e:'🟦',p:700,g:0},{n:'초록 줄무늬',e:'🟩',p:700,g:0},{n:'분홍 물방울',e:'🩷',p:2200,g:1},{n:'노랑 줄무늬',e:'🟨',p:2200,g:1},{n:'무지개 차양',e:'🌈',p:11000,g:2},{n:'별빛 차양',e:'⭐',p:45000,g:3},{n:'벚꽃 차양',e:'🌸',p:140000,g:4},{n:'황금 장막',e:'🏅',p:380000,g:5}];
-const WALL=[{n:'크림 벽',e:'⬜',p:0,g:0,c:'#fff3dc'},{n:'하늘색 벽',e:'🟦',p:600,g:0,c:'#d8ecff'},{n:'민트 벽',e:'🟩',p:600,g:0,c:'#d8f5e4'},{n:'분홍 벽',e:'🩷',p:1500,g:0,c:'#ffdce8'},{n:'벽돌 벽',e:'🧱',p:3800,g:1,c:'#c8664a'},{n:'나무판자 벽',e:'🪵',p:9500,g:2,c:'#c89a64'},{n:'타일 벽',e:'🔲',p:28000,g:3,c:'#f2f2ee'},{n:'대리석 벽',e:'🏛️',p:90000,g:4,c:'#ece8e4'},{n:'황금빛 벽',e:'🌟',p:260000,g:5,c:'#f6dc7a'}];
-const FLOOR=[{n:'시멘트 바닥',e:'⬜',p:0,g:0},{n:'체크무늬 바닥',e:'🏁',p:1400,g:0},{n:'나무 바닥',e:'🪵',p:4800,g:1},{n:'잔디',e:'🌱',p:11000,g:2},{n:'돌길',e:'🪨',p:36000,g:3},{n:'레드카펫',e:'🟥',p:110000,g:4},{n:'별빛 유리 바닥',e:'💎',p:320000,g:5}];
+const WALL=[{n:'크림 벽',e:'⬜',p:0,g:0,c:'#fff3dc'},{n:'하늘색 벽',e:'🟦',p:600,g:0,c:'#d8ecff'},{n:'민트 벽',e:'🟩',p:600,g:0,c:'#d8f5e4'},{n:'분홍 벽',e:'🩷',p:1500,g:0,c:'#ffdce8'},{n:'벽돌 벽',e:'🧱',p:3800,g:1,c:'#c8664a'},{n:'나무판자 벽',e:'🪵',p:9500,g:2,c:'#c89a64'},{n:'타일 벽',e:'🔲',p:28000,g:3,c:'#f2f2ee'},{n:'대리석 벽',e:'🏛️',p:90000,g:4,c:'#ece8e4'},{n:'황금빛 벽',e:'🌟',p:260000,g:5,c:'#f6dc7a'},
+ /* 🎀 11/8 추가 (번호는 저장값이라 뒤에만 붙여요, 목록은 가격순으로 보여요) */
+ {n:'딸기우유 줄무늬',e:'🍓',p:2500,g:0,c:'#ffe6ee'},{n:'물방울 벽지',e:'⚪',p:6000,g:1,c:'#fff4d6'},{n:'벚꽃 벽지',e:'🌸',p:15000,g:2,c:'#fdebf1'},{n:'하트 벽지',e:'💗',p:40000,g:3,c:'#ffe3ea'},{n:'밤하늘 별 벽지',e:'🌙',p:120000,g:4,c:'#2f3a6e'},{n:'붕어빵 무늬 벽지',e:'🐟',p:0,g:0,m:15,c:'#fff0cf'}];
+const FLOOR=[{n:'시멘트 바닥',e:'⬜',p:0,g:0},{n:'체크무늬 바닥',e:'🏁',p:1400,g:0},{n:'나무 바닥',e:'🪵',p:4800,g:1},{n:'잔디',e:'🌱',p:11000,g:2},{n:'돌길',e:'🪨',p:36000,g:3},{n:'레드카펫',e:'🟥',p:110000,g:4},{n:'별빛 유리 바닥',e:'💎',p:320000,g:5},
+ {n:'파스텔 체크 타일',e:'🧁',p:3000,g:0},{n:'쪽모이 원목 마루',e:'🪵',p:15000,g:2},{n:'하늘 타일',e:'🩵',p:25000,g:3},{n:'곰돌이 러그',e:'🧸',p:60000,g:3},{n:'무지개 모자이크',e:'🌈',p:150000,g:4},{n:'붕어빵 타일',e:'🐟',p:0,g:0,m:15}];
 const SIDE=[{n:'없음',e:'➖',p:0,g:0},{n:'화분',e:'🪴',p:700,g:0,sz:56},{n:'벤치',e:'🪑',p:2600,g:1,sz:60},{n:'등불',e:'🏮',p:5200,g:1,sz:66},{n:'나무',e:'🌳',p:9800,g:2,sz:96},{n:'자전거',e:'🚲',p:14000,g:2,sz:64},{n:'분수',e:'⛲',p:42000,g:3,sz:96},{n:'회전목마',e:'🎠',p:150000,g:4,sz:104},{n:'작은 타워',e:'🗼',p:320000,g:5,sz:124},{n:'대관람차',e:'🎡',p:600000,g:6,sz:134}];
 const MAS=[{n:'없음',e:'➖',p:0,g:0},{n:'강아지',e:'🐶',p:2400,g:0},{n:'고양이',e:'🐱',p:2400,g:0},{n:'토끼',e:'🐰',p:5200,g:1},{n:'판다',e:'🐼',p:16000,g:2},{n:'여우',e:'🦊',p:26000,g:2},{n:'사자',e:'🦁',p:52000,g:3},{n:'용',e:'🐉',p:210000,g:4},{n:'유니콘',e:'🦄',p:420000,g:5},{n:'황금 붕어',e:'🌟',p:0,g:0,st:100}];
 const LIT=[{n:'없음',e:'➖',p:0,g:0},{n:'전구줄',e:'💡',p:3200,g:1},{n:'별 조명',e:'⭐',p:12000,g:2},{n:'네온 불빛',e:'🌃',p:41000,g:3},{n:'샹들리에',e:'🔮',p:150000,g:4},{n:'오로라 조명',e:'🌌',p:520000,g:6}];
@@ -129,6 +132,7 @@ function wallPat(id,c,t){const x=30,y=72,w=390,h=270;
  else if(id===6){for(let r=0;r<9;r++)for(let q=0;q<13;q++){if((r+q)%2){cx.fillStyle='rgba(120,160,200,.16)';cx.fillRect(x+q*30,y+r*30,30,30)}}cx.strokeStyle='rgba(150,150,140,.5)';cx.lineWidth=1.5;for(let r=0;r<=9;r++){cx.beginPath();cx.moveTo(x,y+r*30);cx.lineTo(x+w,y+r*30);cx.stroke()}for(let q=0;q<=13;q++){cx.beginPath();cx.moveTo(x+q*30,y);cx.lineTo(x+q*30,y+h);cx.stroke()}}
  else if(id===7){cx.strokeStyle='rgba(140,130,130,.28)';cx.lineWidth=2;for(let i=0;i<9;i++){cx.beginPath();cx.moveTo(x+i*50,y);cx.bezierCurveTo(x+i*50+40,y+90,x+i*50-30,y+170,x+i*50+20,y+h);cx.stroke()}}
  else if(id===8){for(let i=0;i<5;i++){cx.globalAlpha=.4+.6*Math.abs(Math.sin(t*1.5+i*1.7));em('✨',x+50+i*80,y+30+(i%3)*80,18)}cx.globalAlpha=1}
+ else if(id>=9)IS.wallMotif(id,(u,v)=>({x:x+u*w,y:y+h-v*h}),w,h,t);
  cx.restore()}
 function signDraw(id,t){const x=115,y=92,w=220,h=50,name=nm();rr(x+4,y+7,w,h,12,'rgba(0,0,0,.22)');cx.strokeStyle='#6a4a2a';cx.lineWidth=3;cx.beginPath();cx.moveTo(150,80);cx.lineTo(150,y+4);cx.moveTo(300,80);cx.lineTo(300,y+4);cx.stroke();
  const fs=name.length>6?24:28,cy=y+h/2;
@@ -216,7 +220,7 @@ function drawHome(t,deco){
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
  else{IS.draw(t,look(null),save.fur,{top:64,bottom:518});const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
   if(scr==='home'){if(bizPop>0&&t-bizT>2.5){bizFl.push({v:bizPop,t});bizPop=0;bizT=t}bizFl=bizFl.filter(f=>t-f.t<1.8);bizFl.forEach(f=>{const u=(t-f.t)/1.8;cx.globalAlpha=1-u*u;tx('+'+fmt(f.v)+' 🪙',16,(INSTALL.standalone()?132:180)-u*12,18,'#fff6c0','left','#5a3a22');cx.globalAlpha=1})}else bizPop=0}}
-function gradeFloorBase(){return['#b8b4ac','#d2a46a','#c89a64','#6fbf5a','#8a867c','#9a968e','#9a80d8'][save.eq.floor]||'#b8b4ac'}
+function gradeFloorBase(){return['#b8b4ac','#d2a46a','#c89a64','#6fbf5a','#8a867c','#9a968e','#9a80d8','#e8b8c8','#b88350','#9cc8e8','#c89a64','#b898d8','#d8b058'][save.eq.floor]||'#b8b4ac'}
 
 /* 지붕 장식: front=false 는 하늘 쪽(불꽃놀이), true 는 건물 앞 */
 function topDraw(id,t,front){
@@ -436,7 +440,9 @@ const FCAT=[{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'li
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
 const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
 /* 🏅 메달 상점: 꾸미기 화면을 '메달 전용 탭'으로 열어요. 나중에 품목이 늘면 MG에 탭을 더해요 */
-const MG=[{k:'mskin',n:'🏠 메달 스킨',sl:['skin']}];let dMed=false;
+const MG=[{k:'mskin',n:'🏠 메달 스킨',sl:['skin']},{k:'mwall',n:'🧱 벽지',sl:['wall']},{k:'mfloor',n:'🟫 바닥',sl:['floor']}];
+/* 벽·바닥은 가격순으로 보여 줘요 (번호는 저장값이라 그대로) */
+const slOrd=sl=>{const o=sl.L.map((it,id)=>[it,id]);if(sl.k==='wall'||sl.k==='floor')o.sort((a,b)=>(a[0].m?1e12:a[0].p)-(b[0].m?1e12:b[0].p));return o};let dMed=false;
 const DT=()=>dMed?MG:DG;
 const dtabK=()=>{const g=DT()[dtab]||DT()[0];return g.sl?g.sl[Math.min(dsub,g.sl.length-1)]:g.k};
 /* 꾸미기는 처음부터 방 전체가 아래 판 위에 보이게 (나갈 때 원래 보기로) */
@@ -473,8 +479,8 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
-  sl.L.forEach((it,id)=>{if(sl.k==='skin'&&(dMed?!it.m:it.m&&!save.own.skin.includes(id)))return;const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
-   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m+' · '+skTxt(it):'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
+  slOrd(sl).forEach(([it,id])=>{if(dMed?!it.m:it.m&&!save.own[sl.k].includes(id))return;const own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
+   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m+(sl.k==='skin'?' · '+skTxt(it):''):'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:save.eq[sl.k],it=sl.L[id],own=save.own[sl.k].includes(id),eqd=save.eq[sl.k]===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
   if(eqd)dbtn('da1','✅ 사용 중','dis');
   else if(own)dbtn('da1','바꾸기','go',()=>{save.eq[sl.k]=id;prev=null;store();snd('tap');renderDeco()});
@@ -483,7 +489,7 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else if(free)dbtn('da1','받기 🎁','go',()=>{save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('win');renderDeco()});
   else dbtn('da1','사기 🪙'+fmt(it.p),save.coins>=it.p?'go':'dis',()=>{if(save.coins<it.p){toast('코인이 부족해요!');snd('no');return}save.coins-=it.p;save.own[sl.k].push(id);save.eq[sl.k]=id;prev=null;store();snd('buy');if(window.JUICE)JUICE.confetti(60);toast(it.n+' 설치 완료!');renderDeco()});
   dbtn('da2',prev?'↩ 되돌리기':'✔ 완료','',()=>{if(prev){prev=null;renderDeco()}else $('dx').click()});
-  msg=it.m?(prev&&!eqd?'미리 보는 중 · ':'')+'효과: '+(it.a?'손님 +'+it.a+'%':'')+(it.a&&it.h?' · ':'')+(it.h?'도와주기 수익 +'+it.h+'%':''):prev&&!eqd?'미리 보는 중 · 매력 +'+charmOf(it):sl.n+' 고르기'}
+  msg=it.m&&(it.a||it.h)?(prev&&!eqd?'미리 보는 중 · ':'')+'효과: '+(it.a?'손님 +'+it.a+'%':'')+(it.a&&it.h?' · ':'')+(it.h?'도와주기 수익 +'+it.h+'%':''):prev&&!eqd?'미리 보는 중 · '+(it.m?'🏅 메달 전용':'매력 +'+charmOf(it)):sl.n+' 고르기'}
  $('dmsg').textContent=msg;L.scrollLeft=sl0}
 /* 가게 바닥을 톡: 가구 고르기 / 놓기 */
 function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room,{gx,gy}=IS.toTile(x,y);
@@ -575,7 +581,7 @@ function count(){for(const c of s.cust){if(c&&c.happy&&!c.cnt){c.cnt=1;if(c.an==
 function drain(){A.drainFx()}
 cv.addEventListener('pointerdown',e=>{e.preventDefault();au();if(scr!=='game'||paused||!s||s.ph!=='play')return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)});
 /* ---------- 하루 그리기 (공용 화면 + 내 가게 꾸밈 색) ---------- */
-const FLC=['#c9935f','#d2a46a','#c89a64','#7fbf6a','#a8a498','#b8384a','#8ac8e8'];
+const FLC=['#c9935f','#d2a46a','#c89a64','#7fbf6a','#a8a498','#b8384a','#8ac8e8','#f4c6d4','#c98d55','#a9d6f5','#d6a66e','#c8a6e8','#e8c069'];
 /* 장사 화면: 챌린지처럼 가게 앞 거리 + 걸어오는 손님, 차양·마스코트는 내 가게 꾸밈 */
 const AWX=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
 function shopAwning(){const ac=AWX[save.eq.awn|0]||AWX[0],n=15,w=W/n;for(let i=0;i<n;i++){const c=ac[0]==='rb'?RB[i%RB.length]:i%2?ac[1]:ac[0];cx.fillStyle=c;cx.fillRect(i*w,60,w,16);cx.beginPath();cx.arc(i*w+w/2,76,w/2,0,Math.PI);cx.fill()}cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(0,60,W,3)}
