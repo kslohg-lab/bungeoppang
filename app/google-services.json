@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "151156446684",
+    "project_id": "ksgame-54778",
+    "storage_bucket": "ksgame-54778.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151156446684:android:5dba77c2ff22466e1eeb19",
+        "android_client_info": {
+          "package_name": "com.jagame.bungeoppang"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151156446684-ha02c4il973enhsd02hmsc6c4tdvbeqh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jagame.bungeoppang",
+            "certificate_hash": "b53f36657a1032a58251a6cd54c676fdfd81703f"
+          }
+        },
+        {
+          "client_id": "151156446684-ab4e6uh2gisndveln2gc42d88tn32e8j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVeZZga3OenQHeMQ8JPtb3slhj3PO5vWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151156446684-1tugpj5uga17aakneot7aee2g9skrov3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
