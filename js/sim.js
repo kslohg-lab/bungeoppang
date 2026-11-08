@@ -72,8 +72,8 @@ const CARD_WK=2966;
 const NEW_WK=2966,V5=run=>!!run&&(run.mode==='free'||(run.mode==='week'&&(run.wid|0)>=NEW_WK));
 const V6_WK=2967,V6=run=>!!run&&(run.mode==='week'||run.mode==='free')&&(run.wid|0)>=V6_WK;
 const maxSt=run=>V6(run)?R.maxStage6:R.maxStage;
-/* 📅 주간 규칙: 2969주(11/23)부터 매주 하나 (주 번호로 정해져서 모두 같아요) */
-const WKR_WK=2969,WKR=[{k:'pat',e:'🫘',n:'팥의 주간',d:'팥 붕어빵 값이 2배!'},{k:'gold',e:'🌟',n:'황금 러시',d:'황금 주문이 2배 · 대신 완벽 구간이 좁아요'},{k:'rain',e:'🌧️',n:'장마 주간',d:'비 오는 날이 많아요 (손님↓ 팁↑)'},{k:'fest',e:'🎪',n:'축제 주간',d:'축제 날이 더 자주 와요 (손님 몰림 · 팁 ×1.5)'},{k:'vip',e:'👑',n:'큰손 주간',d:'VIP 손님이 2배 더 와요'},{k:'critic',e:'🎩',n:'평론가 주간',d:'평론가가 자주 와요 (✨ 완벽만 받지만 극찬 보너스)'},{k:'cold',e:'❄️',n:'한파 주간',d:'추운 날이 많아요 (손님↑ 참을성↓)'},{k:'card4',e:'🃏',n:'카드 부자',d:'카드를 4장 중에서 골라요'}];
+/* 📅 주간 규칙: 2968주(11/16)부터 (11/8 사용자: 일주일 당김) 매주 하나 (주 번호로 정해져서 모두 같아요) */
+const WKR_WK=2968,WKR=[{k:'pat',e:'🫘',n:'팥의 주간',d:'팥 붕어빵 값이 2배!'},{k:'gold',e:'🌟',n:'황금 러시',d:'황금 주문이 2배 · 대신 완벽 구간이 좁아요'},{k:'rain',e:'🌧️',n:'장마 주간',d:'비 오는 날이 많아요 (손님↓ 팁↑)'},{k:'fest',e:'🎪',n:'축제 주간',d:'축제 날이 더 자주 와요 (손님 몰림 · 팁 ×1.5)'},{k:'vip',e:'👑',n:'큰손 주간',d:'VIP 손님이 2배 더 와요'},{k:'critic',e:'🎩',n:'평론가 주간',d:'평론가가 자주 와요 (✨ 완벽만 받지만 극찬 보너스)'},{k:'cold',e:'❄️',n:'한파 주간',d:'추운 날이 많아요 (손님↑ 참을성↓)'},{k:'card4',e:'🃏',n:'카드 부자',d:'카드를 4장 중에서 골라요'}];
 /* 8주마다 한 바퀴: 축제 → 팥 → 장마 → 큰손 → 황금 → 한파 → 평론가 → 카드 부자 */
 const WKO=['fest','pat','rain','vip','gold','cold','critic','card4'],wkIdx=w=>w<WKR_WK?-1:WKR.findIndex(x=>x.k===WKO[(w-WKR_WK)%WKO.length]);
 const wkRule=w=>{const i=wkIdx(w|0);return i<0?null:WKR[i]};
