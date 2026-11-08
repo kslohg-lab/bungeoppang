@@ -47,8 +47,8 @@ const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h
 const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.h+'%':'');
 const nm=()=>save.name||'붕어빵';
 /* 사장님 그림: 0=기본(코드 그림), 1=곰, 2=얼룩곰 */
-const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp'},{n:'얼룩곰 사장님',f:'img/cook2.webp'},{n:'고양이 사장님',f:'img/cook3.webp'},{n:'너구리 사장님',f:'img/cook4.webp'}];
-/* 직원 전용 그림 */if(typeof ART_LOAD==='function')ART_LOAD({st_bake:'img/st_bake.webp',st_serve:'img/st_serve.webp',st_promo:'img/st_promo.webp',st_barista:'img/st_barista.webp'});
+const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp?v=2'},{n:'얼룩곰 사장님',f:'img/cook2.webp?v=2'},{n:'고양이 사장님',f:'img/cook3.webp?v=2'},{n:'너구리 사장님',f:'img/cook4.webp?v=2'}];
+/* 직원 전용 그림 */if(typeof ART_LOAD==='function')ART_LOAD({st_bake:'img/st_bake.webp?v=2',st_serve:'img/st_serve.webp?v=2',st_promo:'img/st_promo.webp?v=2',st_barista:'img/st_barista.webp?v=2'});
 function applyCook(){const c=COOKS[save.cook|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}
 applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
@@ -600,17 +600,17 @@ const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppan
 function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
-function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(()=>{save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
+function syncShop(){if(!save.name)return;whenNet(N=>{const d=shopPayload(),h=JSON.stringify(d);if(h===save.upH)return;N.save(d).then(sc=>{/* 점수가 천천히 올라가는 중이면 다음에 또 보내요 */if(!(typeof sc==='number'&&sc<d.sc))save.upH=h;store()}).catch(e=>console.warn('shop sync',e&&e.code||e))})}
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
 function openRank(by){rkBy=by||rkBy;scr='rk';show('rk');renderRank()}
-function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rkh').textContent=rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
+function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rk2').className=rkBy==='wk'?'on':'';$('rkh').textContent=rkBy==='wk'?'이번 주에 꾸미기 점수가 오른 만큼 · 월요일 0시에 새로 시작':rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
  const L=$('rkl');L.innerHTML='<p class="ht">불러오는 중…</p>';
- whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪</p>';return}L.innerHTML='';
-  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
+ whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">'+(rkBy==='wk'?'이번 주엔 아직 점수가 오른 가게가 없어요. 가구를 놓으면 1등이 될 수 있어요! 📈':'아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪')+'</p>';return}L.innerHTML='';
+  rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='wk'?'📈 +'+fmt(r.gw):rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
    d.querySelector('.nm span').textContent='🏪 '+r.n;d.querySelector('.nm small').textContent=(GR[r.g]?GR[r.g].e+' '+GR[r.g].n:'')+' · Lv'+lvOf(r.sc)+(r.nk?' · 🙂 '+r.nk:'');d.onclick=()=>visit(r.u,'rk');L.appendChild(d)});
   const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
-$('nb').onclick=()=>{au();syncShop();openRank('sc')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
+$('nb').onclick=()=>{au();syncShop();openRank('wk')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rk2').onclick=()=>openRank('wk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
 /* 구경 */
 let vd=null,vuid=null,vfur=[],vFrom='home';
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');

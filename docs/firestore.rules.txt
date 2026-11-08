@@ -54,7 +54,7 @@ service cloud.firestore {
 
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
     function okShop(d) {
-      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts'])
+      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', gwKey()])
         && d.n is string && d.n.size() >= 1 && d.n.size() <= 12 && clean(d.n)
         && d.nk is string && d.nk.size() <= 12 && clean(d.nk)
         && d.g is int && d.g >= 0 && d.g <= 6
@@ -63,7 +63,19 @@ service cloud.firestore {
         && d.room is int && d.room >= 4 && d.room <= 11
         && d.eq is map && d.eq.size() <= 16
         && d.fur is list && d.fur.size() <= 120
-        && d.ts == request.time;
+        && d.ts == request.time
+        // 📈 이번 주 성장: w = 이번 주 번호, s0 = 이번 주 시작 때 점수, gw<주> = sc - s0 (주마다 칸 이름이 달라서 지난 주 칸은 사라져요)
+        && d.w == weekNow() && d.s0 is int && d[gwKey()] == d.sc - d.s0;
+    }
+    function gwKey() {
+      return 'gw' + string(weekNow());
+    }
+    // 🛡️ 꾸미기 점수는 천천히만 올라요: 지난 저장 뒤 1초에 2.4점(시간당 약 8,600) · 한 번에 최대 15만 + 여유 2천 (11/8)
+    //    (1초에 2.4점 = 1ms에 24/10000점 → 정수로만 계산)
+    function okShopUp(d, o) {
+      return d.sc <= o.sc + 152000
+        && d.sc <= o.sc + (request.time.toMillis() - o.ts.toMillis()) * 24 / 10000 + 2000
+        && ((o.get('w', 0) == weekNow() && d.s0 == o.get('s0', -1)) || (o.get('w', 0) != weekNow() && d.s0 == o.sc));
     }
     function okNote(v, d) {
       return d.keys().hasOnly(['s', 'n', 'nk', 'd', 't'])
@@ -74,8 +86,10 @@ service cloud.firestore {
     }
     match /shops/{uid} {
       allow read: if true;
-      allow create: if mine(uid) && okShop(request.resource.data) && request.resource.data.lk == 0;
-      allow update: if (mine(uid) && okShop(request.resource.data) && request.resource.data.lk == resource.data.lk)
+      // 새 가게는 6만 점까지로 시작 (기기를 옮겨 새로 만들면 하루 이틀에 걸쳐 원래 점수로 돌아와요)
+      allow create: if mine(uid) && okShop(request.resource.data) && request.resource.data.lk == 0
+        && request.resource.data.sc <= 60000 && request.resource.data.s0 == request.resource.data.sc;
+      allow update: if (mine(uid) && okShop(request.resource.data) && request.resource.data.lk == resource.data.lk && okShopUp(request.resource.data, resource.data))
         || (request.auth != null && !mine(uid)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lk'])
             && request.resource.data.lk == resource.data.lk + 1

@@ -20,13 +20,19 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
    const hid=async()=>{try{if(window.HIDE)await window.HIDE.load()}catch(e){}return u=>!!(window.HIDE&&window.HIDE.has(u))};
    const full=e=>{if(e&&e.code==='resource-exhausted')N.full=Date.now();throw e};
    const N={off:false,uid:null,
-    async save(d){const uid=await login();N.uid=uid;const r=doc(db,'shops',uid),mk='bpShopMade:'+uid;let made=false;try{made=localStorage.getItem(mk)==='1'}catch(e){}
-     /* 처음 한 번만 있는지 확인 (그다음부턴 읽지 않고 바로 저장) */let ex=made;if(!made){ex=(await getDoc(r)).exists();try{localStorage.setItem(mk,'1')}catch(e){}}
-     const body=Object.assign({},d,{ts:serverTimestamp()});if(!ex)body.lk=0;await setDoc(r,body,{merge:true});cache.clear();return true},
+    /* 저장 (11/8): 🛡️ 점수는 지난 저장 뒤 지난 시간만큼만 올려 보내요(규칙과 같은 계산, 조금 덜) · 📈 이번 주 성장 칸(gw<주>) 같이
+       → 저장할 때마다 내 가게 문서를 한 번 읽어요. 돌려주는 값 = 실제로 올린 점수 */
+    async save(d){const uid=await login();N.uid=uid;const r=doc(db,'shops',uid),o=await getDoc(r),wk=Math.floor((day()+3)/7),gk='gw'+wk;
+     const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});
+     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc}
+     else{const x=o.data(),t0=x.ts&&x.ts.toMillis?x.ts.toMillis():Date.now(),el=Math.max(0,(Date.now()-t0)/1000-120);
+      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0)}
+     body[gk]=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */
-     const H=await hid();const snap=await getDocs(query(collection(db,'shops'),orderBy(by==='lk'?'lk':'sc','desc'),limit(40))).catch(full);
+     const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw'+wk:'sc';
+     const H=await hid();const snap=await getDocs(query(collection(db,'shops'),orderBy(f,'desc'),limit(40))).catch(full);
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
-     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
+     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d[f]>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
     /* 🐟 붕어빵 동네 후보: 비슷한 가게(위·아래 12씩) + 큰 가게(내 점수 3배 이상 8) + 상위권 8 → 최대 읽기 40, 하루 한 번 */
     async pool(sc,me){const uid=await login().catch(()=>null),col=collection(db,'shops'),big=Math.max(sc*3,sc+5000),H=await hid();
      const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(12))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(12))),

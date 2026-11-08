@@ -15,7 +15,7 @@ const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>
 const J=s=>{try{return JSON.parse(s)}catch(e){return null}};
 const coinsOf=k=>{const s=J(k.bpShopPubV1);return s?Math.max(0,Math.floor(Number(s.coins)||0)):0};
 const medalsOf=k=>{const m=J(k.bpMedal);return m?Math.max(0,m.n|0):0};
-const sum=k=>{const s=J(k.bpShopPubV1)||{},c=J(k.bungeoppang2Pub1)||{};return{name:s.name||'(가게 없음)',coins:coinsOf(k),days:s.days|0,served:s.served|0,room:s.room|0,medal:medalsOf(k),runs:c.runs|0}};
+const sum=k=>{const s=J(k.bpShopPubV1)||{},c=J(k.bungeoppang2Pub1)||{},m=J(k.bpMedal)||{};return{name:s.name||'(가게 없음)',coins:coinsOf(k),days:s.days|0,served:s.served|0,room:s.room|0,medal:medalsOf(k),mt:m.t|0,runs:c.runs|0}};
 const st=()=>J(ls('bpCloud'))||{};
 const setSt=o=>ls('bpCloud',JSON.stringify(Object.assign(st(),o)));
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
@@ -89,6 +89,11 @@ async function backend(){
   const local=sum(snap());
   if(!dirty()&&s.r){apply(doc);return}
   if(!local.days&&!local.coins&&!local.runs){apply(doc);return}
+  /* 11/8 VOC: 앱·웹을 오가면 켤 때마다 물어봐서 불편 → 한쪽이 모든 면에서 같거나 앞서면 알아서 골라요.
+     (켜자마자 쌓이는 자리 비움 수입 때문에 '이 기기도 바뀜'이 거의 항상 생겨요) 서로 다른 데서 따로 진행했을 때만 물어봐요 */
+  if(!first){const R=sum(J(doc.d)||{}),F=['days','served','runs','mt'],le=F.every(f=>(local[f]|0)<=(R[f]|0)),ge=F.every(f=>(local[f]|0)>=(R[f]|0));
+   if(le){setSt({note:'☁️ 다른 기기에서 한 기록을 불러왔어요'});apply(doc);return}
+   if(ge){setSt({g:doc.g?1:0});await upload(true);return}}
   const k=await choose(doc,first?'이 구글 계정에 이미 저장된 기록이 있어요':'다른 기기에서 기록이 바뀌었어요');
   if(k==='c')apply(doc);else{setSt({g:doc.g?1:0});const ok=await upload(true);if(!ok)toast('☁️ 서버 기록과 차이가 너무 커서 이 기기 기록을 올리지 못했어요')}}
  async function link(){if(!canLogin()){toast('📱 앱을 새 버전으로 업데이트하면 로그인할 수 있어요 · 지금은 📦 기록 옮기기를 써 주세요');return}
@@ -116,6 +121,7 @@ async function backend(){
    if(k==='link')link();if(k==='save'){const ok=await upload(true);if(ok)toast('☁️ 저장했어요')}if(k==='wipe')wipe()}}
  window.CLOUD={off:false,isG,email:()=>(B.user()||{}).email||'',link,save:()=>upload(true),render,sync,onChange:null,GIFT};
  render();
+ {const n=st().note;if(n){setSt({note:null});setTimeout(()=>toast(n),1200)}}
  await sync(false);
  /* 자동 저장: 1분마다 바뀐 게 있고 2분 지났으면 · 화면을 떠날 때 */
  setInterval(()=>{if(isG()&&Date.now()-lastUp>120000&&dirty())upload(false)},60000);

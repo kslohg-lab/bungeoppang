@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.6.2';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='5.6.3';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -219,7 +219,7 @@ function reportLb(r){if(!window.JUICE)return;JUICE.ask('🚩 신고할까요?','
 $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick=()=>{const lb=LB();if(lb&&lb.bust)lb.bust();renderLb()};$('lbx').onclick=()=>{if(scr==='over')show('over');else if(scr==='shop')show('shop');else show('menu')};
 /* ---------- 공유 ---------- */
 /* 자랑하기: 그림 카드 + 링크 (js/share.js) */
-if(!window.ART_IMG.cook){const im=new Image();im.src='img/cook1.webp';window.ART_IMG.cook=im}
+if(!window.ART_IMG.cook){const im=new Image();im.src='img/cook1.webp?v=2';window.ART_IMG.cook=im}
 function share(o){au();const wk=save.week.id===wid()?save.week:{stage:0,net:0},url=location.origin+'/';
  const st=o&&o.stage!=null?o.stage:wk.stage,net=o&&o.net!=null?o.net:wk.net;
  const curl=()=>url+'?c='+encodeURIComponent(save.nick||'')+'&s='+st+'&w='+wid()+(lastRank?'&r='+encodeURIComponent(lastRank):'');
