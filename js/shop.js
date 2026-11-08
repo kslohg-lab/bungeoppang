@@ -706,7 +706,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
 /* 📐 세로가 긴 폰: 가게 첫 화면만 판을 아래로 늘려 (최대 +170) 아래 메뉴 판을 넓게. 다른 화면은 그대로 450×800 */
 let EXT=0,fitScr='';
 function boxBg(){if(!EXT){$('box').style.background='';return}try{const d=cx.getImageData(2,cv.height-3,1,1).data;$('box').style.background='rgb('+d[0]+','+d[1]+','+d[2]+')'}catch(e){}}
-function hmLay(){const p=document.querySelector('#hm .pn');if(!p||scr!=='home'||!p.offsetParent)return;const t=p.offsetTop;for(const id of ['nst','nms','zf']){const e=$(id);if(e)e.style.top=Math.min(470+EXT,t-56)+'px'}}
+function hmLay(){const p=document.querySelector('#hm .pn');if(!p||scr!=='home'||!p.offsetParent)return;const t=p.offsetTop,y=Math.min(470+EXT,t-56);for(const id of ['nst','nms']){const e=$(id);if(e)e.style.top=y+'px'}const z=$('zf');if(z)z.style.top=(y-46)+'px'}
 function fit(){const b=document.body,w=b.clientWidth,h=b.clientHeight,ex=scr==='home'?Math.min(170,h*W/w-H):0;EXT=ex>6?Math.round(ex):0;const BH=H+EXT,sc=Math.min(w/W,h/BH),bx=$('box');
  bx.style.height=BH+'px';bx.style.transform='translate('+(w-W*sc)/2+'px,'+(h-BH*sc)/2+'px) scale('+sc+')';fitScr=scr;boxBg();hmLay()}
 addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(document.body)}catch(e){}addEventListener('orientationchange',()=>setTimeout(fit,200));
