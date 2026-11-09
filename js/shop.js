@@ -39,6 +39,14 @@ const gradeOf=n=>{let g=0;for(let i=0;i<GR.length;i++)if(n>=GR[i].at)g=i;return 
 const grade=()=>gradeOf(save.served);
 const eqIt=(k,pv)=>{const sl=SLOTS.find(x=>x.k===k);const id=pv&&pv.k===k?pv.id:save.eq[k];return sl.L[id]||sl.L[0]};
 /* 11/8 다양하게 놓기 보너스: 가구 종류 하나마다 꾸미기 점수 +150 · 매력 +1 (같은 걸 여러 개 놓아도 깎이진 않아요) */
+/* ✨ 11/9 가구 반짝 강화 ★1~3: 놓인 가구를 골라 코인으로 강화(값의 3배·8배·20배, 합 31배) → 반짝이 + 꾸미기 점수(들인 돈/200)
+   보관함에 넣어도 ★은 남아요(save.stS {키:[★…]}) → 다시 놓을 때 높은 ★부터 돌아와요. 서버엔 'k,x,y,d,s' */
+const STC=[3,8,20],STS=[0,3,11,31];
+const stCost=it=>{const f=IS.CK(it.k);return f&&(it.s|0)<3?f.p*STC[it.s|0]:0};
+const stScore=()=>{let v=0;(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f&&it.s&&!it.pend)v+=f.p*STS[Math.min(3,it.s|0)]});return Math.floor(v/200)};
+function grabS(k){const L=save.stS&&save.stS[k];if(!L||!L.length)return 0;L.sort((a,b)=>a-b);const v=L.pop();if(!L.length)delete save.stS[k];return v|0}
+function keepS(it){if(it&&it.s&&!it.pend){save.stS=save.stS||{};(save.stS[it.k]=save.stS[it.k]||[]).push(it.s|0)}}
+const fmtS=n=>n>=1e4?(Math.round(n/1e3)/10).toLocaleString('ko-KR')+'만':fmt(n);
 const KIND_PT=150,kindsN=()=>{const k=new Set();(save.fur||[]).forEach(it=>{if(IS.CK(it.k))k.add(it.k)});return k.size};
 const charm=()=>SLOTS.reduce((a,s)=>a+charmOf(eqIt(s.k)),0)+(save.fur||[]).reduce((a,it)=>{const f=IS.CK(it.k);return a+(f?charmOf(f):0)},0)+kindsN();
 const charmBonus=()=>Math.min(.25,charm()*.0023);
@@ -54,7 +62,7 @@ applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
 function decoScore(){let sc=0;SLOTS.forEach(sl=>{const it=sl.L[save.eq[sl.k]]||sl.L[0];const v=it.p>0?it.p:(it.st?it.st*1500:0);sc+=Math.floor(v/100)});
  const kinds=new Set();(save.fur||[]).forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*KIND_PT+((save.room-1)*(save.room-1)-16)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
- /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc}
+ /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc+stScore()}
 function setDone(k,kinds){kinds=kinds||new Set((save.fur||[]).map(it=>it.k));return IS.FUR.filter(f=>f.set===k).every(f=>kinds.has(f.k))}
 const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
 /* ---------- 상태 ---------- */
@@ -205,7 +213,7 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=
  h+='<br><small>🙋 <b>도와주기</b>로 손님을 직접 대접하면 올라요 · 오르면 새 가구·꾸밈이 열리고 카운터에 메뉴판·조명이 생겨요</small></div>';
  h+='<div class="sum"><b>🏪 가게 레벨: Lv'+lv+'</b>';
  if(lv<40)h+=bar(sc-prev,need-prev,'#7ed88a')+'<small>다음 Lv'+(lv+1)+'까지 꾸미기 점수 <b>'+fmt(need-sc)+'</b> ('+fmt(sc)+' / '+fmt(need)+')</small>';else h+='<br><small>최고 레벨이에요! 🎉</small>';
- h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small><br><small>🌈 <b>여러 가지 가구</b>를 놓으면 종류마다 +'+KIND_PT+'점 · 매력 +1 (지금 '+kindsN()+'가지 → +'+fmt(kindsN()*KIND_PT)+'점)</small></div>';
+ h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small><br><small>✨ 놓은 가구를 골라 <b>반짝 강화</b>(★1~3)하면 꾸미기 점수가 더 올라요</small><br><small>🌈 <b>여러 가지 가구</b>를 놓으면 종류마다 +'+KIND_PT+'점 · 매력 +1 (지금 '+kindsN()+'가지 → +'+fmt(kindsN()*KIND_PT)+'점)</small></div>';
  {const R0=BIZ.rt(save),W={wait:'⏱️ 기다림',price:'💰 붕어빵 값',deco:'🎨 꾸미기',menu:'🍡 메뉴 수',help:'✨ 도와주기 솜씨'},m=BIZ.rtMul(save);
   h+='<div class="sum"><b>⭐ 가게 평점: '+R0.v.toFixed(1)+'</b> <small>(손님 '+(m>=1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%)</small>'+bar(R0.v-1,4,'#ffb04a');
   if(R0.rv&&R0.rv.length)h+='<small>💬 '+R0.rv.map(x=>'"'+x+'"').join(' · ')+'</small><br>';
@@ -455,7 +463,7 @@ function lockOf(it){if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3
 const f0=k=>IS.CK(k)||{n:'',p:0};const placed=k=>save.fur.filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 const pendList=()=>{const L=save.fur.filter(f=>f.pend);return{L,n:L.length,sum:L.reduce((a,f)=>a+((IS.CK(f.k)||{}).p||0),0)}};
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
-function renderDeco(){const tabs=DT(),tk=dtabK();
+function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
  {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent=dMed?'🔥 챌린지에서 모아요':'✨ 매력 +'+Math.round(charmBonus()*100)+'%';if(dMed&&window.MEDAL)$('dcw').textContent='🏅 메달 '+MEDAL.get().n+'개';
  const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
  {const S=$('dsub'),g=DT()[dtab];S.innerHTML='';S.style.display=!dMed&&(g.sl||g.k==='fur')?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)});if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
@@ -470,9 +478,12 @@ function renderDeco(){const tabs=DT(),tk=dtabK();
   else if(fc==='wall')IS.WFUR.forEach(fcard);
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.CK(dsel.k),wsel=dsel&&IS.WK[dsel.k],wpk=dpick&&IS.WK[dpick];
+  $('da3').style.display='';{const it=dsel,sv=it?it.s|0:0,c=it?stCost(it):0;dbtn('da3',!it?'✨ 강화':sv>=3?'✨ ★3 최고':'✨ ★'+(sv+1)+' 🪙'+fmtS(c),it&&sv<3?'go':'dis',()=>{if(!it||sv>=3)return;if(it.pend){toast('🛒 먼저 사야 강화할 수 있어요 (✔ 완료)');snd('no');return}
+   if(save.coins<c){toast('코인이 부족해요! 🪙'+fmt(c));snd('no');return}const F=IS.CK(it.k),gain=Math.floor(F.p*(STS[sv+1]-STS[sv])/200);
+   JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화','🪙'+fmt(c)+' · 반짝이가 붙고 꾸미기 ✨+'+fmt(gain),'✨ 강화하기',()=>{if(save.coins<c||(it.s|0)!==sv)return;save.coins-=c;it.s=sv+1;store();snd('win');JUICE.confetti(50);IS.bounce(it);toast('✨ '+F.n+' ★'+it.s+'! 꾸미기 +'+fmt(gain));renderDeco()},'그만두기',()=>{})})}
   dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(save.fur,dsel,save.room);if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
-  dbtn('da2','📦 보관함에 넣기',dsel?'':'dis',()=>{if(dsel){save.fur=save.fur.filter(it=>it!==dsel);dsel=null;store();snd('tap');renderDeco()}});
-  msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'')}
+  dbtn('da2','📦 보관',dsel?'':'dis',()=>{if(dsel){keepS(dsel);save.fur=save.fur.filter(it=>it!==dsel);dsel=null;store();snd('tap');renderDeco()}});
+  msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+(dsel.s?' ★'+dsel.s:'')+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'')}
  else if(tk==='room'){
   IS.ROOM.forEach(r=>{const own=save.room>=r.n,lk=!own&&r.g>grade()?'🔒 '+GR[r.g].n:null;card('📐',r.n+'×'+r.n,own?(save.room===r.n?'지금 크기':'✅'):lk?lk.replace('🔒 ',''):'🪙'+fmt(r.p),(prev&&prev.k==='room'&&prev.id===r.n?'on':save.room===r.n?'eq':'')+(lk?' lk':''),()=>{prev=own?null:{k:'room',id:r.n};renderDeco()})});
   const nx=IS.ROOM.find(r=>r.n===save.room+1);
@@ -499,7 +510,7 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room
  {const ws=IS.wallAt(x,y,n),wpk=dpick&&IS.WK[dpick],wsl=dsel&&IS.WK[dsel.k];
   if(ws){const it=IS.wallItemAt(save.fur,ws);
    if(it){dsel=dsel===it?null:it;dpick=null;snd('tap');renderDeco();return}
-   if(wpk){const f=IS.WK[dpick];let pend=0;if(spare(dpick)<=0){pend=1;toast('🛒 '+f.n+' 담았어요 · 완료할 때 계산해요')}const nw={k:dpick,x:ws.x,y:ws.y,d:0};if(pend)nw.pend=1;save.fur.push(nw);dsel=nw;store();snd('place');IS.bounce(nw);renderDeco();return}
+   if(wpk){const f=IS.WK[dpick];let pend=0;if(spare(dpick)<=0){pend=1;toast('🛒 '+f.n+' 담았어요 · 완료할 때 계산해요')}const nw={k:dpick,x:ws.x,y:ws.y,d:0};if(pend)nw.pend=1;else{const s0=grabS(dpick);if(s0)nw.s=s0}save.fur.push(nw);dsel=nw;store();snd('place');IS.bounce(nw);renderDeco();return}
    if(wsl&&!dpick){dsel.x=ws.x;dsel.y=ws.y;store();snd('place');IS.bounce(dsel);renderDeco();return}}
   if(wpk){toast('🖼️ 초록 테두리 벽 칸을 톡 하세요');snd('no');return}
   if(wsl&&!ws){dsel=null;renderDeco();return}}
@@ -517,7 +528,7 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=save.room
  const f=IS.FK[dpick];
  /* 🛒 보관함에 없으면 바로 사지 않고 담아 둬요 → ✔ 완료 때 한꺼번에 계산 */
  let pend=0;if(spare(dpick)<=0){pend=1;toast('🛒 '+f.n+' 담았어요 · 완료할 때 계산해요')}
- const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};if(pend)nw.pend=1;save.fur.push(nw);dsel=nw;store();snd('place');IS.bounce(nw);if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+IS.SET_BONUS);snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
+ const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};if(pend)nw.pend=1;else{const s0=grabS(dpick);if(s0)nw.s=s0}save.fur.push(nw);dsel=nw;store();snd('place');IS.bounce(nw);if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+IS.SET_BONUS);snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
 /* 가게 화면 손가락: 움직이면 끌어서 둘러보기, 제자리에서 떼면 톡(꾸미기에서 놓기·고르기), 두 손가락 = 확대·축소(핀치)
    가게에서 다 줄인 상태에서 더 줄이면 🏙️ 거리로, 거리에서 다 키운 상태에서 더 키우면 내 가게로 */
 let drg=null,pin=null;const pts=new Map();const cvPt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}};
@@ -597,7 +608,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
-function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0))}}
+function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0)+(f.s?','+Math.min(3,f.s|0):''))}}
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
 /* 11/8 5.6.6: 꾸미기 완료(force)는 늘 올리고 결과를 보여 줘요 · 실패하면 이유(에러 이름)를 화면에 */
@@ -620,7 +631,7 @@ function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=e
 let vPre=null,hPre=0;
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';$('vnt').className='';$('vnt').textContent='💌';
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
-  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');return{k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0}}).filter(it=>IS.CK(it.k));IS.fixWide(vfur,Math.max(4,Math.min(10,d.room|0)));
+  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');const v={k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0},st=Math.max(0,Math.min(3,(+a[4])|0));if(st)v.s=st;return v}).filter(it=>IS.CK(it.k));IS.fixWide(vfur,Math.max(4,Math.min(10,d.room|0)));
   if(vFrom==='url'&&uid!==N.uid)toast('💌 '+((d.nk&&!BADW.bad(d.nk))?d.nk+'님이':'친구가')+' 가게 구경에 초대했어요!');
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
