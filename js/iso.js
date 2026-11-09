@@ -177,13 +177,19 @@ const LASTS=new WeakMap();
 /* ✨ 11/9 반짝 강화(★1~3): ★2부터 바닥 금빛, 반짝이는 ★마다 늘고 ★3은 무지개. 고른 가구엔 ★ 표시 */
 function sparkle(x,y,r,col){cx.fillStyle=col;cx.beginPath();cx.moveTo(x,y-r);cx.quadraticCurveTo(x,y,x+r,y);cx.quadraticCurveTo(x,y,x,y+r);cx.quadraticCurveTo(x,y,x-r,y);cx.quadraticCurveTo(x,y,x,y-r);cx.fill()}
 const hs01=n=>{n=Math.imul(n^0x9e3779b9,0x85ebca6b);n^=n>>>13;n=Math.imul(n,0xc2b2ae35);n^=n>>>16;return(n>>>0)/4294967296};
-function starFx(x0,y0,hg,wd,s,t,seed){const n=[0,3,5,8][s],P=1.7;cx.save();for(let i=0;i<n;i++){const q=t/P+i/n,k=Math.floor(q),u=q-k,h1=hs01(seed*131+i*17+k*7919),h2=hs01(seed*977+i*29+k*104729),a=Math.sin(u*Math.PI);
+function starFx(x0,y0,hg,wd,s,t,seed,sel){cx.save();
+ if(sel){const n=[0,3,5,8][s],P=1.7;for(let i=0;i<n;i++){const q=t/P+i/n,k=Math.floor(q),u=q-k,h1=hs01(seed*131+i*17+k*7919),h2=hs01(seed*977+i*29+k*104729),a=Math.sin(u*Math.PI);
   const x=x0+(h1-.5)*wd,y=y0-hg*(.12+.88*h2),r=TW*(.045+.06*a)*(s===1?.8:1);cx.globalAlpha=a*(s===1?.75:.95);
-  sparkle(x,y,r,s===3?'hsl('+Math.round((h1*360+t*90)%360)+',95%,72%)':s===2?'#ffd84a':'#fff3b8');if(s>1){cx.globalAlpha=a*.9;sparkle(x,y,r*.45,'#fff')}}cx.restore()}
-function starGlow(it,t){const s=it.s|0;if(s<2)return;const c=iso(it.x+.5,it.y+.5),a=(s===3?.5:.32)*(.8+.2*Math.sin(t*2.2+it.x+it.y));cx.save();cx.translate(c.x,c.y);cx.scale(1,TH/TW);
+  sparkle(x,y,r,s===3?'hsl('+Math.round((h1*360+t*90)%360)+',95%,72%)':s===2?'#ffd84a':'#fff3b8');if(s>1){cx.globalAlpha=a*.9;sparkle(x,y,r*.45,'#fff')}}}
+ else{const Pc=[0,9,7,5.5][s],ph=hs01(seed*53+11)*Pc,q=(t+ph)/Pc,k=Math.floor(q),w=(q-k)*Pc;
+  for(let i=0;i<s;i++){const u=(w-i*.3)/.9;if(u<0||u>1)continue;const a=Math.sin(u*Math.PI),h1=hs01(seed*131+i*17+k*7919),h2=hs01(seed*977+i*29+k*104729);
+   const x=x0+(h1-.5)*wd*.8,y=y0-hg*(.2+.75*h2),r=TW*(.03+.05*a);cx.globalAlpha=a*.85;
+   sparkle(x,y,r,s===3?'hsl('+Math.round(h1*360)+',90%,78%)':s===2?'#ffd84a':'#fff3b8');cx.globalAlpha=a*.8;sparkle(x,y,r*.4,'#fff')}}
+ cx.restore()}
+function starGlow(it,t,sel){const s=it.s|0;if(s<2)return;const c=iso(it.x+.5,it.y+.5),a=sel?(s===3?.5:.32)*(.8+.2*Math.sin(t*2.2+it.x+it.y)):(s===3?.2:.11);cx.save();cx.translate(c.x,c.y);cx.scale(1,TH/TW);
  const g=cx.createRadialGradient(0,0,0,0,0,TW*.62);g.addColorStop(0,'rgba(255,220,100,'+a+')');g.addColorStop(.7,'rgba(255,200,60,'+(a*.35)+')');g.addColorStop(1,'rgba(255,200,60,0)');cx.fillStyle=g;cx.beginPath();cx.arc(0,0,TW*.62,0,7);cx.fill();cx.restore()}
 function starTag(x,y,s){const t='★'.repeat(s),fs=Math.max(10,TW*.17);cx.save();cx.font='900 '+fs+'px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.lineWidth=fs*.28;cx.strokeStyle='#5a3a22';cx.strokeText(t,x,y);cx.fillStyle='#ffd23a';cx.fillText(t,x,y);cx.restore()}
-function drawB(it,t,sel){const s=it.s|0;if(s>=2)starGlow(it,t);drawB0(it,t,sel);if(s){const c=iso(it.x+.5,it.y+.5);starFx(c.x,c.y,TW*.85,TW*.75,s,t,it.x*7+it.y*13+1);if(sel)starTag(c.x,c.y+TH*.42,s)}}
+function drawB(it,t,sel){const s=it.s|0;if(s>=2)starGlow(it,t,sel);drawB0(it,t,sel);if(s){const c=iso(it.x+.5,it.y+.5);starFx(c.x,c.y,TW*.85,TW*.75,s,t,it.x*7+it.y*13+1,sel);if(sel)starTag(c.x,c.y+TH*.42,s)}}
 function drawB0(it,t,sel){const b=BNC.get(it);if(b!=null){const u=(performance.now()-b)/480;if(u<1){const c=iso(it.x+.5,it.y+.5),sy=1+Math.sin(u*Math.PI*3)*.2*(1-u),sx=1-(sy-1)*.6,dy=-Math.max(0,Math.sin(u*Math.PI*1.5))*TH*.5*(1-u);cx.save();cx.translate(c.x,c.y+TH*.25);cx.scale(sx,sy);cx.translate(-c.x,-c.y-TH*.25+dy);drawItem(it,t,sel);cx.restore();return}BNC.delete(it)}drawItem(it,t,sel)}
 function selBox(it,t){cx.globalAlpha=.6+.4*Math.sin(t*6);for(const q of cells(it))poly([iso(q.x,q.y),iso(q.x+1,q.y),iso(q.x+1,q.y+1),iso(q.x,q.y+1)],null,'#ffc94a',3);cx.globalAlpha=1}
 function drawItem(it,t,sel){if(drawImgF(it,t)){if(sel)selBox(it,t);return}const gx=it.x,gy=it.y,d=it.d|0,c=iso(gx+.5,gy+.5),s=TW/78,F=FK[it.k]||{},kind=F.as||it.k,lw=Math.max(1.6,TW*.026);
@@ -416,7 +422,7 @@ function staffFront(t,look,L){const S=look.staff||{};
 /* ---------- 🖼️ 벽 장식 그리기 ---------- */
 function wPos(sl,hf){return sl.x===-1?{c:up(iso(0,sl.y+.5),WH*hf),k:-.5}:{c:up(iso(sl.x+.5,0),WH*hf),k:.5}}
 function wSlotPoly(sl,hf){const a=sl.x===-1?[iso(0,sl.y+.1),iso(0,sl.y+.9)]:[iso(sl.x+.1,0),iso(sl.x+.9,0)];return[up(a[0],WH*(hf-.2)),up(a[1],WH*(hf-.2)),up(a[1],WH*(hf+.2)),up(a[0],WH*(hf+.2))]}
-function drawWallItem(it,t,sel){drawWallItem0(it,t,sel);const s=it.s|0;if(s&&WK[it.k]){const {c}=wPos(it,WK[it.k].h||.56);starFx(c.x,c.y+TW*.22,TW*.5,TW*.45,s,t,it.x*7+it.y*13+5);if(sel)starTag(c.x,c.y+TW*.3,s)}}
+function drawWallItem(it,t,sel){drawWallItem0(it,t,sel);const s=it.s|0;if(s&&WK[it.k]){const {c}=wPos(it,WK[it.k].h||.56);starFx(c.x,c.y+TW*.22,TW*.5,TW*.45,s,t,it.x*7+it.y*13+5,sel);if(sel)starTag(c.x,c.y+TW*.3,s)}}
 function drawWallItem0(it,t,sel){const f=WK[it.k];if(!f)return;const hf=f.h||.56,{c,k}=wPos(it,hf),im=wImg(it.k);
  let w=TW*.42*(f.s||1),h=im?w*im.naturalHeight/im.naturalWidth:w;if(h>WH*.5){w*=WH*.5/h;h=WH*.5}
  const b=BNC.get(it),u=b!=null?(performance.now()-b)/480:1,sc=u<1?1+Math.sin(u*Math.PI*3)*.12*(1-u):1;
