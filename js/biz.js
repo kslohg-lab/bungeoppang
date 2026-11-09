@@ -41,19 +41,25 @@ const beanCost=save=>{const b=cafe(save).bean|0;return b>=BEAN.length?null:BEAN[
 function buyMachine(save){const c=cafe(save);if(c.on||save.coins<MACHINE)return false;save.coins-=MACHINE;c.on=1;c.dr=['ame','latte'];return true}
 function buyDrink(save,k){const c=cafe(save),d=DK[k];if(!c.on||!d||c.dr.includes(k)||save.coins<d.un)return false;save.coins-=d.un;c.dr.push(k);return true}
 function buyBean(save){const c=cafe(save),cost=beanCost(save);if(!c.on||cost==null||save.coins<cost)return false;save.coins-=cost;c.bean=(c.bean|0)+1;return true}
-/* 알바 최대 20레벨 (11/2 VOC: 굽기·계산이 12에서 막혀서). 13레벨부터 비싸게 */
-const SMAX=20,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000],WAGE=[0,100,250,500,900,1600,2800,4800,8000,10000,11500,13000,14500,16000,17500,19000,20500,22000,23500,25000,26500];
+/* 알바 최대 50레벨 (11/9: 20 → 50, 끝판 지출처). 21레벨부터 값 ×1.1씩, 월급 +1,000씩 */
+const SMAX=50,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000],WAGE=[0,100,250,500,900,1600,2800,4800,8000,10000,11500,13000,14500,16000,17500,19000,20500,22000,23500,25000,26500];
+while(SCOST.length<SMAX){const c=SCOST[SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;SCOST.push(Math.round(c/m)*m)}
+while(WAGE.length<=SMAX)WAGE.push(WAGE[WAGE.length-1]+1000);
 /* 가게 크기 = 꾸미기의 넓히기와 같은 칸 수. 사면 그 크기 월세가 0원 (11/8부터 5×5 노점 ~ 11×11 본점) */
 const PLACE={5:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},6:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},7:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},8:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},9:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6},10:{n:'대형 매장',e:'🏬',rent:8000,buy:1600000,mul:1.7},11:{n:'붕어빵 본점',e:'🏰',rent:12000,buy:4000000,mul:1.8}};
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
 const lvOf=(save,k)=>st(save)[k]|0;
+/* 👥 일하는 레벨: 고용한 레벨보다 낮춰서 쓸 수 있어요(월급도 그만큼). save.su[k] 없으면 고용한 레벨 그대로 */
+const useOf=(save,k)=>{const l=lvOf(save,k),u=save.su&&save.su[k];return u==null||!(u>=0)?l:Math.min(l,u|0)};
+function setUse(save,k,v){const l=lvOf(save,k);v=Math.max(0,Math.min(l,v|0));if(!save.su||typeof save.su!=='object')save.su={};if(v>=l)delete save.su[k];else save.su[k]=v;return v}
+const useSt=save=>{const o={};STAFF.forEach(x=>o[x.k]=useOf(save,x.k));return o};
 const hireCost=(save,k)=>{const l=lvOf(save,k);return l>=SMAX?null:SCOST[l]};
 const canHire=(save,k)=>k!=='barista'||cafeOn(save);
 const wageOf=l=>WAGE[l|0]||0;
 const place=save=>PLACE[save.room]||PLACE[5];
 const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
-function rates(save,ctx){ctx=ctx||{};const s=st(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
+function rates(save,ctx){ctx=ctx||{};const s=useSt(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
  const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
  const bake=4+2.5*(s.bake|0)*debt,serve=4+2.5*(s.serve|0)*debt;
@@ -125,7 +131,7 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  let c=save.coins+whole;if(c<0){save.debt=(save.debt||0)-c;c=0}else if(save.debt>0){const p=Math.min(c,save.debt);save.debt-=p;c-=p;g.paid=p}save.coins=c;
  save.custAcc=(save.custAcc||0)+g.cust;const wc=Math.floor(save.custAcc);save.custAcc-=wc;save.bizCust=(save.bizCust||0)+wc;
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
-function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;return true}
+function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;

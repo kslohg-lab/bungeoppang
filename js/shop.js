@@ -222,7 +222,7 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=
 function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ⭐'+BIZ.rt(save).v.toFixed(1)+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#8fcdff','#e6f4ff'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
-function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),staff:Object.assign({},save.st),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
+function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),staff:BIZ.useSt(save),n:pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),night:sk===2||sk===6,awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
  if(deco&&dtabK()==='skin'){SV.preview(t,myD(prev),0,H-DPH+30);return}
@@ -368,7 +368,7 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
  const r=BIZ.rates(save,bctx()),acts={},infos={};let aid=0,h='';
  const act=fn=>{const k='a'+(aid++);acts[k]=fn;return k},inf=(e,t,x)=>{const k='i'+(aid++);infos[k]=[e,t,x];return'<i class="inf" data-inf="'+k+'">i</i>'};
  /* 카드: o = {e, n, top(점·별), st, btn, can, done, hot, lk, warn, info:[e,t,html], fn} */
- const card=o=>'<div class="uc'+(o.hot?' hot':'')+(o.lk?' lk':'')+'">'+(o.info?inf(...o.info):'')+(o.warn?'<span class="warn">'+o.warn+'</span>':'')+'<div class="av">'+o.e+'</div><div class="nm">'+o.n+'</div>'+(o.top||'')+'<div class="st">'+(o.st||'')+'</div><button class="ub'+(o.done?' done':o.can?'':' no')+'" data-act="'+act(o.fn||(()=>{}))+'">'+o.btn+'</button></div>';
+ const card=o=>'<div class="uc'+(o.hot?' hot':'')+(o.lk?' lk':'')+'">'+(o.info?inf(...o.info):'')+(o.warn?'<span class="warn">'+o.warn+'</span>':'')+'<div class="av">'+o.e+'</div><div class="nm">'+o.n+'</div>'+(o.top||'')+'<div class="st">'+(o.st||'')+'</div>'+(o.ex||'')+'<button class="ub'+(o.done?' done':o.can?'':' no')+'" data-act="'+act(o.fn||(()=>{}))+'">'+o.btn+'</button></div>';
  const buyFx=(ok,msg)=>{if(!ok){toast('코인이 부족해요!');snd('no');return}store();snd('buy');if(window.JUICE)JUICE.confetti(45);if(msg)toast(msg);renderUp();bizBtn()};
  /* 💰 가격 스위치 */
  const price=(k,lab)=>{const pr=Object.assign({b:1,d:1},save.pr||{}),cur=pr[k],cx_=bctx(),net=i=>{const t=JSON.parse(JSON.stringify(save));t.pr=Object.assign({},pr);t.pr[k]=i;return BIZ.rates(t,cx_).net},n0=net(cur);
@@ -384,11 +384,14 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
   const rk=r.neck==='arrive'?['promo']:r.neck==='both'?['bake','serve']:[r.neck];if(r.dNeck)rk.push('barista');
   h+='<div class="gr2">';
   BIZ.STAFF.forEach(x=>{const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k),nm={bake:'굽기',serve:'계산',promo:'홍보',barista:'바리스타'}[x.k];
-   if(!BIZ.canHire(save,x.k)){h+=card({e:x.an,n:nm,lk:1,top:dots(0,BIZ.SMAX),st:'☕ 카페를 열면',btn:'☕ 카페로',can:1,fn:()=>{utab=3;renderUp(true)}});return}
-   const v={bake:['🍞',4+2.5*lv,4+2.5*(lv+1),''],serve:['🧾',4+2.5*lv,4+2.5*(lv+1),''],promo:['🐾',15*lv,15*(lv+1),'%'],barista:['☕',2+3*lv,2+3*(lv+1),'']}[x.k];
+   const lvN=(l,u)=>'<div class="lvn">Lv <b>'+l+'</b><small>/'+BIZ.SMAX+'</small></div>';
+   if(!BIZ.canHire(save,x.k)){h+=card({e:x.an,n:nm,lk:1,top:lvN(0),st:'☕ 카페를 열면',btn:'☕ 카페로',can:1,fn:()=>{utab=3;renderUp(true)}});return}
+   const u=BIZ.useOf(save,x.k),low=u<lv,v={bake:['🍞',4+2.5*u,4+2.5*(lv+1),''],serve:['🧾',4+2.5*u,4+2.5*(lv+1),''],promo:['🐾',15*u,15*(lv+1),'%'],barista:['☕',2+3*u,2+3*(lv+1),'']}[x.k];
+   const setU=d=>act(()=>{const n=BIZ.setUse(save,x.k,BIZ.useOf(save,x.k)+d);store();snd('tap');renderUp();bizBtn();if(d<0&&n===BIZ.useOf(save,x.k)&&n===0)toast(x.an+' '+nm+' 알바가 쉬어요 · 월급 0')}),
+    ex=lv>0?'<div class="wk'+(low?' low':'')+'"><button data-act="'+setU(-1)+'"'+(u<=0?' disabled':'')+'>−</button><span>'+(low?'💤 ':'')+'일 Lv'+u+'<small>💵 '+fmt(BIZ.wageOf(u))+'/시간</small></span><button data-act="'+setU(1)+'"'+(u>=lv?' disabled':'')+'>+</button></div>':'';
    const capped=x.k==='promo'&&r.neck!=='arrive';
-   h+=card({e:x.an,n:nm,top:dots(lv,BIZ.SMAX),st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':fmt(c)+'🪙',can:c!=null&&save.coins>=c,done:c==null,hot:rk.includes(x.k)&&c!=null,warn:capped?'⚠️':'',
-    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>'+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(lv))+'원/시간'+(c==null?'':' → '+fmt(BIZ.wageOf(lv+1)))+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
+   h+=card({e:x.an,n:nm,top:lvN(lv),ex,st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':fmt(c)+'🪙',can:c!=null&&save.coins>=c,done:c==null,hot:rk.includes(x.k)&&c!=null,warn:capped?'⚠️':'',
+    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>'+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(u))+'원/시간'+(c==null?'':' → 올리면 '+fmt(BIZ.wageOf(lv+1)))+'<br><br>➖➕ <b>일 Lv</b>을 낮추면 그만큼만 일하고 월급도 줄어요. 올리면 다시 고용한 레벨까지 일해요(돈 안 들어요)'+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
     fn:()=>{if(c==null)return;buyFx(BIZ.hire(save,x.k),x.an+' '+nm+' Lv'+(lv+1)+'!')}})});
   h+='</div>'}
  else if(utab===1){const p=BIZ.place(save),own=BIZ.owned(save),n=save.room;
