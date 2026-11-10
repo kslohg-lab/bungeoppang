@@ -35,8 +35,8 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&d.gw>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
     /* 🐟 붕어빵 동네 후보: 비슷한 가게(위·아래 12씩) + 큰 가게(내 점수 3배 이상 8) + 상위권 8 → 최대 읽기 40, 하루 한 번 */
     async pool(sc,me){const uid=await login().catch(()=>null),col=collection(db,'shops'),big=Math.max(sc*3,sc+5000),H=await hid();
-     const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(12))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(12))),
-      getDocs(query(col,where('sc','>=',big),orderBy('sc','asc'),limit(8))),getDocs(query(col,orderBy('sc','desc'),limit(8)))]).catch(full);
+     const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(20))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(20))),
+      getDocs(query(col,where('sc','>=',big),orderBy('sc','asc'),limit(10))),getDocs(query(col,orderBy('sc','desc'),limit(10)))]).catch(full);
      const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(H(x.id))continue;if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},top:top?1:0})}};
      add(d.docs,1);add(a.docs);add(b.docs);add(c.docs);return o},
     async get(uid){const s=await getDoc(doc(db,'shops',uid)).catch(full);return s.exists()?s.data():null},

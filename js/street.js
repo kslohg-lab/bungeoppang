@@ -1,4 +1,4 @@
-/* ===== 🐟 붕어빵 동네 (3D 아이소메트릭 블록): 바둑판 길 + 블록 4개(2×2) × 가게 3곳 = 12곳 =====
+/* ===== 🐟 붕어빵 동네 (3D 아이소메트릭 블록): 바둑판 길 + 블록 9개(3×3) × 가게 3곳 = 27곳 (11/10 VOC: 12 → 27) =====
    STREET(cx,A) → {SK, size, LOTS, scene(t,list,o), preview(t,d,top,bottom), center(), drag(dx,dy), zoom(f), hit(hits,x,y), T}
    list[i]가 LOTS[i] 자리에 들어가요. LOTS는 동네 가운데(사거리)에서 가까운 순서 → list[0] = 내 가게.
    가게는 비스듬히 보이는 두 방향으로만 향해요: 'F' = 아래쪽 길(앞면이 왼쪽 아래), 'R' = 오른쪽 길(앞면이 오른쪽 아래) → 모든 간판·문이 보여요.
@@ -23,13 +23,13 @@ const RM=d=>Math.max(4,(d.room|0)-(d.r5?1:0));
 function size(room){const r=Math.max(4,Math.min(10,room|0));return{w:[1.9,2.6,3.0,3.4,3.8,4.2,4.6][r-4],d:[1.1,2.2,2.4,2.6,2.8,3.0,3.2][r-4],fl:r>=9?3:r>=7?2:1}}
 /* ---------- 동네 배치 (칸 단위) ---------- */
 const BX=12,BY=10,RB_=3.4,SW=.9; /* 블록 크기, 길 폭(인도 포함), 인도 폭 */
-const TX=2*BX+2*RB_,TY=2*BY+2*RB_;
-const blocks=[];for(let j=0;j<2;j++)for(let i=0;i<2;i++)blocks.push({x:i*(BX+RB_),y:j*(BY+RB_)});
+const NB=3,TX=NB*BX+NB*RB_,TY=NB*BY+NB*RB_;
+const blocks=[];for(let j=0;j<NB;j++)for(let i=0;i<NB;i++)blocks.push({x:i*(BX+RB_),y:j*(BY+RB_)});
 /* 자리: F = 블록 아래쪽(앞선 gy=블록 아래), R = 블록 오른쪽 위(앞선 gx=블록 오른쪽). a0 = 자리 시작, L = 자리 길이 */
 const LOTS=[];blocks.forEach(b=>{LOTS.push({o:'F',fx:b.y+BY,a0:b.x+.7,L:5,bx:b});LOTS.push({o:'F',fx:b.y+BY,a0:b.x+6.2,L:5,bx:b});LOTS.push({o:'R',fx:b.x+BX,a0:b.y+5.6,L:5,bx:b})});
-/* 내 가게 = 맨 앞줄(앞에 가리는 건물이 없는) 오른쪽 아래 블록의 왼쪽 자리. 나머지는 내 가게에서 가까운 순서 */
+/* 내 가게 = 맨 앞줄(앞에 가리는 건물이 없는) 가운데 아래 블록의 왼쪽 자리. 나머지는 내 가게에서 가까운 순서 */
 LOTS.forEach(l=>{const c=l.o==='F'?{x:l.a0+l.L/2,y:l.fx}:{x:l.fx,y:l.a0-l.L/2};l.cx=c.x;l.cy=c.y});
-const ME=LOTS[9],CX0=ME.cx,CY0=ME.cy;LOTS.forEach(l=>{l.dist=Math.hypot(l.cx-CX0,l.cy-CY0)});LOTS.sort((a,b)=>a.dist-b.dist);
+const ME=LOTS[((NB-1)*NB+1)*3],CX0=ME.cx,CY0=ME.cy;LOTS.forEach(l=>{l.dist=Math.hypot(l.cx-CX0,l.cy-CY0)});LOTS.sort((a,b)=>a.dist-b.dist);
 /* ---------- 카메라 ---------- */
 let T=40,OX=0,OY=0,CGX=CX0,CGY=CY0-2;
 const P=(gx,gy,z=0)=>({x:OX+(gx-gy)*T/2,y:OY+(gx+gy)*T/4-z});
@@ -127,20 +127,21 @@ function ground(night){const G=(x0,y0,x1,y1,c)=>poly([P(x0,y0),P(x1,y0),P(x1,y1)
  blocks.forEach(b=>G(b.x-.2,b.y-.2,b.x+BX,b.y+BY,night?'#6f9a62':'#bfe3a4'));
  /* 길 (가로: 블록 아래, 세로: 블록 오른쪽) */
  const lane=Math.max(1.5,T*.05);
- for(let j=0;j<2;j++){const y=j*(BY+RB_)+BY;G(-4,y,TX+4,y+SW,'#e4d8c2');G(-4,y+SW,TX+4,y+RB_-SW,'#8f8a85');G(-4,y+RB_-SW,TX+4,y+RB_,'#e4d8c2')}
- for(let i=0;i<2;i++){const x=i*(BX+RB_)+BX;G(x,-4,x+SW,TY+4,'#e4d8c2');G(x+SW,-4,x+RB_-SW,TY+4,'#8f8a85');G(x+RB_-SW,-4,x+RB_,TY+4,'#e4d8c2')}
+ for(let j=0;j<NB;j++){const y=j*(BY+RB_)+BY;G(-4,y,TX+4,y+SW,'#e4d8c2');G(-4,y+SW,TX+4,y+RB_-SW,'#8f8a85');G(-4,y+RB_-SW,TX+4,y+RB_,'#e4d8c2')}
+ for(let i=0;i<NB;i++){const x=i*(BX+RB_)+BX;G(x,-4,x+SW,TY+4,'#e4d8c2');G(x+SW,-4,x+RB_-SW,TY+4,'#8f8a85');G(x+RB_-SW,-4,x+RB_,TY+4,'#e4d8c2')}
  /* 사거리: 아스팔트 + 횡단보도 */
- for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*(BX+RB_)+BX,y=j*(BY+RB_)+BY;G(x+SW,y+SW,x+RB_-SW,y+RB_-SW,'#8f8a85');
+ for(let j=0;j<NB;j++)for(let i=0;i<NB;i++){const x=i*(BX+RB_)+BX,y=j*(BY+RB_)+BY;G(x+SW,y+SW,x+RB_-SW,y+RB_-SW,'#8f8a85');
   cx.fillStyle='rgba(255,255,255,.85)';for(let k=0;k<4;k++){const u=x+SW+.15+k*.42;poly([P(u,y-.05+SW*.1),P(u+.22,y-.05+SW*.1),P(u+.22,y+SW*.9),P(u,y+SW*.9)],'rgba(255,255,255,.85)');const v=y+SW+.15+k*.42;poly([P(x+SW*.1,v),P(x+SW*.9,v),P(x+SW*.9,v+.22),P(x+SW*.1,v+.22)],'rgba(255,255,255,.85)')}}
  /* 가운데 점선 */cx.strokeStyle='rgba(255,255,255,.8)';cx.lineWidth=lane;
- for(let j=0;j<2;j++){const y=j*(BY+RB_)+BY+RB_/2;for(let x=-4;x<TX+4;x+=1.4){if(x>BX-.5&&x<BX+RB_+.5||x>2*BX+RB_-.5&&x<TX+.5)continue;const p=P(x,y),q=P(x+.7,y);cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}
- for(let i=0;i<2;i++){const x=i*(BX+RB_)+BX+RB_/2;for(let y=-4;y<TY+4;y+=1.4){if(y>BY-.5&&y<BY+RB_+.5||y>2*BY+RB_-.5&&y<TY+.5)continue;const p=P(x,y),q=P(x,y+.7);cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}}
+ const crX=x=>{const m=((x+.5)%(BX+RB_)+(BX+RB_))%(BX+RB_);return x>-.5&&m>BX-.5+.5},crY=y=>{const m=((y+.5)%(BY+RB_)+(BY+RB_))%(BY+RB_);return y>-.5&&m>BY-.5+.5};
+ for(let j=0;j<NB;j++){const y=j*(BY+RB_)+BY+RB_/2;for(let x=-4;x<TX+4;x+=1.4){if(crX(x))continue;const p=P(x,y),q=P(x+.7,y);cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}
+ for(let i=0;i<NB;i++){const x=i*(BX+RB_)+BX+RB_/2;for(let y=-4;y<TY+4;y+=1.4){if(crY(y))continue;const p=P(x,y),q=P(x,y+.7);cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}}
 /* 블록 안 공원 (가게 뒤쪽 빈 곳) */
 const PARK=[];blocks.forEach((b,k)=>{const it=[['🌳',2,2,1.2],['🌳',4.6,1.3,1.1],['🌸',3.2,3.6,.7],['🌳',1.3,5.2,1.15],['⛲',5.4,3.8,1],['🌷',6.8,1.6,.6],['🪑',2.6,6.4,.6],['🌼',4.2,5.6,.55]];it.forEach((p,i)=>{if((i+k)%3===2&&p[0]!=='⛲'&&p[0]!=='🌳')return;PARK.push({e:k===1&&p[0]==='⛲'?'🎠':p[0],x:b.x+p[1],y:b.y+p[2],s:p[3]})})});
 /* 동네 바깥 (위·왼쪽 빈 들판): 나무·꽃 */
 for(let k=0;k<26;k++){const side=k%2,u=((k*37)%100)/100;const x=side?-3-((k*7)%5):u*TX,y=side?u*TY:-3-((k*11)%5);PARK.push({e:['🌳','🌲','🌳','🌸','🌼'][k%5],x,y,s:k%5>2?.6:1.1})}
 /* 걷는 손님: 인도를 따라 */
-const walkers=[];for(let i=0;i<10;i++){const hz=i%2===0,k=(i>>1)%2;walkers.push({hz,line:hz?k*(BY+RB_)+BY+.45:k*(BX+RB_)+BX+.45,p:Math.random()*(hz?TX:TY),v:(Math.random()<.5?-1:1)*(.4+Math.random()*.3),an:null,ph:i*1.7})}
+const walkers=[];for(let i=0;i<16;i++){const hz=i%2===0,k=(i>>1)%NB;walkers.push({hz,line:hz?k*(BY+RB_)+BY+.45:k*(BX+RB_)+BX+.45,p:Math.random()*(hz?TX:TY),v:(Math.random()<.5?-1:1)*(.4+Math.random()*.3),an:null,ph:i*1.7})}
 /* ---------- 장면 ---------- */
 function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.addColorStop(0,o.night?'#1a2450':'#9fd8ff');g.addColorStop(1,o.night?'#4a4a7a':'#fff1d6');cx.fillStyle=g;cx.fillRect(0,0,W,800);
  ground(o.night);
@@ -161,7 +162,7 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
     rr(bx,q.y,bw,bh,8*k,it.me?'#ffc94a':'rgba(255,255,255,.9)');tx(nm,q.x,q.y+bh/2,f1,'#5a3a22','center',it.me?'#ffc94a':'#fff');
     if(it.me){const p=Q(r.Wd/2,r.D/2,r.h);em('📍',p.x,p.y-20-Math.abs(Math.sin(t*3))*5,24)}})}})});
  /* 공원 */PARK.forEach(p=>D.push({z:p.x+p.y,f:()=>{const q=P(p.x,p.y);if(q.x<-60||q.x>W+60||q.y<-60||q.y>860)return;cx.fillStyle='rgba(0,0,0,.12)';cx.beginPath();cx.ellipse(q.x,q.y,T*.45*p.s,T*.18*p.s,0,0,7);cx.fill();em(p.e,q.x,q.y-T*.5*p.s,T*1.05*p.s)}}));
- /* 가로등 (사거리 모퉁이) */for(let j=0;j<2;j++)for(let i=0;i<2;i++){const x=i*(BX+RB_)+BX-.35,y=j*(BY+RB_)+BY-.35;D.push({z:x+y,f:()=>{const q=P(x,y);cx.strokeStyle='#4a4a52';cx.lineWidth=Math.max(2,T*.07);cx.beginPath();cx.moveTo(q.x,q.y);cx.lineTo(q.x,q.y-T*1.4);cx.stroke();cx.fillStyle=o.night?'#ffe680':'#fff6c0';cx.beginPath();cx.arc(q.x,q.y-T*1.45,T*.14,0,7);cx.fill();cx.strokeStyle=OL;cx.lineWidth=1;cx.stroke()}})}
+ /* 가로등 (사거리 모퉁이) */for(let j=0;j<NB;j++)for(let i=0;i<NB;i++){const x=i*(BX+RB_)+BX-.35,y=j*(BY+RB_)+BY-.35;D.push({z:x+y,f:()=>{const q=P(x,y);cx.strokeStyle='#4a4a52';cx.lineWidth=Math.max(2,T*.07);cx.beginPath();cx.moveTo(q.x,q.y);cx.lineTo(q.x,q.y-T*1.4);cx.stroke();cx.fillStyle=o.night?'#ffe680':'#fff6c0';cx.beginPath();cx.arc(q.x,q.y-T*1.45,T*.14,0,7);cx.fill();cx.strokeStyle=OL;cx.lineWidth=1;cx.stroke()}})}
  /* 걷는 손님 */const AN=o.an||['🐱','🐰','🐻','🐶'],dt=o.dt||0;for(const wk of walkers){wk.p+=wk.v*dt;const mx=wk.hz?TX:TY;if(wk.p<-3)wk.p=mx+2;if(wk.p>mx+3)wk.p=-2;if(!wk.an)wk.an=AN[Math.floor(Math.random()*AN.length)];
   const gx=wk.hz?wk.p:wk.line,gy=wk.hz?wk.line:wk.p;D.push({z:gx+gy+.3,f:()=>{const q=P(gx,gy),sz=T*.6;if(q.x<-40||q.x>W+40||q.y<-40||q.y>860)return;cx.fillStyle='rgba(0,0,0,.14)';cx.beginPath();cx.ellipse(q.x,q.y,sz*.3,sz*.12,0,0,7);cx.fill();
    const left=wk.hz?wk.v<0:wk.v>0;cx.save();if(left){cx.translate(q.x*2,0);cx.scale(-1,1)}animal(wk.an,q.x,q.y-sz*.9,sz,{walk:t*10+wk.ph,t,ph:wk.ph});cx.restore()}})}

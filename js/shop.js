@@ -278,17 +278,31 @@ function unlockUI(){const fresh=save.d0>0,a={days:save.days|0,age:fresh?dayKey()
   if(on&&fresh&&!save.unl.includes(u.id)){save.unl.push(u.id);nw.push(u);el.classList.add('nw0');el.addEventListener('click',()=>el.classList.remove('nw0'),{once:true})}}
  if(nw.length){store();setTimeout(()=>toast('✨ 새로 열렸어요: '+nw.map(u=>u.e+' '+u.n).join(' · ')),700)}
  /* 챌린지를 아직 안 해 봤으면 챌린지 버튼에 한 줄 */let ch=null;try{ch=JSON.parse(localStorage.getItem('bungeoppang2Pub1'))}catch(e){}$('hcs').style.display=ch&&ch.runs>0?'none':'block'}
-/* ---------- 📅 7일 출석 선물 (날짜가 바뀔 때마다 하루 한 번 · 빠진 날이 있어도 이어서 · 7일 뒤엔 다시 1일부터) ----------
-   폰 시계를 되돌려도 마지막으로 받은 날보다 앞 날짜엔 못 받아요 */
-const ATT=[{c:3000,t:'🪙 3,000'},{c:5000,t:'🪙 5,000'},{f:'tree',t:'🌳 나무 화분'},{c:10000,t:'🪙 10,000'},{m:10,t:'🏅 메달 10개'},{c:20000,t:'🪙 20,000'},{c:30000,m:15,t:'🪙 30,000 + 🏅 15'}];
-const att=()=>{if(!save.att||typeof save.att!=='object')save.att={last:0,n:0};return save.att};
+/* ---------- 📅 연속 출석 도장 (11/10 VOC '출석이 짜다') ----------
+   하루 한 번(날짜가 바뀔 때). 매일 = 내 가게 1시간 수입(최소 3,000) · 연속 3·7·14·30일째(그 뒤로도 반복) 큰 선물.
+   하루 빠지면 연속이 끊겨요. 단, 🛡️ 한 주(월~일)에 한 번은 하루 빠져도 이어져요.
+   폰 시계를 되돌려도 마지막으로 받은 날보다 앞 날짜엔 못 받아요. 한 번에 받는 코인은 최대 100만(클라우드 백업 규칙 안쪽, 차액 150만과 겹쳐도) */
+const att=()=>{if(!save.att||typeof save.att!=='object')save.att={last:0,n:0};const A=save.att;if(A.s==null){A.s=A.last>=dayKey()-2?((Math.max(1,A.n|0)-1)%7)+1:0}return A};
 const attCan=()=>!!save.name&&dayKey()>att().last;
-function attClaim(){if(!attCan())return null;const A=att(),i=A.n%ATT.length,r=ATT[i];A.last=dayKey();A.n++;
- if(r.c)save.coins+=r.c;if(r.f){save.inv[r.f]=(save.inv[r.f]||0)+1}if(r.m&&window.MEDAL&&MEDAL.add)MEDAL.add(r.m);store();return{i,r,nx:ATT[A.n%ATT.length]}}
-function attCard(){if(!attCan())return false;const A=att(),i=A.n%ATT.length,r=ATT[i],nx=ATT[(A.n+1)%ATT.length];
- const dots=ATT.map((x,j)=>'<span style="display:inline-block;width:34px;height:34px;line-height:34px;border-radius:10px;margin:2px;font-size:13px;background:'+(j<i?'#d8f5dc':j===i?'#ffd76a':'#f1e6d4')+'">'+(j<i?'✅':j+1)+'</span>').join('');
- bzShow('📅','출석 '+(A.n+1)+'일째!','<div style="text-align:center">'+dots+'<p style="margin:8px 0 0;font-size:19px">오늘 선물: <b style="color:#e8642a">'+r.t+'</b></p><p class="ht" style="margin:6px 0 0">🎁 내일 오면: <b>'+nx.t+'</b></p></div>','🎁 받기',()=>{const g=attClaim();if(!g)return;snd('fanfare');if(window.JUICE)JUICE.confetti(90);toast('🎁 '+g.r.t+' 받았어요!'+(g.r.f?' (꾸미기 보관함)':'')+' · 내일: '+g.nx.t);renderHome()});return true}
-const attLine=()=>{if(!save.name)return'';const A=att(),done=A.last>=dayKey();return'<div class="evl" id="atl" style="background:#e8f4ff">📅 출석 '+(((A.n-1)%ATT.length)+1)+'/7 · '+(done?'🎁 내일: '+ATT[A.n%ATT.length].t:'<b>오늘 선물 받기 ›</b>')+'</div>'};
+const wkOf=d=>Math.floor((d+3)/7);
+const ATTM=[[30,{h:24,m:20,x:3,t:'🏆 한 달 보너스'}],[14,{h:12,m:15,x:2,t:'🌟 2주 보너스'}],[7,{h:6,m:10,x:1,t:'🎉 일주일 보너스'}],[3,{h:3,t:'✨ 보너스'}]];
+const attMs=s=>{for(const [d,r] of ATTM)if(s>=d&&(d===3?s%7===3:s%d===0))return r;return null};
+const attHr=()=>{let h=0;try{h=Math.max(0,BIZ.rates(save,bctx()).net)}catch(e){}return h};
+const r1k=v=>Math.round(v/1000)*1000;
+/* 오늘 받을 선물 (아직 안 받았을 때 기준) */
+function attNext(){const A=att(),d=dayKey(),gap=d-A.last,wk=wkOf(d),prot=gap===2&&A.pw!==wk&&A.s>0,s=gap===1||prot?A.s+1:1,hr=attHr(),day=Math.max(3000,Math.min(5e5,r1k(hr))),ms=attMs(s),bonus=ms?Math.min(1e6-day,Math.max(5000*ms.h,r1k(hr*ms.h))):0;
+ return{s,prot,broke:gap>1&&!prot&&A.s>0,old:A.s,c:day+bonus,day,bonus,ms}}
+const attTxt=g=>'🪙 '+fmt(g.c)+(g.ms&&g.ms.m?' · 🏅 '+g.ms.m:'')+(g.ms&&g.ms.x?' · 🎫 강화권 '+g.ms.x:'');
+const nextMs=s=>{for(let k=s+1;k<=s+30;k++){const m=attMs(k);if(m)return{k,m}}return null};
+function attClaim(){if(!attCan())return null;const A=att(),g=attNext(),d=dayKey();if(g.prot)A.pw=wkOf(d);A.s=g.s;A.best=Math.max(A.best|0,g.s);A.last=d;A.n=(A.n|0)+1;
+ save.coins+=g.c;if(g.ms&&g.ms.m&&window.MEDAL&&MEDAL.add)MEDAL.add(g.ms.m);if(g.ms&&g.ms.x)save.tix=(save.tix|0)+g.ms.x;store();return g}
+function attCard(){if(!attCan())return false;const g=attNext(),A=att(),nm2=nextMs(g.s),base=Math.floor((g.s-1)/7)*7;
+ const dots=Array.from({length:7},(_,j)=>{const k=base+j+1,m=attMs(k),done=k<g.s,cur=k===g.s;return'<span style="display:inline-block;width:36px;height:40px;line-height:1.1;padding-top:4px;border-radius:10px;margin:2px;font-size:12px;vertical-align:top;background:'+(done?'#d8f5dc':cur?'#ffd76a':'#f1e6d4')+'">'+(done?'✅':cur?'🐟':k)+'<br><small style="font-size:10px">'+(m?m.t.split(' ')[0]:k+'일')+'</small></span>'}).join('');
+ bzShow('📅','🔥 연속 출석 '+g.s+'일째!','<div style="text-align:center">'+(g.broke?'<p class="ht" style="margin:0 0 6px;color:#c03030">연속이 끊겨서 1일부터 다시 시작해요 (전에 '+g.old+'일)</p>':g.prot?'<p class="ht" style="margin:0 0 6px;color:#2a7ac0">🛡️ 어제 빠졌지만 이번 주 보호로 이어졌어요!</p>':'')+dots+
+  '<p style="margin:8px 0 0;font-size:19px">오늘 선물: <b style="color:#e8642a">'+attTxt(g)+'</b></p>'+(g.ms?'<p class="ht" style="margin:4px 0 0">'+g.ms.t+' 포함!</p>':'')+
+  (nm2?'<p class="ht" style="margin:6px 0 0">🎁 '+nm2.k+'일째: '+nm2.m.t+(nm2.m.m?' · 🏅'+nm2.m.m:'')+(nm2.m.x?' · 🎫'+nm2.m.x:'')+'</p>':'')+'<p class="ht" style="margin:4px 0 0">🛡️ 한 주에 한 번은 하루 빠져도 이어져요'+(A.pw===wkOf(dayKey())&&!g.prot?' (이번 주 사용함)':'')+'</p></div>',
+  '🎁 받기',()=>{const r=attClaim();if(!r)return;snd('fanfare');if(window.JUICE)JUICE.confetti(r.ms?140:90);toast('🎁 '+attTxt(r)+' 받았어요! · 🔥 연속 '+r.s+'일');renderHome();bizBtn()});return true}
+const attLine=()=>{if(!save.name)return'';const A=att(),done=A.last>=dayKey(),s=done?A.s:attNext().s,nm2=nextMs(done?A.s:s-1);return'<div class="evl" id="atl" style="background:#e8f4ff">📅 🔥 연속 '+(done?A.s:Math.max(0,s-1))+'일'+(done?(nm2?' · 🎁 '+nm2.k+'일째 '+nm2.m.t:''):' · <b>오늘 도장 찍기 ›</b>')+'</div>'};
 let attShown=false;function attAuto(n){if(attShown||!save.name||n>40)return;setTimeout(()=>{if(attShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
  if(scr!=='home'||busy){attAuto(n+1);return}attShown=true;attCard()},n?1500:900)}
 /* ---------- 📅 오늘의 사건 ---------- */
@@ -453,8 +467,8 @@ let dback='home',dsel=null,dpick=null,dghost=null;
 /* 꾸미기 탭 4개: 가구 / 벽·바닥 / 간판·장식 / 넓히기 (벽·바닥·장식은 아래 작은 칸으로 고르기) */
 const DPH=324; /* 꾸미기 아래 판 높이 */
 const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'skin',n:'🏠 외관',sl:['skin']},{k:'room',n:'📐 넓히기'}];
-let dsub=0,fcat=0;
-const FCAT=[{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'wall',n:'🖼️ 벽 장식'}];
+let dsub=0,fcat=1;
+const FCAT=[{k:'own',n:'📦 내 가구'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'wall',n:'🖼️ 벽 장식'}];
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
 const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
@@ -493,12 +507,17 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
    b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(f.p/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+IS.SET_BONUS:' · 다 놓으면 ✨+'+IS.SET_BONUS)+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
+  else if(fc==='own'){const my=IS.FUR.concat(IS.WFUR).filter(f=>(save.inv[f.k]|0)>0||placed(f.k)>0).sort((a,b)=>(spare(b.k)>0)-(spare(a.k)>0)||b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>아직 가진 가구가 없어요</b><small>다른 칸에서 골라 놓으면 여기 모여요</small>';L.appendChild(h)}}
   else if(fc==='wall')IS.WFUR.forEach(fcard);
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.CK(dsel.k),wsel=dsel&&IS.WK[dsel.k],wpk=dpick&&IS.WK[dpick];
-  $('da3').style.display='';{const it=dsel,sv=it?it.s|0:0,c=it?stCost(it):0;dbtn('da3',!it?'✨ 강화':sv>=3?'✨ ★3 최고':'✨ ★'+(sv+1)+' 🪙'+fmtS(c),it&&sv<3?'go':'dis',()=>{if(!it||sv>=3)return;if(it.pend){toast('🛒 먼저 사야 강화할 수 있어요 (✔ 완료)');snd('no');return}
+  $('da3').style.display='';const sellK=!dsel&&dpick&&spare(dpick)>0&&f0(dpick).p>0?dpick:null;
+  if(sellK){const F=f0(sellK),v=Math.floor(F.p/2);dbtn('da3','💰 팔기 🪙'+fmtS(v),'go',()=>{if(spare(sellK)<=0)return;JUICE.ask('💰 '+F.n+' 1개 팔기','보관함에 있는 걸 산 값의 절반 🪙'+fmt(v)+'에 팔아요 (보관 '+spare(sellK)+'개)','💰 팔기',()=>{if(spare(sellK)<=0)return;save.inv[sellK]=(save.inv[sellK]|0)-1;if(save.inv[sellK]<=0)delete save.inv[sellK];save.coins+=v;
+   const Ls=save.stS&&save.stS[sellK];if(Ls&&Ls.length>Math.max(0,spare(sellK))){Ls.sort((a,b)=>a-b);while(Ls.length>Math.max(0,spare(sellK)))Ls.shift();if(!Ls.length)delete save.stS[sellK]}
+   if(spare(sellK)<=0)dpick=null;store();snd('coins');toast('💰 '+F.n+' 팔았어요 +🪙'+fmt(v));renderDeco();bizBtn()},'그만두기',()=>{})})}
+  else{const it=dsel,sv=it?it.s|0:0,tk=(save.tix|0)>0,c=it&&!tk?stCost(it):0;dbtn('da3',!it?'✨ 강화'+(tk?' 🎫'+save.tix:''):sv>=3?'✨ ★3 최고':'✨ ★'+(sv+1)+(tk?' 🎫 강화권':' 🪙'+fmtS(c)),it&&sv<3?'go':'dis',()=>{if(!it||sv>=3)return;if(it.pend){toast('🛒 먼저 사야 강화할 수 있어요 (✔ 완료)');snd('no');return}
    if(save.coins<c){toast('코인이 부족해요! 🪙'+fmt(c));snd('no');return}const F=IS.CK(it.k),gain=Math.floor(F.p*(STS[sv+1]-STS[sv])/200);
-   JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화','🪙'+fmt(c)+' · 반짝이가 붙고 꾸미기 ✨+'+fmt(gain),'✨ 강화하기',()=>{if(save.coins<c||(it.s|0)!==sv)return;save.coins-=c;it.s=sv+1;store();snd('win');JUICE.confetti(50);IS.bounce(it);toast('✨ '+F.n+' ★'+it.s+'! 꾸미기 +'+fmt(gain));renderDeco()},'그만두기',()=>{})})}
+   JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화',(tk?'🎫 강화권 1장 (남은 '+save.tix+'장)':'🪙'+fmt(c))+' · 반짝이가 붙고 꾸미기 ✨+'+fmt(gain),'✨ 강화하기',()=>{if(save.coins<c||(it.s|0)!==sv)return;if(tk){if((save.tix|0)<=0)return;save.tix--}else save.coins-=c;it.s=sv+1;store();snd('win');JUICE.confetti(50);IS.bounce(it);toast('✨ '+F.n+' ★'+it.s+'! 꾸미기 +'+fmt(gain));renderDeco()},'그만두기',()=>{})})}
   dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(FUR(),dsel,RMN());if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
   dbtn('da2','📦 보관',dsel?'':'dis',()=>{if(dsel){keepS(dsel);setFUR(FUR().filter(it=>it!==dsel));dsel=null;store();snd('tap');renderDeco()}});
   msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+(dsel.s?' ★'+dsel.s:'')+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'')}
@@ -720,14 +739,14 @@ $('tsk').onclick=()=>endTour();
 const SV=STREET(cx,A);
 const myD=pv=>({r5:1,room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
 const dD=r=>{const e=r.eq||{};return{r5:e.r5|0,room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
-let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown';
+let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown2';
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function stBuild(){const rows=(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
- const near=take(shuf(rows.slice().sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my)).slice(0,14)),6).sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my));
- const big=take(shuf(rows.filter(r=>r.sc>my*1.5&&!r.top)),3).sort((a,b)=>a.sc-b.sc);
- const top=take(shuf(rows.filter(r=>r.top)),2).sort((a,b)=>a.sc-b.sc);
- const rest=take(shuf(rows.slice()),11-near.length-big.length-top.length);
+ const near=take(shuf(rows.slice().sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my)).slice(0,24)),12).sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my));
+ const big=take(shuf(rows.filter(r=>r.sc>my*1.5&&!r.top)),5).sort((a,b)=>a.sc-b.sc);
+ const top=take(shuf(rows.filter(r=>r.top)),3).sort((a,b)=>a.sc-b.sc);
+ const rest=take(shuf(rows.slice()),SV.LOTS.length-1-near.length-big.length-top.length);
  stList=[{d:myD(null),me:true,u:'me'},...[...near,...rest,...big,...top].map(r=>({d:dD(r),u:r.u}))].slice(0,SV.LOTS.length);SV.center(0)}
 function stUI(){$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('가게를 톡 하면 구경해요 · 끌어서 둘러보고 🤏 두 손가락으로 확대');const b=$('str');b.textContent='🔄 다른 동네';b.className=stLoad?'dis':''}
 function loadStreet(){const c=lsJ(ST_KEY);if(c&&c.d===dayKey()&&Array.isArray(c.rows)&&c.rows.length){stRows=c.rows;stMsg='';stBuild();stUI();return}
@@ -759,9 +778,9 @@ addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(documen
 document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(0){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
-/* 💸 11/10 알바 값 내림 차액: 게임을 켜 둔 동안 5분마다 최대 200만씩 (클라우드 백업 규칙 '한 번에 +300만' 안쪽) */
+/* 💸 11/10 알바 값 내림 차액: 게임을 켜 둔 동안 5분마다 최대 150만씩 (클라우드 백업 규칙 '한 번에 +300만' 안쪽) */
 let rfdT=Date.now()-270e3;
-function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(2e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분마다)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
+function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(15e5,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분마다)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
 window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
