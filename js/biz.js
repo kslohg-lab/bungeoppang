@@ -48,7 +48,12 @@ const SMAX=50,SCOST=[2000,6000,15000,36000,51000,73000,100000,140000,170000,2100
  WAGE=[0,100,300,500,800,1200,1600,2100,2700,3400,4200,5100,6000,7000,8200,9500,10900,12500,14100,15700,17300,18900,20500,22100,23700,25300,26900,28500,30100,31700,33300,34900,36500,38100,39700,41300,42900,44500,46100,47700,49300,50900,52500,54100,55700,57300,58900,60500,62100,63700,65300];
 /* 가게 크기 → 알바 최대 레벨 · 매력 상한 */
 const STCAP={5:8,6:12,7:16,8:22,9:30,10:40,11:50},CHCAP={5:.15,6:.18,7:.21,8:.25,9:.30,10:.35,11:.40};
-const rmOf=save=>Math.min(11,Math.max(5,save.room|0)),capOf=save=>STCAP[rmOf(save)],charmCap=save=>CHCAP[rmOf(save)];
+/* 🏢 2층 (11/10): 1층이 11×11이면 올릴 수 있어요. 5×5부터 11×11까지 넓혀요 (사는 방식, 월세 없음). 크기마다 매력 상한·손님이 더 올라요 */
+const F2ROOM=[{n:5,p:10000000},{n:6,p:15000000},{n:7,p:25000000},{n:8,p:40000000},{n:9,p:60000000},{n:10,p:90000000},{n:11,p:130000000}],
+ F2CH={5:.02,6:.03,7:.04,8:.05,9:.06,10:.08,11:.10},F2MUL={5:.05,6:.07,7:.09,8:.11,9:.13,10:.16,11:.20};
+const f2Of=save=>{const v=save.f2|0;return v>=5&&v<=11?v:0},f2Next=save=>{const v=f2Of(save);return(save.room|0)>=11?F2ROOM.find(q=>q.n===(v?v+1:5))||null:null};
+function buyF2(save){const q=f2Next(save);if(!q||save.coins<q.p)return false;save.coins-=q.p;save.f2=q.n;if(!Array.isArray(save.fur2))save.fur2=[];return true}
+const rmOf=save=>Math.min(11,Math.max(5,save.room|0)),capOf=save=>STCAP[rmOf(save)],charmCap=save=>CHCAP[rmOf(save)]+(F2CH[f2Of(save)]||0);
 /* 예전(5.7.2까지) 알바 값 → 차액 돌려주기(ec2) */
 const OLD_SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000];
 while(OLD_SCOST.length<SMAX){const c=OLD_SCOST[OLD_SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;OLD_SCOST.push(Math.round(c/m)*m)}
@@ -70,7 +75,7 @@ const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
 function rates(save,ctx){ctx=ctx||{};const s=useSt(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
- const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
+ const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(F2MUL[f2Of(save)]||0))*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
  const bake=4+2.5*(s.bake|0)*debt,serve=4+2.5*(s.serve|0)*debt;
  const cust=Math.min(arrive,bake,serve);
  const nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));let p=0,c=0;for(let f=0;f<nu;f++){p+=B.price(save,f);c+=R.menu[f].c}p/=nu;c/=nu;
@@ -142,5 +147,5 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
 function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;
