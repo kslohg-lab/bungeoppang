@@ -90,8 +90,8 @@ const iso=(gx,gy)=>({x:OX+(gx-gy)*TW/2,y:OY+(gx+gy)*TH/2});
 const toTile=(x,y)=>{const a=(x-OX)/(TW/2),b=(y-OY)/(TH/2);return{gx:Math.floor((a+b)/2),gy:Math.floor((b-a)/2)}};
 const inRoom=(gx,gy,n=N)=>gx>=0&&gy>=0&&gx<n&&gy<n;
 const isCounter=(gx,gy)=>gy===0&&(gx===1||gx===2);
-/* 꼭 비워 둘 칸: 카운터 앞(계산하는 자리) + 문 앞(오른쪽 아래 구석). 나머지는 손님이 가구를 피해 알아서 걸어요 */
-const isPath=(gx,gy,n=N)=>(gy===1&&(gx===1||gx===2))||(gx===n-1&&gy===n-1);
+/* 꼭 비워 둘 칸: 카운터 앞(계산하는 자리) + 문(오른쪽 구석 = 3시, 11/10에 6시 → 3시로 옮김). 나머지는 손님이 가구를 피해 알아서 걸어요 */
+const isPath=(gx,gy,n=N)=>(gy===1&&(gx===1||gx===2))||(gx===n-1&&gy===0);
 const canPlace=(gx,gy,n=N)=>inRoom(gx,gy,n)&&!isCounter(gx,gy)&&!isPath(gx,gy,n);
 /* 🛋️ 2칸 가구 (11/2): 소파·니트 소파·벤치·벚꽃 벤치·빵 진열대·피아노. 방향 0·3은 오른쪽 아래 칸(x+1), 1·2는 왼쪽 아래 칸(y+1)까지 */
 /* 11/2: 2칸 가구는 사람 눈에 어색해서 되돌림 (기능은 남겨 두고 목록만 비움) */
@@ -115,7 +115,7 @@ function bfs(sx,sy,n,blk,goal){const k=(x,y)=>x+','+y,prev=new Map([[k(sx,sy),nu
  while(q.length){const [x,y]=q.shift();if(goal(x,y)){const out=[];let c=k(x,y);while(c){const [a,b]=c.split(',').map(Number);out.unshift({gx:a,gy:b});c=prev.get(c)}return out}
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,nk=k(nx,ny);if(!inRoom(nx,ny,n)||isCounter(nx,ny)||prev.has(nk))continue;
    if(blk.has(nk)&&!goal(nx,ny))continue;prev.set(nk,k(x,y));q.push([nx,ny])}}return null}
-const DOOR=n=>({gx:n-1,gy:n-1});
+const DOOR=n=>({gx:n-1,gy:0});
 /* 문 → 카운터 앞 길 (칸 목록). 막혔으면 null */
 function mainRoute(items,n=N){const d=DOOR(n),b=blockSet(items,n);b.delete(d.gx+','+d.gy);return bfs(d.gx,d.gy,n,b,(x,y)=>x===2&&y===1)}
 /* 문에서 갈 수 있는 의자인지 */
@@ -130,6 +130,16 @@ function nextRot(items,it,n=N){const fi=FIMG[it.k],Rg=fi&&!fi.b?[0,1]:RING,cur=i
  for(let i=1;i<=Rg.length;i++){const d=Rg[(p+i)%Rg.length];if(d!==cur&&okPlace(items,it.x,it.y,it.k,it,n,d))return d}return Rg.includes(cur)?null:Rg[(p+1)%Rg.length]}
 /* 불러올 때 정리: 2칸 가구가 겹치거나 방 밖이면 돌려 보고, 안 되면 빼요 → 뺀 목록 */
 function fixWide(items,n=N){const out=[];for(const it of items.slice()){if(!isWide(it.k)||!FK[it.k])continue;if(fitAt(items,it.k,it.x,it.y,it.d,it,n))continue;let ok=false;for(let d=0;d<4;d++)if(fitAt(items,it.k,it.x,it.y,d,it,n)){it.d=d;ok=true;break}if(!ok){items.splice(items.indexOf(it),1);out.push(it)}}return out}
+/* 11/10 문을 3시로 옮긴 뒤 정리: 문·카운터 앞 칸에 있던 가구 + (그래도 길이 막히면) 가장 적게 치우는 길 위의 가구를 빼요 → 뺀 목록 */
+function fixDoor(items,n=N){const out=[],rm=it=>{const i=items.indexOf(it);if(i>=0){items.splice(i,1);out.push(it)}};
+ for(const it of items.slice())if(FK[it.k]&&cells(it).some(c=>isPath(c.x,c.y,n)))rm(it);
+ if(!mainRoute(items,n)){const b=blockSet(items,n),d=DOOR(n),k=(x,y)=>x+','+y,dist=new Map([[k(d.gx,d.gy),0]]),prev=new Map(),done=new Set();
+  /* 가구 칸은 100, 빈 칸은 1 → 가장 적게 치우고, 그중 가장 짧은 길 */
+  for(;;){let bk=null,bv=1/0;for(const [kk,v] of dist)if(!done.has(kk)&&v<bv){bv=v;bk=kk}if(bk==null)break;done.add(bk);const [x,y]=bk.split(',').map(Number);if(x===2&&y===1)break;
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,nk=k(nx,ny);if(!inRoom(nx,ny,n)||isCounter(nx,ny)||done.has(nk))continue;const nc=bv+(b.has(nk)?100:1);if(dist.has(nk)&&dist.get(nk)<=nc)continue;dist.set(nk,nc);prev.set(nk,bk)}}
+  let c=k(2,1);const onP=new Set();while(c){onP.add(c);c=prev.get(c)}
+  for(const it of items.slice())if(FK[it.k]&&!walkF(FK[it.k])&&cells(it).some(q=>onP.has(k(q.x,q.y))))rm(it)}
+ return out}
 function blockedSeats(items,n=N){return items.filter(it=>FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y,n)&&!cells(it).some(c=>seatOk(items,c,n))).length}
 /* 앉는 자리: 2칸 가구는 두 자리 (자리 객체는 가구마다 고정) */
 const SLOTM=new WeakMap();function slotsOf(it){let L=SLOTM.get(it);const C=cells(it);if(!L||L.length!==C.length){L=C.map((c,i)=>({it,i}));SLOTM.set(it,L)}L.forEach((s,i)=>{s.x=C[i].x;s.y=C[i].y});return L}
@@ -253,17 +263,17 @@ function thumb(k){const f=FK[k],wf=WK[k];if(!f&&!wf)return'';const C=cx.canvas,S
 let cust=[],spawnT=1.5,nid=1,fx=[];const AN=BP2.R.an;
 const tileOf=c=>({gx:Math.max(0,Math.min(N-1,Math.floor(c.x))),gy:Math.max(0,Math.min(N-1,Math.floor(c.y)))});
 /* 지금 자리에서 가구를 피해 문까지 → 밖으로 */
-function pathOut(items,c){const s=c?tileOf(c):{gx:2,gy:1},r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===N-1&&y===N-1);return[...(r||[]).slice(1).map(ctr),{x:N-.5,y:N-.5},{x:N+1.3,y:N-.5}]}
-function queuePts(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().reverse().map(ctr),{x:N+1.3,y:N-.5}]:[{x:2,y:1.5},{x:N-.5,y:1.5},{x:N-.5,y:N-.5},{x:N+1.3,y:N-.5}],out=[];
+function pathOut(items,c){const s=c?tileOf(c):{gx:2,gy:1},r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===N-1&&y===0);return[...(r||[]).slice(1).map(ctr),{x:N-.5,y:.5},{x:N+1.3,y:.5}]}
+function queuePts(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().reverse().map(ctr),{x:N+1.3,y:.5}]:[{x:2,y:1.5},{x:N-.5,y:1.5},{x:N-.5,y:.5},{x:N+1.3,y:.5}],out=[];
  for(let i=0;i<8;i++){let dist=i*.9,p=null;for(let j=0;j<P.length-1;j++){const a=P[j],b=P[j+1],L=Math.hypot(b.x-a.x,b.y-a.y);if(dist<=L){p={x:a.x+(b.x-a.x)*dist/L,y:a.y+(b.y-a.y)*dist/L};break}dist-=L}out.push(p||P[P.length-1])}return out}
 /* 줄 서는 길(카운터 앞 → 문 → 밖): 손님은 이 선을 따라서만 움직여요 (가구를 뚫고 가로질러 가지 않게) */
-function qLine(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().reverse().map(ctr),{x:N+1.6,y:N-.5}]:[{x:2,y:1.5},{x:N-.5,y:1.5},{x:N-.5,y:N-.5},{x:N+1.6,y:N-.5}],C=[0];
+function qLine(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().reverse().map(ctr),{x:N+1.6,y:.5}]:[{x:2,y:1.5},{x:N-.5,y:1.5},{x:N-.5,y:.5},{x:N+1.6,y:.5}],C=[0];
  for(let j=0;j<P.length-1;j++)C.push(C[j]+Math.hypot(P[j+1].x-P[j].x,P[j+1].y-P[j].y));return{P,C,L:C[C.length-1]}}
 function qAt(q,d){d=Math.max(0,Math.min(q.L,d));for(let j=0;j<q.P.length-1;j++){if(d<=q.C[j+1]||j===q.P.length-2){const L=q.C[j+1]-q.C[j]||1,u=Math.max(0,Math.min(1,(d-q.C[j])/L)),a=q.P[j],b=q.P[j+1];return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}}return q.P[0]}
 /* 손님 수: 가게가 클수록 북적 (4×4 4명 → 10×10 12명) */
 const CAP=()=>N<=4?4:Math.min(12,4+Math.round((N-4)*1.35));
 function say(c,t){c.bub=t;c.bt=2}
-function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:N-.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())}
+function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())}
  /* 빈 자리 중 무작위 (방금 누가 일어난 자리는 덜 골라요) */
  const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);const free=()=>{const L=seats.filter(ch=>!cust.some(c=>c.seat===ch)&&seatOk(items,ch));if(!L.length)return undefined;const now=performance.now(),w=L.map(ch=>{const u=LASTS.get(ch);return u&&now-u<20000?.25:1}),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[L.length-1]};
  const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
@@ -328,11 +338,11 @@ function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorSto
  if(look.top===6){const cl=['255,90,120','255,200,60','120,220,255','160,255,140'];for(let b=0;b<4;b++){const ph=m2(t*.6+b*.27,1),bx=60+b*110,by=110+(b%2)*30,cc=cl[b];if(ph<.8){const u=ph/.8,rad=12+u*40;cx.fillStyle='rgba('+cc+','+(1-u)+')';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;cx.beginPath();cx.arc(bx+Math.cos(a)*rad,by+Math.sin(a)*rad+u*u*12,2.4,0,7);cx.fill()}}}}}
 function drawGround(look,t){const ground=look.night?'#6f9a62':'#a8d890',Rc=iso(N,0),Bc=iso(N,N),Lc=iso(0,N);
  cx.fillStyle=ground;cx.beginPath();cx.moveTo(0,OY+(Lc.y-OY)*.2);cx.lineTo(W,OY+(Rc.y-OY)*.2);cx.lineTo(W,800);cx.lineTo(0,800);cx.closePath();cx.fill();
- /* 인도 */
- poly([iso(N,N-1),iso(N+3,N-1),iso(N+3,N),iso(N,N)],'#d8cbb6','#bba98e');for(let k=0;k<3;k++)poly([iso(N+k,N-1),iso(N+k+1,N-1),iso(N+k+1,N),iso(N+k,N)],null,'rgba(120,100,80,.25)',1);
+ /* 인도 (문 = 3시 쪽) */
+ poly([iso(N,0),iso(N+3,0),iso(N+3,1),iso(N,1)],'#d8cbb6','#bba98e');for(let k=0;k<3;k++)poly([iso(N+k,0),iso(N+k+1,0),iso(N+k+1,1),iso(N+k,1)],null,'rgba(120,100,80,.25)',1);
 }
 /* 마당 장식 (왼쪽·오른쪽): 가게 앞마당 양쪽, 바닥보다 앞에 그려서 잘리지 않게 (화면 밖으로도 덜 나가요) */
-const SIDE_L=()=>({gx:Math.min(2.2,N*.3),gy:N+1.05}),SIDE_R=()=>({gx:N+1.05,gy:Math.min(2.2,N*.3)});
+const SIDE_L=()=>({gx:Math.min(2.2,N*.3),gy:N+1.05}),SIDE_R=()=>({gx:N+1.05,gy:Math.min(N-.6,3.3)});
 function drawSide(it,g){if(!it||!it.sz)return;const p=iso(g.gx,g.gy);shadow(p.x,p.y,it.sz*.3);const z=it.sz*TW/96*.8;em(it.e,p.x,p.y-z*.42,z)}
 function drawWalls(look,t,items){const T=iso(0,0),Rc=iso(N,0),Lc=iso(0,N),wc=look.wall.c,wp=WP[look.wall.id];
  poly([T,Rc,up(Rc,WH),up(T,WH)],dark(wc,.08),dark(wc,.35));poly([Lc,T,up(T,WH),up(Lc,WH)],lite(wc,.05),dark(wc,.35));
@@ -392,7 +402,7 @@ function drawFloor(look,t,edit,items){const f=FLR[look.floor|0]||FLR[0];
  const rt=edit?(mainRoute(items||[])||[]):[];const on=new Set(rt.map(p=>p.gx+','+p.gy));
  for(let gx=0;gx<N;gx++)for(let gy=0;gy<N;gy++){const rs=isPath(gx,gy);if(!rs&&!on.has(gx+','+gy))continue;cx.globalAlpha=edit?(rs?.42:.2):.1;poly([iso(gx+.12,gy+.12),iso(gx+.88,gy+.12),iso(gx+.88,gy+.88),iso(gx+.12,gy+.88)],'#fff');cx.globalAlpha=1;if(edit&&rs){const c=iso(gx+.5,gy+.5);em(gy===1?'🧾':'🚪',c.x,c.y,TW*.2)}}
  const Lc=iso(0,N),Bc=iso(N,N),Rc=iso(N,0);poly([Lc,Bc,up(Bc,-8),up(Lc,-8)],dark(f[0],.3));poly([Bc,Rc,up(Rc,-8),up(Bc,-8)],dark(f[0],.42));
- poly([iso(N-.08,N-.9),iso(N+.4,N-.9),iso(N+.4,N-.1),iso(N-.08,N-.1)],'#c84a3a')}
+ poly([iso(N-.08,.1),iso(N+.4,.1),iso(N+.4,.9),iso(N-.08,.9)],'#c84a3a')} /* 문 앞 발판 (3시) */
 /* ---------- 직원 (경영에서 뽑은 알바만 보여요) ---------- */
 function apron(x,y,s,col){const w=s*.46,h=s*.4,ty=y+s*.3;cx.globalAlpha=.94;rr(x-w/2,ty,w,h,s*.08,col);cx.globalAlpha=1;rr(x-w*.2,ty+h*.38,w*.4,h*.3,s*.04,'rgba(255,255,255,.5)');cx.strokeStyle=col;cx.lineWidth=Math.max(1.5,s*.03);cx.beginPath();cx.moveTo(x-w*.42,ty+2);cx.lineTo(x-w*.2,ty-s*.12);cx.moveTo(x+w*.42,ty+2);cx.lineTo(x+w*.2,ty-s*.12);cx.stroke()}
 function badge(x,y,e,col){const r=TW*.11;cx.fillStyle='#fff';cx.beginPath();cx.arc(x,y,r,0,7);cx.fill();cx.strokeStyle=col;cx.lineWidth=2.5;cx.stroke();em(e,x,y,r*1.35)}
@@ -414,7 +424,7 @@ function staffFront(t,look,L){const S=look.staff||{};
   const q=iso(gx+.32,gy+.18);rr(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5,'#a8744a');cx.strokeStyle=OL;cx.lineWidth=Math.max(1.4,TW*.02);cx.beginPath();cx.roundRect(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5);cx.stroke();
   animal(stKey('serve','🐰'),p.x,y,s,{t,ph:7,mood:'h'});if(!stImg('serve'))apron(p.x,y,s,SCOL.serve);
   rr(q.x-s*.2,q.y-s*.86,s*.4,s*.26,4,'#7a7a86');rr(q.x-s*.16,q.y-s*.82,s*.32,s*.09,2,'#bfe8bf');badge(p.x-s*.5,y-s*.3,'🧾',SCOL.serve)}})}
- if(S.promo>0){const gx=N-1.3,gy=N+.5; /* 입구 앞 길가 (옆 장식·나무와 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal(stKey('promo','🦊'),p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});if(!stImg('promo')){apron(p.x,y,s,SCOL.promo);
+ if(S.promo>0){const gx=N+.5,gy=1.75; /* 입구(3시) 옆 길가 (인도·옆 장식과 안 겹치게) */L.push({z:gx+gy,f:()=>{const p=iso(gx,gy),s=TW*.38,w=Math.sin(t*5),y=p.y-s*.88-Math.abs(w)*2;shadow(p.x,p.y,s*.3);animal(stKey('promo','🦊'),p.x,y,s,{t,ph:9,mood:'h',tilt:w*.05});if(!stImg('promo')){apron(p.x,y,s,SCOL.promo);
   cx.save();cx.translate(p.x+s*.48,y+s*.35);cx.rotate(-.3+w*.25);em('📄',0,0,s*.34);cx.restore()}badge(p.x-s*.56,y-s*.5,'📣',SCOL.promo);
   const ph=t%8;const ms=look.cafe?['🐟 따끈한 붕어빵!','어서 오세요~','☕ 커피도 있어요!','오늘 맛있어요!']:['🐟 따끈한 붕어빵!','어서 오세요~','오늘 맛있어요!'];if(ph<2.4)bubble(p.x,y-s*.82,ms[Math.floor(t/8)%ms.length],Math.min(1,(2.4-ph)*3,ph*3))}})}}
 /* 가게 등급이 오르면 카운터 주변이 커져요: 1 메뉴판 · 3 펜던트 조명 · 4 줄전구 · 5 빵 바구니 · 6 네온 붕어
@@ -482,6 +492,6 @@ function draw(t,look,items,o={}){layout(look.n,o.top||64,o.bottom||520,o.fit);
  for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);for(const q of(g.k?cellsOf(g.k,g.x,g.y,g.d):[{x:g.x,y:g.y}]))poly([iso(q.x,q.y),iso(q.x+1,q.y),iso(q.x+1,q.y+1),iso(q.x,q.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
-return{wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+return{wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,fixDoor,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
  zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
