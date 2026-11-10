@@ -8,7 +8,10 @@ const STAFF=[
  {k:'bake',n:'굽기 알바',e:'🍞',an:'🐶',d:'붕어빵을 대신 구워요'},
  {k:'serve',n:'계산 알바',e:'🧾',an:'🐰',d:'손님 주문을 받고 계산해요'},
  {k:'promo',n:'홍보 알바',e:'📣',an:'🦊',d:'전단지를 돌려 손님을 불러와요'},
- {k:'barista',n:'바리스타',e:'☕',an:'🐼',d:'음료를 만들어요',cafe:1}];
+ {k:'barista',n:'바리스타',e:'☕',an:'🐼',d:'음료를 만들어요',cafe:1},
+ /* 🏢 2층이 생기면 굽기·계산 알바를 한 명씩 더 (11/10 VOC '알바 인원 늘리기'). 최대 레벨은 2층 크기로 */
+ {k:'bake2',n:'굽기 알바 2호',e:'🍞',an:'🐶',d:'2층이 생기면 한 명 더! 같이 구워요',f2:1},
+ {k:'serve2',n:'계산 알바 2호',e:'🧾',an:'🐰',d:'2층이 생기면 한 명 더! 같이 계산해요',f2:1}];
 /* ☕ 카페: 커피머신을 사면 열려요. st = [재료, 붓는 선(컵 높이 비율)] 순서대로, cup = ice/hot */
 const DRINKS=[
  {k:'ame',n:'아이스 아메리카노',s:'아아',e:'🧊',cup:'ice',p:1200,c:250,un:0,st:[['shot',.2],['water',.8]]},
@@ -53,7 +56,7 @@ const F2ROOM=[{n:5,p:10000000},{n:6,p:15000000},{n:7,p:25000000},{n:8,p:40000000
  F2CH={5:.02,6:.03,7:.04,8:.05,9:.06,10:.08,11:.10},F2MUL={5:.05,6:.07,7:.09,8:.11,9:.13,10:.16,11:.20};
 const f2Of=save=>{const v=save.f2|0;return v>=5&&v<=11?v:0},f2Next=save=>{const v=f2Of(save);return(save.room|0)>=11?F2ROOM.find(q=>q.n===(v?v+1:5))||null:null};
 function buyF2(save){const q=f2Next(save);if(!q||save.coins<q.p)return false;save.coins-=q.p;save.f2=q.n;if(!Array.isArray(save.fur2))save.fur2=[];return true}
-const rmOf=save=>Math.min(11,Math.max(5,save.room|0)),capOf=save=>STCAP[rmOf(save)],charmCap=save=>CHCAP[rmOf(save)]+(F2CH[f2Of(save)]||0);
+const rmOf=save=>Math.min(11,Math.max(5,save.room|0)),capOf=(save,k)=>k==='bake2'||k==='serve2'?(f2Of(save)?STCAP[f2Of(save)]:0):STCAP[rmOf(save)],charmCap=save=>CHCAP[rmOf(save)]+(F2CH[f2Of(save)]||0);
 /* 예전(5.7.2까지) 알바 값 → 차액 돌려주기(ec2) */
 const OLD_SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000];
 while(OLD_SCOST.length<SMAX){const c=OLD_SCOST[OLD_SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;OLD_SCOST.push(Math.round(c/m)*m)}
@@ -66,7 +69,7 @@ const useOf=(save,k)=>{const l=lvOf(save,k),u=save.su&&save.su[k];return u==null
 function setUse(save,k,v){const l=lvOf(save,k);v=Math.max(0,Math.min(l,v|0));if(!save.su||typeof save.su!=='object')save.su={};if(v>=l)delete save.su[k];else save.su[k]=v;return v}
 const useSt=save=>{const o={};STAFF.forEach(x=>o[x.k]=useOf(save,x.k));return o};
 const hireCost=(save,k)=>{const l=lvOf(save,k);return l>=SMAX?null:SCOST[l]};
-const canHire=(save,k)=>k!=='barista'||cafeOn(save);
+const canHire=(save,k)=>k==='barista'?cafeOn(save):k==='bake2'||k==='serve2'?f2Of(save)>0:true;
 const wageOf=l=>WAGE[l|0]||0;
 /* 11/10 값 내림: 예전 값으로 이미 올린 만큼의 차액을 한 번 계산해 save.rfd {l 남은 돈, t 전체}에 담아요 (코인은 shop.js가 나눠서 줘요) */
 function ec2(save){if(save.ec2)return 0;save.ec2=1;const s=st(save);let r=0;STAFF.forEach(x=>{const l=Math.min(SMAX,s[x.k]|0);for(let i=0;i<l;i++)r+=Math.max(0,OLD_SCOST[i]-SCOST[i])});r=Math.round(r);if(r>0)save.rfd={l:r,t:r};return r}
@@ -76,7 +79,7 @@ const rentOf=save=>owned(save)?0:place(save).rent;
 function rates(save,ctx){ctx=ctx||{};const s=useSt(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
  const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(F2MUL[f2Of(save)]||0))*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
- const bake=4+2.5*(s.bake|0)*debt,serve=4+2.5*(s.serve|0)*debt;
+ const bake=4+2.5*((s.bake|0)+(s.bake2|0))*debt,serve=4+2.5*((s.serve|0)+(s.serve2|0))*debt;
  const cust=Math.min(arrive,bake,serve);
  const nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));let p=0,c=0;for(let f=0;f<nu;f++){p+=B.price(save,f);c+=R.menu[f].c}p/=nu;c/=nu;
  const seatB=Math.min(.3,(ctx.seats|0)*.03);
@@ -145,7 +148,7 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  let c=save.coins+whole;if(c<0){save.debt=(save.debt||0)-c;c=0}else if(save.debt>0){const p=Math.min(c,save.debt);save.debt-=p;c-=p;g.paid=p}save.coins=c;
  save.custAcc=(save.custAcc||0)+g.cust;const wc=Math.floor(save.custAcc);save.custAcc-=wc;save.bizCust=(save.bizCust||0)+wc;
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
-function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
+function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
 return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;

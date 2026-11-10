@@ -285,13 +285,26 @@ function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP(
   if(c.seat&&(!items.includes(c.seat.it)||c.sx!==c.seat.x||c.sy!==c.seat.y)){c.seat=null;if(c.st==='sit'||c.st==='go'){c.st='out';c.route=pathOut(items,c)}}
   if(c.st==='q'){if(inQ[0]===c&&c.qd<=.02){c.w=(c.w||0)+dt;if(c.w>.3&&!c.asked){c.asked=1;say(c,'🐟 하나 주세요!')}if(c.w>1.8){c.st='buy';c.w=0}}}
   else if(c.st==='buy'){c.w+=dt;if(c.w>.6&&!c.paid){c.paid=1;say(c,'💖 고마워요!');const p=iso(c.x,c.y);fx.push({e:'🪙',x:p.x,y:p.y-TW*.9,l:1})}
+   if(c.w>1.2&&ST&&UP2>0&&Math.random()<UP2){const s=tileOf(c),r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===0&&y===N-1);if(r){c.st='up';c.route=r.slice(1).map(ctr);say(c,'⬆️ 2층 가 볼래요');continue}}
    if(c.w>1.2){const ch=free(),s=tileOf(c),r=ch&&bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===ch.x&&y===ch.y);
     if(r){c.seat=ch;c.sx=ch.x;c.sy=ch.y;c.st='go';c.route=r.slice(1).map(ctr)}else{c.st='out';c.route=pathOut(items,c)}}}
   else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
   else if(c.st==='sit'){c.w+=dt;if(c.w>4.5){c.st='out';c.route=pathOut(items,c);if(c.seat)LASTS.set(c.seat,performance.now());c.seat=null;say(c,'또 올게요 👋')}}
   if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=1.6*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else if(c.st!=='q')c.mv=0}
- cust=cust.filter(c=>!(c.st==='out'&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0)}
-function reset(){cust=[];spawnT=1.2}
+ cust=cust.filter(c=>!((c.st==='out'||c.st==='up')&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0)}
+/* 🏢 2층 손님: 계단(0,N-1)에서 올라와 빈 자리에 앉았다가 다시 계단으로 내려가요 (1층에서 '⬆️' 한 손님과 비슷한 빈도) */
+let cust2=[],spawn2=1,UP2=0;
+function step2(dt,items){const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);
+ const S={gx:0,gy:N-1},blk=blockSet(items,N);spawn2-=dt;
+ if(spawn2<=0){spawn2=3+Math.random()*3;const L=seats.filter(ch=>!cust2.some(c=>c.seat===ch));if(L.length&&cust2.length<Math.min(8,seats.length)){const ch=L[Math.floor(Math.random()*L.length)],r=bfs(S.gx,S.gy,N,blk,(x,y)=>x===ch.x&&y===ch.y);
+  if(r)cust2.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:.5,y:N-.5,st:'go',seat:ch,route:r.slice(1).map(ctr),t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]})}}
+ for(const c of cust2){c.t+=dt;if(c.bt>0)c.bt-=dt;
+  if(c.seat&&!items.includes(c.seat.it)&&c.st!=='out'){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr)}
+  if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;say(c,['😍 2층 최고!','🌇 경치 좋다~','😋 여기서 먹을래요'][c.id%3])}
+  else if(c.st==='sit'){c.w=(c.w||0)+dt;if(c.w>6){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr);say(c,'잘 먹었어요 👋')}}
+  if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=1.6*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else c.mv=0}
+ cust2=cust2.filter(c=>!(c.st==='out'&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0)}
+function reset(){cust=[];spawnT=1.2;cust2=[];spawn2=.6}
 function bubble(x,y,t,a){cx.globalAlpha=a;cx.font='bold 13px "Jua","Noto Sans KR",sans-serif';const w=cx.measureText(t).width+16;rr(x-w/2,y-12,w,24,12,'#fff');cx.beginPath();cx.moveTo(x-5,y+11);cx.lineTo(x,y+17);cx.lineTo(x+5,y+11);cx.closePath();cx.fillStyle='#fff';cx.fill();tx(t,x,y,13,'#5a3a22','center','#fff');cx.globalAlpha=1}
 function drawCust(c,t){const p=iso(c.x,c.y),sz=TW*.38,bob=c.mv?Math.abs(Math.sin(c.t*11))*3:0;let y=p.y-sz*.88-bob;if(c.st==='sit')y-=TW*.12;
  shadow(p.x,p.y,sz*.34);animal(c.an,p.x,y,sz,{walk:c.mv?c.t*10+c.id:null,t,ph:c.id,mood:c.st==='sit'||c.paid?'h':'n',shirt:c.sh});if(c.st==='sit')em('🐟',p.x+sz*.42,y+sz*.5,sz*.32);
@@ -501,11 +514,11 @@ function draw(t,look,items,o={}){FL=look.f2v?1:0;ST=look.st?1:0;layout(look.n,o.
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:(()=>{const C=cells(it);return C.reduce((a,q)=>a+q.x+q.y,0)/C.length})()+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
  if(FL)L.push({z:N,f:stairRail});else{if(ST)L.push({z:N,f:stairUp});
  L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)})}
- if(!o.noCust&&!FL)for(const c of cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
+ if(!o.noCust)for(const c of FL?cust2:cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  if(!FL)for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);for(const q of(g.k?cellsOf(g.k,g.x,g.y,g.d):[{x:g.x,y:g.y}]))poly([iso(q.x,q.y),iso(q.x+1,q.y),iso(q.x+1,q.y+1),iso(q.x,q.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
-function tick(dt,items,rate){step(dt,items,rate);petStep(dt,items)}
+function tick(dt,items,rate){if(FL){step2(dt,items);return}step(dt,items,rate);petStep(dt,items)}
 return{wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,fixDoor,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
- zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,setFloor(f,st){FL=f?1:0;ST=st?1:0},toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
+ zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,setFloor(f,st,up){FL=f?1:0;ST=st?1:0;UP2=up||0},toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};

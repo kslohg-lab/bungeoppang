@@ -233,7 +233,7 @@ function drawHome(t,deco){
  if(deco){const lk=look(prev);lk.staff={};IS.draw(t,lk,FUR(),{top:56,bottom:H-DPH,edit:dtabK()==='fur',sel:dsel,ghost:dghost,noCust:true,wedit:dtabK()==='fur'&&(FCAT[fcat].k==='wall'||!!(dpick&&IS.WK[dpick])||!!(dsel&&IS.WK[dsel.k]))});
   if(F2V){rr(W/2-46,62,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,77,16,'#5a3a22','center')}
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
- else{IS.draw(t,look(null),FUR(),{top:64,bottom:518});if(F2V){rr(W/2-46,70,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,85,16,'#5a3a22','center')}const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
+ else{IS.draw(t,look(null),FUR(),{top:64,bottom:518});if(F2V){rr(W/2-46,176,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,191,16,'#5a3a22','center')}const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
   if(scr==='home'){if(bizPop>0&&t-bizT>2.5){bizFl.push({v:bizPop,t});bizPop=0;bizT=t}bizFl=bizFl.filter(f=>t-f.t<1.8);bizFl.forEach(f=>{const u=(t-f.t)/1.8;cx.globalAlpha=1-u*u;tx('+'+fmt(f.v)+' 🪙',16,(INSTALL.standalone()?132:180)-u*12,18,'#fff6c0','left','#5a3a22');cx.globalAlpha=1})}else bizPop=0}}
 function gradeFloorBase(){return['#b8b4ac','#d2a46a','#c89a64','#6fbf5a','#8a867c','#9a968e','#9a80d8','#e8b8c8','#b88350','#9cc8e8','#c89a64','#b898d8','#d8b058'][save.eq.floor]||'#b8b4ac'}
 
@@ -402,16 +402,16 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
   h+=price('b','🐟 붕어빵 값');
   const rk=r.neck==='arrive'?['promo']:r.neck==='both'?['bake','serve']:[r.neck];if(r.dNeck)rk.push('barista');
   h+='<div class="gr2">';
-  BIZ.STAFF.forEach(x=>{const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k),nm={bake:'굽기',serve:'계산',promo:'홍보',barista:'바리스타'}[x.k];
-   const cap=BIZ.capOf(save),lvN=(l,u)=>'<div class="lvn">Lv <b>'+l+'</b><small>/'+Math.max(l,cap)+'</small></div>',full=c!=null&&lv>=cap,nr=IS.ROOM.find(q=>BIZ.STCAP[q.n]>lv);
-   if(!BIZ.canHire(save,x.k)){h+=card({e:x.an,n:nm,lk:1,top:lvN(0),st:'☕ 카페를 열면',btn:'☕ 카페로',can:1,fn:()=>{utab=3;renderUp(true)}});return}
-   const u=BIZ.useOf(save,x.k),low=u<lv,v={bake:['🍞',4+2.5*u,4+2.5*(lv+1),''],serve:['🧾',4+2.5*u,4+2.5*(lv+1),''],promo:['🐾',15*u,15*(lv+1),'%'],barista:['☕',2+3*u,2+3*(lv+1),'']}[x.k];
+  BIZ.STAFF.forEach(x=>{if(x.f2&&(save.room|0)<11)return;const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k),nm={bake:'굽기',serve:'계산',promo:'홍보',barista:'바리스타',bake2:'굽기 2호',serve2:'계산 2호'}[x.k];
+   const cap=BIZ.capOf(save,x.k),lvN=(l,u)=>'<div class="lvn">Lv <b>'+l+'</b><small>/'+Math.max(l,cap)+'</small></div>',full=c!=null&&lv>=cap,nr=x.f2?BIZ.F2ROOM.find(q=>BIZ.STCAP[q.n]>lv):IS.ROOM.find(q=>BIZ.STCAP[q.n]>lv);
+   if(!BIZ.canHire(save,x.k)){h+=x.f2?card({e:x.an,n:nm,lk:1,top:lvN(0),st:'🏢 2층을 올리면',btn:'🏢 가게로',can:1,fn:()=>{utab=1;renderUp(true)}}):card({e:x.an,n:nm,lk:1,top:lvN(0),st:'☕ 카페를 열면',btn:'☕ 카페로',can:1,fn:()=>{utab=3;renderUp(true)}});return}
+   const u=BIZ.useOf(save,x.k),low=u<lv,v={bake:['🍞',4+2.5*u,4+2.5*(lv+1),''],serve:['🧾',4+2.5*u,4+2.5*(lv+1),''],promo:['🐾',15*u,15*(lv+1),'%'],barista:['☕',2+3*u,2+3*(lv+1),''],bake2:['🍞',2.5*u,2.5*(lv+1),''],serve2:['🧾',2.5*u,2.5*(lv+1),'']}[x.k];
    const setU=d=>act(()=>{const n=BIZ.setUse(save,x.k,BIZ.useOf(save,x.k)+d);store();snd('tap');renderUp();bizBtn();if(d<0&&n===BIZ.useOf(save,x.k)&&n===0)toast(x.an+' '+nm+' 알바가 쉬어요 · 월급 0')}),
     ex=lv>0?'<div class="wk'+(low?' low':'')+'"><button data-act="'+setU(-1)+'"'+(u<=0?' disabled':'')+'>−</button><span>'+(low?'💤 ':'')+'일 Lv'+u+'<small>💵 '+fmt(BIZ.wageOf(u))+'/시간</small></span><button data-act="'+setU(1)+'"'+(u>=lv?' disabled':'')+'>+</button></div>':'';
    const capped=x.k==='promo'&&r.neck!=='arrive';
-   h+=card({e:x.an,n:nm,top:lvN(lv),ex,st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':full?'🏠 넓히면 Lv'+(nr?BIZ.STCAP[nr.n]:BIZ.SMAX):fmt(c)+'🪙',can:full||c!=null&&save.coins>=c,done:c==null,hot:rk.includes(x.k)&&c!=null&&!full,warn:capped?'⚠️':'',
-    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>🏠 지금 가게('+save.room+'×'+save.room+')에서는 <b>Lv'+cap+'</b>까지 · 넓히면 더 키울 수 있어요<br>'+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(u))+'원/시간'+(c==null?'':' → 올리면 '+fmt(BIZ.wageOf(lv+1)))+'<br><br>➖➕ <b>일 Lv</b>을 낮추면 그만큼만 일하고 월급도 줄어요. 올리면 다시 고용한 레벨까지 일해요(돈 안 들어요)'+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
-    fn:()=>{if(c==null)return;if(full){toast('🏠 '+(nr?nr.n+'×'+nr.n+'로 넓히면 Lv'+BIZ.STCAP[nr.n]+'까지 키울 수 있어요':'가게를 넓히면 더 키울 수 있어요'));snd('no');utab=1;renderUp(true);return}buyFx(BIZ.hire(save,x.k),x.an+' '+nm+' Lv'+(lv+1)+'!')}})});
+   h+=card({e:x.an,n:nm,top:lvN(lv),ex,st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':full?(x.f2?'🏢 2층 넓히면 Lv':'🏠 넓히면 Lv')+(nr?BIZ.STCAP[nr.n]:BIZ.SMAX):fmt(c)+'🪙',can:full||c!=null&&save.coins>=c,done:c==null,hot:(rk.includes(x.k)||x.f2&&rk.includes(x.k.slice(0,-1)))&&c!=null&&!full,warn:capped?'⚠️':'',
+    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>'+(x.f2?'🏢 지금 2층('+BIZ.f2Of(save)+'×'+BIZ.f2Of(save)+')에서는 <b>Lv'+cap+'</b>까지 · 2층을 넓히면 더 키울 수 있어요<br>':'🏠 지금 가게('+save.room+'×'+save.room+')에서는 <b>Lv'+cap+'</b>까지 · 넓히면 더 키울 수 있어요<br>')+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수',bake2:'1호와 같이 구워서 더 많은 손님을 받아요',serve2:'1호와 같이 계산해서 더 많은 손님을 받아요'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(u))+'원/시간'+(c==null?'':' → 올리면 '+fmt(BIZ.wageOf(lv+1)))+'<br><br>➖➕ <b>일 Lv</b>을 낮추면 그만큼만 일하고 월급도 줄어요. 올리면 다시 고용한 레벨까지 일해요(돈 안 들어요)'+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
+    fn:()=>{if(c==null)return;if(full){toast((x.f2?'🏢 2층을 ':'🏠 ')+(nr?nr.n+'×'+nr.n+'로 넓히면 Lv'+BIZ.STCAP[nr.n]+'까지 키울 수 있어요':'넓히면 더 키울 수 있어요'));snd('no');utab=1;renderUp(true);return}buyFx(BIZ.hire(save,x.k),x.an+' '+nm+' Lv'+(lv+1)+'!')}})});
   h+='</div>'}
  else if(utab===1){const p=BIZ.place(save),own=BIZ.owned(save),n=save.room;
   h+='<div class="srow"><span>🏠 크기<b>'+n+'×'+n+'</b></span><span>💸 월세<b>'+fmt(BIZ.rentOf(save))+'</b></span><span>🐾 손님<b>+'+Math.round((p.mul-1)*100)+'%</b></span><span>👥 알바<b>Lv'+BIZ.capOf(save)+'</b></span><span>✨ 매력<b>'+Math.round(BIZ.charmCap(save)*100)+'%</b></span></div>';
@@ -492,8 +492,8 @@ function buildF2(){const first=!BIZ.f2Of(save),nx=BIZ.f2Next(save);if(!nx)return
  if(first){F2V=true;IS.resetPan();dsel=null;toast('🏢 2층이 생겼어요! 왼쪽 버튼으로 1층·2층을 오가요'+(mv?' · 계단 자리 가구는 📦 보관함에':''))}
  else toast('🏢 2층이 '+save.f2+'×'+save.f2+'로 넓어졌어요! ✨ 매력 상한 +'+Math.round(BIZ.F2CH[save.f2]*100)+'%p');
  if(scr==='deco')renderDeco();else if(scr==='up')renderUp(true);bizBtn()}
-function setF2V(v){if(F2V===!!v)return;F2V=!!v&&BIZ.f2Of(save)>0;IS.resetPan();dsel=null;dghost=null;if(!F2V)IS.reset();if(scr==='deco'){prev=null;renderDeco()}snd('tap')}
-let flbK='';function flbSync(){const b=$('flb');if(!b)return;const hm=scr==='home'&&$('hm').style.display==='block',on=BIZ.f2Of(save)>0&&(hm||(scr==='deco'&&!dMed&&dtabK()!=='skin')),k=on+'|'+F2V+'|'+scr;if(k===flbK)return;flbK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=F2V?'⬇️ 1층':'⬆️ 2층';b.style.top=(scr==='deco'?H-DPH-50:424)+'px'}
+function setF2V(v){if(F2V===!!v)return;F2V=!!v&&BIZ.f2Of(save)>0;IS.resetPan();dsel=null;dghost=null;IS.reset();hPre=0;if(scr==='deco'){prev=null;renderDeco()}snd('tap')}
+let flbK='';function flbSync(){const b=$('flb');if(!b)return;const hm=scr==='home'&&$('hm').style.display==='block',vis=scr==='visit'&&vd&&((vd.eq&&vd.eq.f2)|0)>=5,on=vis||BIZ.f2Of(save)>0&&(hm||(scr==='deco'&&!dMed&&dtabK()!=='skin')),up=vis?vF2:F2V,k=on+'|'+up+'|'+scr;if(k===flbK)return;flbK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=up?'⬇️ 1층':'⬆️ 2층';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
 function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
  {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent=dMed?'🔥 챌린지에서 모아요':'✨ 매력 +'+Math.round(charmBonus()*100)+'%';if(dMed&&window.MEDAL)$('dcw').textContent='🏅 메달 '+MEDAL.get().n+'개';
@@ -595,7 +595,7 @@ cv.addEventListener('pointerup',e=>endDrg(e,true));cv.addEventListener('pointerc
 cv.addEventListener('wheel',e=>{if(!panScr())return;e.preventDefault();zoomBy(Math.exp(-e.deltaY*.0015))},{passive:false});
 /* 🔍 전체 보기 ↔ 크게 보기 (큰 가게이거나 확대했을 때) · 🏙️ 거리 버튼(홈) */
 $('zf').onclick=()=>{IS.fit=!IS.fit;snd('tap');zfK='';zfSync()};
-$('flb').onclick=()=>{au();setF2V(!F2V);flbK='';flbSync()};
+$('flb').onclick=()=>{au();if(scr==='visit'){vF2=!vF2;vPre=null;IS.reset();IS.resetPan();snd('tap')}else setF2V(!F2V);flbK='';flbSync()};
 let zfK='';function zfSync(){const b=$('zf'),hm=scr==='home'&&$('hm').style.display==='block',on=panScr()&&scr!=='street'&&!(scr==='deco'&&dtabK()==='skin')&&!(scr==='home'&&!hm)&&(IS.canPan()||IS.fit),k=(on?scr+IS.fit+dtabK():'')+hm;if(k===zfK)return;zfK=k;
  $('nst').style.display=hm?'block':'none';$('nms').style.display=hm?'block':'none';b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 $('dx').onclick=()=>{if(dMed){dMed=false;prev=null;dtab=0;dsub=0;if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}scr='home';toHome();return}const pd=pendList();if(pd.n){const buy=()=>{if(save.coins<pd.sum){toast('코인이 부족해요! 🪙'+fmt(pd.sum-save.coins)+' 모자라요');snd('no');renderDeco();return}save.coins-=pd.sum;pd.L.forEach(f=>{delete f.pend;save.inv[f.k]=(save.inv[f.k]||0)+1});store();snd('buy');if(window.JUICE)JUICE.confetti(50);toast('🛒 '+pd.n+'개 구입! −🪙'+fmt(pd.sum));$('dx').onclick()},drop=()=>{save.fur=save.fur.filter(f=>!f.pend);save.fur2=(save.fur2||[]).filter(f=>!f.pend);dsel=null;store();renderDeco();toast('담아 둔 가구를 뺐어요')};
@@ -653,7 +653,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
-function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1}),fur:(save.fur||[]).filter(f=>!f.pend).slice(0,120).map(f=>f.k+','+f.x+','+f.y+','+(f.d|0)+(f.s?','+Math.min(3,f.s|0):''))}}
+function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1},BIZ.f2Of(save)?{f2:BIZ.f2Of(save)}:{}),fur:(()=>{const enc=(f,p)=>p+f.k+','+f.x+','+f.y+','+(f.d|0)+(f.s?','+Math.min(3,f.s|0):'');return(save.fur||[]).filter(f=>!f.pend).map(f=>enc(f,'')).concat((save.fur2||[]).filter(f=>!f.pend).map(f=>enc(f,'2|'))).slice(0,120)})()}} /* 🏢 2층 가구는 '2|' 붙여서 (옛 앱은 모르는 가구라 그냥 건너뛰어요) */
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
 /* 11/8 5.6.6: 꾸미기 완료(force)는 늘 올리고 결과를 보여 줘요 · 실패하면 이유(에러 이름)를 화면에 */
@@ -669,14 +669,14 @@ function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=
   const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
 $('nb').onclick=()=>{au();syncShop();openRank('wk')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rk2').onclick=()=>openRank('wk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
 /* 구경 */
-let vd=null,vuid=null,vfur=[],vFrom='home';
+let vd=null,vuid=null,vfur=[],vfur2=[],vF2=false,vFrom='home';
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');
  return{g:d.g|0,n:Math.max(4,Math.min(11,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),night:sk===2||sk===6,awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
 /* 구경·처음 화면은 손님이 이미 와 있는 모습으로 (20초쯤 미리 돌려요) */
 let vPre=null,hPre=0;
 function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';$('vnt').className='';$('vnt').textContent='💌';
  whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
-  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}vfur=(d.fur||[]).map(x=>{const a=String(x).split(',');const v={k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0},st=Math.max(0,Math.min(3,(+a[4])|0));if(st)v.s=st;return v}).filter(it=>IS.CK(it.k));IS.fixWide(vfur,Math.max(4,Math.min(11,d.room|0)));IS.fixDoor(vfur,Math.max(4,Math.min(11,d.room|0)));
+  vd=d;{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}{const pf=x=>{const a=String(x).replace(/^2\|/,'').split(',');const v={k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0},st=Math.max(0,Math.min(3,(+a[4])|0));if(st)v.s=st;return v},L=d.fur||[];vfur=L.filter(x=>!/^2\|/.test(String(x))).map(pf).filter(it=>IS.CK(it.k));vfur2=L.filter(x=>/^2\|/.test(String(x))).map(pf).filter(it=>IS.CK(it.k))}vF2=false;IS.fixWide(vfur,Math.max(4,Math.min(11,d.room|0)));IS.fixDoor(vfur,Math.max(4,Math.min(11,d.room|0)));
   if(vFrom==='url'&&uid!==N.uid)toast('💌 '+((d.nk&&!BADW.bad(d.nk))?d.nk+'님이':'친구가')+' 가게 구경에 초대했어요!');
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
@@ -765,8 +765,8 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
   if(s.done){drawGame();finishDay();requestAnimationFrame(loop);return}}drawGame()}
  else if(scr==='cafe'){if(!paused)CF.step(dt);CF.draw(t);if(CF.done){finishCafe()}}
  else if(scr==='street'){drawStreet(t,dt)}
- else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd);if(vPre!==vd){vPre=vd;IS.draw(t,lk,vfur,{top:60,bottom:600});for(let i=0;i<90;i++)IS.tick(.25,vfur,1)}IS.tick(dt,vfur,1);IS.draw(t,lk,vfur,{top:60,bottom:600})}}
- else{IS.setFloor(0,BIZ.f2Of(save)>0);if(!hPre&&!F2V){hPre=1;drawHome(t,scr==='deco');IS.setFloor(0,BIZ.f2Of(save)>0);for(let i=0;i<90;i++)IS.tick(.25,save.fur,1)}if(!F2V)IS.tick(dt,save.fur,1);drawHome(t,scr==='deco')}
+ else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd),vf2=Math.max(0,Math.min(11,(vd.eq&&vd.eq.f2)|0)),VF=vF2&&vf2?vfur2:vfur;lk.st=vf2>=5;if(vF2&&vf2){lk.f2v=true;lk.n=vf2}IS.setFloor(vF2&&vf2?1:0,vf2>=5,vf2>=5&&IS.seatCount(vfur2)>0?.35:0);if(vPre!==vd){vPre=vd;IS.draw(t,lk,VF,{top:60,bottom:600});for(let i=0;i<90;i++)IS.tick(.25,VF,1)}IS.tick(dt,VF,1);IS.draw(t,lk,VF,{top:60,bottom:600});if(vF2&&vf2){rr(W/2-46,66,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,81,16,'#5a3a22','center')}}}
+ else{const f2=BIZ.f2Of(save)>0,up=f2&&IS.seatCount(save.fur2||[])>0?.35:0;IS.setFloor(F2V?1:0,f2,up);if(!hPre&&!F2V){hPre=1;drawHome(t,scr==='deco');IS.setFloor(0,f2,up);for(let i=0;i<90;i++)IS.tick(.25,save.fur,1)}IS.tick(dt,FUR(),1);drawHome(t,scr==='deco')}
  zfSync();flbSync();if(scr!==fitScr)fit();requestAnimationFrame(loop)}
 /* 📐 세로가 긴 폰: 가게 첫 화면만 판을 아래로 늘려 (최대 +170) 아래 메뉴 판을 넓게. 다른 화면은 그대로 450×800 */
 let EXT=0,fitScr='';
@@ -782,7 +782,7 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 let rfdT=Date.now()-270e3;
 function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(15e5,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분마다)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
-window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={visit:(u,f)=>visit(u,f),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🚪 11/10 입구를 3시로 옮긴 뒤 처음: 문·길을 막는 가구는 보관함으로 (★은 그대로 보관) */
 if(!save.d3){save.d3=1;let mv=[];if(save.fur&&save.fur.length){mv=IS.fixDoor(save.fur,save.room);mv.forEach(it=>keepS(it))}store();
