@@ -123,8 +123,8 @@ function bldg(Q,ori,d,t){const st=SK[d.skin|0]||SK[0];{const cp=CPIC[d.skin|0];i
  return{Wd,D,h:roofTop}}
 /* ---------- 땅·길·공원 ---------- */
 function ground(night){const G=(x0,y0,x1,y1,c)=>poly([P(x0,y0),P(x1,y0),P(x1,y1),P(x0,y1)],c);
- G(-30,-30,TX+30,TY+30,night?'#5f8a56':'#a8d890');
- blocks.forEach(b=>G(b.x-.2,b.y-.2,b.x+BX,b.y+BY,night?'#6f9a62':'#bfe3a4'));
+ const xm=window.XMAS&&XMAS();G(-30,-30,TX+30,TY+30,xm?(night?'#b8c6d6':'#e8eff6'):night?'#5f8a56':'#a8d890');
+ blocks.forEach(b=>G(b.x-.2,b.y-.2,b.x+BX,b.y+BY,xm?(night?'#c8d4e2':'#f4f8fc'):night?'#6f9a62':'#bfe3a4'));
  /* 길 (가로: 블록 아래, 세로: 블록 오른쪽) */
  const lane=Math.max(1.5,T*.05);
  for(let j=0;j<NB;j++){const y=j*(BY+RB_)+BY;G(-4,y,TX+4,y+SW,'#e4d8c2');G(-4,y+SW,TX+4,y+RB_-SW,'#8f8a85');G(-4,y+RB_-SW,TX+4,y+RB_,'#e4d8c2')}
@@ -161,12 +161,13 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
     if(!it.me){const z0=l.cx+l.cy;for(let j=0;j<PL.length;j++){const o2=PL[j];if(!o2||j===i||o2.l.cx+o2.l.cy<=z0)continue;const b=o2.bb,mx=(b.x1-b.x0)*.2,my=(b.y1-b.y0)*.15;if(bx<b.x1-mx&&bx+bw>b.x0+mx&&q.y<b.y1-my*1.6&&q.y+bh>b.y0+my)return}}
     rr(bx,q.y,bw,bh,8*k,it.me?'#ffc94a':'rgba(255,255,255,.9)');tx(nm,q.x,q.y+bh/2,f1,'#5a3a22','center',it.me?'#ffc94a':'#fff');
     if(it.me){const p=Q(r.Wd/2,r.D/2,r.h);em('📍',p.x,p.y-20-Math.abs(Math.sin(t*3))*5,24)}})}})});
- /* 공원 */PARK.forEach(p=>D.push({z:p.x+p.y,f:()=>{const q=P(p.x,p.y);if(q.x<-60||q.x>W+60||q.y<-60||q.y>860)return;cx.fillStyle='rgba(0,0,0,.12)';cx.beginPath();cx.ellipse(q.x,q.y,T*.45*p.s,T*.18*p.s,0,0,7);cx.fill();em(p.e,q.x,q.y-T*.5*p.s,T*1.05*p.s)}}));
+ const xm2=window.XMAS&&XMAS();/* 공원 */PARK.forEach(p=>D.push({z:p.x+p.y,f:()=>{const q=P(p.x,p.y);if(q.x<-60||q.x>W+60||q.y<-60||q.y>860)return;cx.fillStyle='rgba(0,0,0,.12)';cx.beginPath();cx.ellipse(q.x,q.y,T*.45*p.s,T*.18*p.s,0,0,7);cx.fill();em(xm2&&p.e==='🌳'?'🎄':xm2&&p.e==='🌷'?'⛄':p.e,q.x,q.y-T*.5*p.s,T*1.05*p.s)}}));
  /* 가로등 (사거리 모퉁이) */for(let j=0;j<NB;j++)for(let i=0;i<NB;i++){const x=i*(BX+RB_)+BX-.35,y=j*(BY+RB_)+BY-.35;D.push({z:x+y,f:()=>{const q=P(x,y);cx.strokeStyle='#4a4a52';cx.lineWidth=Math.max(2,T*.07);cx.beginPath();cx.moveTo(q.x,q.y);cx.lineTo(q.x,q.y-T*1.4);cx.stroke();cx.fillStyle=o.night?'#ffe680':'#fff6c0';cx.beginPath();cx.arc(q.x,q.y-T*1.45,T*.14,0,7);cx.fill();cx.strokeStyle=OL;cx.lineWidth=1;cx.stroke()}})}
  /* 걷는 손님 */const AN=o.an||['🐱','🐰','🐻','🐶'],dt=o.dt||0;for(const wk of walkers){wk.p+=wk.v*dt;const mx=wk.hz?TX:TY;if(wk.p<-3)wk.p=mx+2;if(wk.p>mx+3)wk.p=-2;if(!wk.an)wk.an=AN[Math.floor(Math.random()*AN.length)];
   const gx=wk.hz?wk.p:wk.line,gy=wk.hz?wk.line:wk.p;D.push({z:gx+gy+.3,f:()=>{const q=P(gx,gy),sz=T*.6;if(q.x<-40||q.x>W+40||q.y<-40||q.y>860)return;cx.fillStyle='rgba(0,0,0,.14)';cx.beginPath();cx.ellipse(q.x,q.y,sz*.3,sz*.12,0,0,7);cx.fill();
    const left=wk.hz?wk.v<0:wk.v>0;cx.save();if(left){cx.translate(q.x*2,0);cx.scale(-1,1)}animal(wk.an,q.x,q.y-sz*.9,sz,{walk:t*10+wk.ph,t,ph:wk.ph});cx.restore()}})}
  D.sort((a,b)=>a.z-b.z).forEach(q=>q.f());lab.forEach(f=>f());
+ if(xm2&&window.SNOW)SNOW(cx,t,0,800,70);
  return{hits}}
 /* 꾸미기 미리보기: 내 건물 하나를 크게 */
 function preview(t,d,top,bottom){const g=cx.createLinearGradient(0,top,0,bottom);g.addColorStop(0,'#9fd8ff');g.addColorStop(1,'#fff1d6');cx.fillStyle=g;cx.fillRect(0,top,W,bottom-top);

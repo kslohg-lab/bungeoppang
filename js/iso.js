@@ -31,6 +31,14 @@ const FUR=[
  {k:'leather',n:'가죽 소파',e:'🛋️',p:120000,g:4,rot:1,seat:1,c:'sit'},{k:'cloud',n:'구름 소파',e:'☁️',p:400000,g:5,rot:1,seat:1,c:'sit'},
  {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
+ /* 🎄 크리스마스 세트 (12월 한정 판매 xm:1 · 산 건 계속 써요) — 그림 오기 전엔 이모지 스티커 */
+ {k:'x_candle',n:'촛대 원탁',e:'🕯️',p:120000,g:2,emo:1,b:'#8a2a2a',z:.55,glow:1,set:'xmas',xm:1,noimg:1,c:'sit'},
+ {k:'x_giftmt',n:'선물 산',e:'🎁',p:400000,g:3,emo:1,b:'#c8283c',z:.75,set:'xmas',xm:1,noimg:1,c:'deco'},
+ {k:'x_rudolph',n:'루돌프 장식',e:'🦌',p:1500000,g:4,emo:1,b:'#a85a34',z:.78,set:'xmas',xm:1,noimg:1,c:'deco'},
+ {k:'x_cookie',n:'쿠키 하우스 테이블',e:'🍪',p:3000000,g:4,emo:1,b:'#c88a50',z:.6,set:'xmas',xm:1,noimg:1,c:'sit'},
+ {k:'x_snowlit',n:'눈꽃 조명',e:'❄️',p:6000000,g:5,emo:1,b:'#6a9ccc',z:.85,glow:1,set:'xmas',xm:1,noimg:1,c:'lit'},
+ {k:'x_sleigh',n:'산타 썰매',e:'🛷',p:10000000,g:5,emo:1,b:'#c8283c',z:.62,set:'xmas',xm:1,noimg:1,c:'sp'},
+ {k:'x_tree',n:'황금 대형 트리',e:'🎄',p:20000000,g:6,emo:1,b:'#d4a020',z:1.15,tree:1,glow:1,set:'xmas',xm:1,noimg:1,c:'plant'},
  /* ---- 테마 세트 (다 놓으면 꾸미기 점수 보너스) ---- */
  {k:'ctable',n:'카페 원탁',e:'☕',p:3500,g:1,as:'table',c1:'#f4efe6',c2:'#5a4a40',cup:1,set:'cafe',c:'sit'},
  {k:'cchair',n:'카페 의자',e:'🪑',p:1800,g:1,rot:1,seat:1,as:'chair',c1:'#7fae6a',c2:'#5a8a4a',set:'cafe',c:'sit'},
@@ -52,7 +60,7 @@ const FUR=[
  {k:'bbag',n:'봉투 진열대',e:'🛍️',p:3500,g:1,emo:1,b:'#d8b890',z:.46,set:'bungeo',c:'deco'},
  {k:'bflag',n:'붕어 깃발',e:'🎏',p:4500,g:1,as:'fflag',set:'bungeo',c:'deco'},
  {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'}];
-const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'}];
+const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'}];
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 🖼️ 벽 장식: 뒤쪽 두 벽에 거는 물건. 바닥 가구와 같은 save.fur에 담고 자리만 벽(왼쪽 벽 {x:-1,y:칸} · 오른쪽 벽 {x:칸,y:-1}).
@@ -61,7 +69,8 @@ const WFUR=[
  {k:'w_frame',n:'붕어 액자',e:'🖼️',p:1500,g:0,c:'wall'},{k:'w_clock',n:'벽시계',e:'🕰️',p:2500,g:0,c:'wall'},{k:'w_hplant',n:'걸이 화분',e:'🪴',p:3000,g:0,h:.62,c:'wall'},
  {k:'w_scroll',n:'붕어빵 족자',e:'📜',p:4000,g:1,s:1.05,c:'wall'},{k:'w_mirror',n:'둥근 거울',e:'🪞',p:6000,g:1,c:'wall'},{k:'w_shelf',n:'벽 선반',e:'🫙',p:9000,g:2,h:.5,s:1.08,c:'wall'},
  {k:'w_cert',n:'장인 상장',e:'🎖️',p:12000,g:2,c:'wall'},{k:'w_neon',n:'붕어 네온사인',e:'🐟',p:20000,g:3,glow:1,s:1.05,c:'wall'},{k:'w_plaque',n:'황금 붕어 방패',e:'🛡️',p:45000,g:3,c:'wall'},
- {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.08,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.08,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.08,c:'wall'}];
+ {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.08,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.08,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.08,c:'wall'},
+ {k:'w_wreath',n:'크리스마스 리스',e:'🎄',p:30000,g:0,glow:1,xm:1,c:'wall'}];
 /* 그림이 준비된 벽 장식만 여기에 (없는 파일을 매번 찾지 않게) */
 const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
 const WK={};WFUR.forEach(f=>WK[f.k]=f);const CK=k=>FK[k]||WK[k];
@@ -169,7 +178,7 @@ const FIMG={chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
 /* 11/8 파란 배경 그림자 다시 지운 그림 → 새로 받게 */const FV=new Set(['stool','wchair','ptable','rattan','barstool','beanbag','bartable','marble','leather','cloud','gtable']);
-function fuImg(k,back){if(!FK[k]||!(FK[k].emo||FIMG[k]))return null;const q=FV.has(k)?'?v=2':'';if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp'+q);if(b)return b}return ld('img/fu/'+k+'.webp'+q)}
+function fuImg(k,back){if(!FK[k]||FK[k].noimg||!(FK[k].emo||FIMG[k]))return null;const q=FV.has(k)?'?v=2':'';if(back&&FIMG[k]&&FIMG[k].b){const b=ld('img/fu/'+k+'_b.webp'+q);if(b)return b}return ld('img/fu/'+k+'.webp'+q)}
 function drawImgF(it,t){const fi=FIMG[it.k];if(!fi)return false;const d=it.d|0,back=d>=2&&!!fi.b,im=fuImg(it.k,back);if(!im)return false;
  const C=cells(it),c=iso(C.reduce((a,q)=>a+q.x,0)/C.length+.5,C.reduce((a,q)=>a+q.y,0)/C.length+.5),ww=TW*fi.w*(C.length>1?1.12:.86),hh=ww*im.naturalHeight/im.naturalWidth,flip=flipOf(it.k,d);
  shadow(c.x,c.y+2,Math.min(ww*.45,TW*.42));cx.save();cx.translate(c.x,c.y+TH*(C.length>1?.55:.3));if(flip)cx.scale(-1,1);if(fi.r){/* 윗면 방향을 칸 격자(26.6°)에 맞추려고 윗면 가운데 기준으로 살짝 돌림 */cx.translate(0,-hh*.66);cx.rotate(fi.r*Math.PI/180);cx.drawImage(im,-ww/2,-hh*.34,ww,hh)}else cx.drawImage(im,-ww/2,-hh,ww,hh);cx.restore();return true}
@@ -351,7 +360,7 @@ function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorSto
  else{em('☀️',385,120,46);cx.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<4;i++){const x=m2(t*5+i*130,560)-60;cx.beginPath();cx.ellipse(x,100+i*16,30,9,0,0,7);cx.fill()}}
  if(look.lit===5){for(let b=0;b<3;b++){const g2=cx.createLinearGradient(0,60,0,OY);const c=['120,255,200','180,120,255','120,200,255'][b];g2.addColorStop(0,'rgba('+c+',0)');g2.addColorStop(.5,'rgba('+c+','+(.18+.08*Math.sin(t+b))+')');g2.addColorStop(1,'rgba('+c+',0)');cx.fillStyle=g2;const x=60+b*130+Math.sin(t*.7+b)*30;cx.beginPath();cx.moveTo(x,60);cx.lineTo(x+70,60);cx.lineTo(x+120,OY);cx.lineTo(x+20,OY);cx.closePath();cx.fill()}}
  if(look.top===6){const cl=['255,90,120','255,200,60','120,220,255','160,255,140'];for(let b=0;b<4;b++){const ph=m2(t*.6+b*.27,1),bx=60+b*110,by=110+(b%2)*30,cc=cl[b];if(ph<.8){const u=ph/.8,rad=12+u*40;cx.fillStyle='rgba('+cc+','+(1-u)+')';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;cx.beginPath();cx.arc(bx+Math.cos(a)*rad,by+Math.sin(a)*rad+u*u*12,2.4,0,7);cx.fill()}}}}}
-function drawGround(look,t){const ground=look.night?'#6f9a62':'#a8d890',Rc=iso(N,0),Bc=iso(N,N),Lc=iso(0,N);
+function drawGround(look,t){const ground=look.xmas?(look.night?'#c8d4e2':'#eef3f8'):look.night?'#6f9a62':'#a8d890',Rc=iso(N,0),Bc=iso(N,N),Lc=iso(0,N);
  cx.fillStyle=ground;cx.beginPath();cx.moveTo(0,OY+(Lc.y-OY)*.2);cx.lineTo(W,OY+(Rc.y-OY)*.2);cx.lineTo(W,800);cx.lineTo(0,800);cx.closePath();cx.fill();
 if(!FL){ /* 인도 (문 = 3시 쪽) */
  poly([iso(N,0),iso(N+3,0),iso(N+3,1),iso(N,1)],'#d8cbb6','#bba98e');for(let k=0;k<3;k++)poly([iso(N+k,0),iso(N+k+1,0),iso(N+k+1,1),iso(N+k,1)],null,'rgba(120,100,80,.25)',1)}
@@ -516,9 +525,10 @@ function draw(t,look,items,o={}){FL=look.f2v?1:0;ST=look.st?1:0;layout(look.n,o.
  L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)})}
  if(!o.noCust)for(const c of FL?cust2:cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
+ if(look.xmas&&window.SNOW)SNOW(cx,t,40,Math.min(800,OY+N*TH+40),Math.round(30+N*3));
  if(!FL)for(const f of fx){cx.globalAlpha=Math.max(0,f.l);em(f.e,f.x,f.y-(1-f.l)*30,22);cx.globalAlpha=1}
  if(o.ghost&&o.ghost.ok!==undefined){const g=o.ghost;cx.globalAlpha=.5+.2*Math.sin(t*6);for(const q of(g.k?cellsOf(g.k,g.x,g.y,g.d):[{x:g.x,y:g.y}]))poly([iso(q.x,q.y),iso(q.x+1,q.y),iso(q.x+1,q.y+1),iso(q.x,q.y+1)],g.ok?'rgba(120,220,120,.5)':'rgba(255,90,90,.5)');cx.globalAlpha=1}}
 function tick(dt,items,rate){if(FL){step2(dt,items);return}step(dt,items,rate);petStep(dt,items)}
-return{wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,fixDoor,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
+return{wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,fixDoor,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||FK[k].noimg||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
  zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,setFloor(f,st,up){FL=f?1:0;ST=st?1:0;UP2=up||0},toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
