@@ -4,7 +4,7 @@
    가게는 비스듬히 보이는 두 방향으로만 향해요: 'F' = 아래쪽 길(앞면이 왼쪽 아래), 'R' = 오른쪽 길(앞면이 오른쪽 아래) → 모든 간판·문이 보여요.
    건물: 바닥 크기 = 가게 크기(4×4 노점은 수레), 7×7부터 2층, 9×9부터 3층. 외관 스킨 SK 7종 */
 const STREET=(cx,A)=>{
-const {em,tx,rr,lite,dark,animal}=A;const W=450,OL='#5a3a22';
+const {em,tx,rr,lite,dark,animal,m2}=A;const W=450,OL='#5a3a22';
 const SK=[
  {w:'#fff1d6',l:'rgba(150,110,70,.16)',r:'#b98a5e',roof:'flat'},
  {w:'#c8583a',l:'rgba(90,30,15,.32)',r:'#5a3a32',roof:'flat',pat:'brick'},
@@ -155,6 +155,8 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
   const ctr=P(l.cx,l.cy);if(ctr.x<-260||ctr.x>W+260||ctr.y<-200||ctr.y>1000)return;
   const xr=mb&&!it.me&&l.cx+l.cy>mz&&pl.bb.x0<mb.x1&&pl.bb.x1>mb.x0&&pl.bb.y0<mb.y1&&pl.bb.y1>mb.y0;
   D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=bldg(Q,l.o,it.d,t);cx.globalAlpha=1;const pts=[Q(-.3,-.4),Q(r.Wd+.3,-.4),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h),Q(0,0,r.h),Q(r.Wd,0,r.h)];hits.push({i,xr,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y))-10,y1:Math.max(...pts.map(p=>p.y))+22});
+   {const k=T/40,top={x:(Math.min(...pts.map(p=>p.x))+Math.max(...pts.map(p=>p.x)))/2,y:Math.min(...pts.map(p=>p.y))+4*k};if(it.mk&&!it.me){const yb=top.y-14*k-Math.abs(Math.sin(t*2.4+i))*4*k;rr(top.x-15*k,yb-15*k,30*k,30*k,15*k,'rgba(255,255,255,.95)');em(it.mk,top.x,yb,20*k)}
+    if(o.gold===i){const yb=top.y-(it.mk?52:26)*k-Math.sin(t*2)*5*k;cx.save();cx.shadowColor='#ffd23a';cx.shadowBlur=18;A.fish2(top.x,yb,.02*T,'#ffcf3a',{glow:'rgba(255,220,80,.9)'});cx.restore();if(m2(t*.7,1)<.5){cx.globalAlpha=.8;em('✨',top.x+16*k,yb-14*k,12*k);cx.globalAlpha=1}hits.push({i,gold:1,x0:top.x-30*k,x1:top.x+30*k,y0:yb-26*k,y1:yb+20*k})}}
    /* 이름표: 가게 이름 한 줄만 작게. 앞 건물에 걸리는 뒤 가게 이름표는 숨겨요(건물을 누르면 이름이 나와요). 내 가게 이름표는 항상 보여요 */
    lab.push(()=>{const q=l.o==='F'?P(l.cx,l.fx+.55):P(l.fx+.55,l.cy);const nm=(it.me?'⭐ ':'')+(it.d.n||'붕어빵'),k=Math.max(.75,Math.min(1.1,T/40)),f1=12*k,bh=22*k;
     cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+14*k,bx=q.x-bw/2;
@@ -175,6 +177,6 @@ function preview(t,d,top,bottom){const g=cx.createLinearGradient(0,top,0,bottom)
  OX=225-((S.w/2)+(S.d/2))*T/2;OY=bottom-70-(S.w/2)*T/4;
  const G=(y0,y1,c)=>poly([P(-3,y0),P(S.w+3,y0),P(S.w+3,y1),P(-3,y1)],c);G(-S.d-2,0,'#cfe6b4');G(0,1.1,'#e4d8c2');G(1.1,4,'#8f8a85');
  bldg(mk('F',0,0),'F',d,t);T=sv.T;OX=sv.OX;OY=sv.OY}
-function hit(hits,x,y){let best=null,see=null;for(const q of hits)if(x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1){best=q;if(!q.xr)see=q}return see||best}
+function hit(hits,x,y){for(const q of hits)if(q.gold&&x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1)return q;let best=null,see=null;for(const q of hits)if(x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1){best=q;if(!q.xr)see=q}return see||best}
 return{SK,size,LOTS,scene,preview,center,drag,zoom,hit,get T(){return T}}};
 if(typeof module!=='undefined')module.exports=STREET;

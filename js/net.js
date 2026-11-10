@@ -26,7 +26,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});
      if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc}
      else{const x=o.data(),t0=x.ts&&x.ts.toMillis?x.ts.toMillis():Date.now(),el=Math.max(0,(Date.now()-t0)/1000-120);
-      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0)}
+      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;N.myLk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0)}
      /* 11/8 5.6.7: 주마다 칸 이름을 바꾸던 gw<주> → gw 한 칸 + w(주 번호) (규칙의 string()이 거절을 일으켜서) */body.gw=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */
      const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc';
@@ -50,7 +50,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     /* 내 가게 방명록: 최근 20개 · 새 것 개수(since 이후, 최대 9) */
     async notes(){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20))).catch(full);return q.docs.map(x=>{const v=x.data();return{u:x.id,s:v.s|0,n:v.n||'',nk:v.nk||'',t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
     /* 새 것 세기: 최근 20개를 받아 폰에서 비교 (서버 시간 비교는 1ms보다 잘게 저장돼 어긋날 수 있어서) */
-    async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20)));return q.docs.filter(x=>{const t=x.data().t;return t&&t.toMillis&&Math.floor(t.toMillis())>since}).length},
+    async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20)));N.noteFrom=q.docs.map(x=>{const t=x.data().t;return{u:x.id,t:t&&t.toMillis?Math.floor(t.toMillis()):0}});return q.docs.filter(x=>{const t=x.data().t;return t&&t.toMillis&&Math.floor(t.toMillis())>since}).length},
     /* 🚩 신고 (가게 구경): r 0 이름 · 1 점수 · 2 기타. 한 사람이 한 대상에 한 번 */
     async report(u,r){const me=await login();N.uid=me;if(me===u)return false;await setDoc(doc(db,'reports',me+'_'+u),{u,r:r|0,k:'s',t:serverTimestamp()});return true},
     bust(){cache.clear()}};
