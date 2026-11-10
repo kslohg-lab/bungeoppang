@@ -41,10 +41,17 @@ const beanCost=save=>{const b=cafe(save).bean|0;return b>=BEAN.length?null:BEAN[
 function buyMachine(save){const c=cafe(save);if(c.on||save.coins<MACHINE)return false;save.coins-=MACHINE;c.on=1;c.dr=['ame','latte'];return true}
 function buyDrink(save,k){const c=cafe(save),d=DK[k];if(!c.on||!d||c.dr.includes(k)||save.coins<d.un)return false;save.coins-=d.un;c.dr.push(k);return true}
 function buyBean(save){const c=cafe(save),cost=beanCost(save);if(!c.on||cost==null||save.coins<cost)return false;save.coins-=cost;c.bean=(c.bean|0)+1;return true}
-/* 알바 최대 50레벨 (11/9: 20 → 50, 끝판 지출처). 21레벨부터 값 ×1.1씩, 월급 +1,000씩 */
-const SMAX=50,SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000],WAGE=[0,100,250,500,900,1600,2800,4800,8000,10000,11500,13000,14500,16000,17500,19000,20500,22000,23500,25000,26500];
-while(SCOST.length<SMAX){const c=SCOST[SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;SCOST.push(Math.round(c/m)*m)}
-while(WAGE.length<=SMAX)WAGE.push(WAGE[WAGE.length-1]+1000);
+/* 알바 최대 50레벨. 11/10 VOC '알바가 너무 비싸다' → 값·월급 다시 정함:
+   한 레벨 올렸을 때 늘어나는 이득으로 본전이 중반 2~3일·후반 5~7일(자리 비움 수입 기준)이 되게, 월급 인상은 이득의 20% 정도.
+   대신 가게 크기가 알바 최대 레벨을 정해요(STCAP) → 넓히기가 알바 성장의 열쇠. */
+const SMAX=50,SCOST=[2000,6000,15000,36000,51000,73000,100000,140000,170000,210000,250000,280000,300000,330000,370000,410000,450000,460000,470000,480000,490000,500000,510000,520000,530000,550000,570000,590000,610000,630000,650000,670000,690000,710000,730000,750000,780000,800000,820000,840000,860000,880000,900000,920000,940000,960000,980000,1000000,1020000,1040000],
+ WAGE=[0,100,300,500,800,1200,1600,2100,2700,3400,4200,5100,6000,7000,8200,9500,10900,12500,14100,15700,17300,18900,20500,22100,23700,25300,26900,28500,30100,31700,33300,34900,36500,38100,39700,41300,42900,44500,46100,47700,49300,50900,52500,54100,55700,57300,58900,60500,62100,63700,65300];
+/* 가게 크기 → 알바 최대 레벨 · 매력 상한 */
+const STCAP={5:8,6:12,7:16,8:22,9:30,10:40,11:50},CHCAP={5:.15,6:.18,7:.21,8:.25,9:.30,10:.35,11:.40};
+const rmOf=save=>Math.min(11,Math.max(5,save.room|0)),capOf=save=>STCAP[rmOf(save)],charmCap=save=>CHCAP[rmOf(save)];
+/* 예전(5.7.2까지) 알바 값 → 차액 돌려주기(ec2) */
+const OLD_SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000,1500000,2000000,2600000,3300000,4200000,5200000,6500000,8000000,10000000,12500000];
+while(OLD_SCOST.length<SMAX){const c=OLD_SCOST[OLD_SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;OLD_SCOST.push(Math.round(c/m)*m)}
 /* 가게 크기 = 꾸미기의 넓히기와 같은 칸 수. 사면 그 크기 월세가 0원 (11/8부터 5×5 노점 ~ 11×11 본점) */
 const PLACE={5:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},6:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},7:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},8:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},9:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6},10:{n:'대형 매장',e:'🏬',rent:8000,buy:1600000,mul:1.7},11:{n:'붕어빵 본점',e:'🏰',rent:12000,buy:4000000,mul:1.8}};
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
@@ -56,6 +63,8 @@ const useSt=save=>{const o={};STAFF.forEach(x=>o[x.k]=useOf(save,x.k));return o}
 const hireCost=(save,k)=>{const l=lvOf(save,k);return l>=SMAX?null:SCOST[l]};
 const canHire=(save,k)=>k!=='barista'||cafeOn(save);
 const wageOf=l=>WAGE[l|0]||0;
+/* 11/10 값 내림: 예전 값으로 이미 올린 만큼의 차액을 한 번 계산해 save.rfd {l 남은 돈, t 전체}에 담아요 (코인은 shop.js가 나눠서 줘요) */
+function ec2(save){if(save.ec2)return 0;save.ec2=1;const s=st(save);let r=0;STAFF.forEach(x=>{const l=Math.min(SMAX,s[x.k]|0);for(let i=0;i<l;i++)r+=Math.max(0,OLD_SCOST[i]-SCOST[i])});r=Math.round(r);if(r>0)save.rfd={l:r,t:r};return r}
 const place=save=>PLACE[save.room]||PLACE[5];
 const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
@@ -131,7 +140,7 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  let c=save.coins+whole;if(c<0){save.debt=(save.debt||0)-c;c=0}else if(save.debt>0){const p=Math.min(c,save.debt);save.debt-=p;c-=p;g.paid=p}save.coins=c;
  save.custAcc=(save.custAcc||0)+g.cust;const wc=Math.floor(save.custAcc);save.custAcc-=wc;save.bizCust=(save.bizCust||0)+wc;
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
-function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
+function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;

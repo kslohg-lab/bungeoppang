@@ -49,7 +49,8 @@ function keepS(it){if(it&&it.s&&!it.pend){save.stS=save.stS||{};(save.stS[it.k]=
 const fmtS=n=>n>=1e4?(Math.round(n/1e3)/10).toLocaleString('ko-KR')+'만':fmt(n);
 const KIND_PT=150,kindsN=()=>{const k=new Set();(save.fur||[]).forEach(it=>{if(IS.CK(it.k))k.add(it.k)});return k.size};
 const charm=()=>SLOTS.reduce((a,s)=>a+charmOf(eqIt(s.k)),0)+(save.fur||[]).reduce((a,it)=>{const f=IS.CK(it.k);return a+(f?charmOf(f):0)},0)+kindsN();
-const charmBonus=()=>Math.min(.25,charm()*.0023);
+const charmBonus=()=>Math.min(BIZ.charmCap(save),charm()*.0023); /* 11/10 매력 상한은 가게 크기에 따라 15%~40% */
+/* 11/10 알바 값 내림 → 예전 값으로 산 차액 계산(한 번만) */try{BIZ.ec2(save)}catch(e){}
 /* 🏅 메달 스킨 효과 (쓰고 있는 스킨만): a = 손님 +%, h = 도와주기 수익 +% · 가게에만, 챌린지엔 없음 */
 const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h|0)/100}};
 const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.h+'%':'');
@@ -309,7 +310,7 @@ function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm
 function evAuto(n){if(evShown||!save.name||n>40)return;setTimeout(()=>{if(evShown)return;if(attCan()){evAuto(n+1);return}const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
  if(scr!=='home'||busy){evAuto(n+1);return}evShown=true;evCard()},n?1500:1200)}
 /* ---------- 하루 ---------- */
-const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:charmBonus()/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
+const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shopLv(),up:Object.assign({},save.up,{deco:Math.min(.25,charmBonus())/.06}),fu:save.fu.slice(),nf:Math.min(save.nfUse,save.nf),coins:save.coins,lg:null,mode:'shop'});
 function startDay(){au();if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=run0();s=B.newDay(run);{const w=todayWx();s.wea=w.wea;s.ev=w.ev}ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
 /* 결과 맨 위: 받은 코인을 크게 + 세금·보너스 칩 */
 function resTop(gain,net,tax,hm){return'<div class="rbig">'+(net>=0?'🪙 +'+fmt(gain):'📉 0')+'<small>'+(net<0?'재료비가 더 들었지만 손해는 없던 걸로!':'벌이 '+fmt(net)+(tax?' · 🏛️ 세금 −'+fmt(tax):''))+'</small></div><div class="chips"><span class="chip'+(hm<1?' red':' ok')+'">'+(hm<1?'🎁 오늘 보너스 끝 · '+Math.round(hm*100)+'%만 받아요 (내일 100%)':'🎁 보너스 '+Math.max(0,HB1-hbNow().n)+'/'+HB1+'판 남음')+'</span></div>'}
@@ -384,24 +385,24 @@ function renderUp(top){[0,1,2,3].forEach(i=>$('ut'+i).className=i===utab?'on':''
   const rk=r.neck==='arrive'?['promo']:r.neck==='both'?['bake','serve']:[r.neck];if(r.dNeck)rk.push('barista');
   h+='<div class="gr2">';
   BIZ.STAFF.forEach(x=>{const lv=BIZ.lvOf(save,x.k),c=BIZ.hireCost(save,x.k),nm={bake:'굽기',serve:'계산',promo:'홍보',barista:'바리스타'}[x.k];
-   const lvN=(l,u)=>'<div class="lvn">Lv <b>'+l+'</b><small>/'+BIZ.SMAX+'</small></div>';
+   const cap=BIZ.capOf(save),lvN=(l,u)=>'<div class="lvn">Lv <b>'+l+'</b><small>/'+Math.max(l,cap)+'</small></div>',full=c!=null&&lv>=cap,nr=IS.ROOM.find(q=>BIZ.STCAP[q.n]>lv);
    if(!BIZ.canHire(save,x.k)){h+=card({e:x.an,n:nm,lk:1,top:lvN(0),st:'☕ 카페를 열면',btn:'☕ 카페로',can:1,fn:()=>{utab=3;renderUp(true)}});return}
    const u=BIZ.useOf(save,x.k),low=u<lv,v={bake:['🍞',4+2.5*u,4+2.5*(lv+1),''],serve:['🧾',4+2.5*u,4+2.5*(lv+1),''],promo:['🐾',15*u,15*(lv+1),'%'],barista:['☕',2+3*u,2+3*(lv+1),'']}[x.k];
    const setU=d=>act(()=>{const n=BIZ.setUse(save,x.k,BIZ.useOf(save,x.k)+d);store();snd('tap');renderUp();bizBtn();if(d<0&&n===BIZ.useOf(save,x.k)&&n===0)toast(x.an+' '+nm+' 알바가 쉬어요 · 월급 0')}),
     ex=lv>0?'<div class="wk'+(low?' low':'')+'"><button data-act="'+setU(-1)+'"'+(u<=0?' disabled':'')+'>−</button><span>'+(low?'💤 ':'')+'일 Lv'+u+'<small>💵 '+fmt(BIZ.wageOf(u))+'/시간</small></span><button data-act="'+setU(1)+'"'+(u>=lv?' disabled':'')+'>+</button></div>':'';
    const capped=x.k==='promo'&&r.neck!=='arrive';
-   h+=card({e:x.an,n:nm,top:lvN(lv),ex,st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':fmt(c)+'🪙',can:c!=null&&save.coins>=c,done:c==null,hot:rk.includes(x.k)&&c!=null,warn:capped?'⚠️':'',
-    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>'+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(u))+'원/시간'+(c==null?'':' → 올리면 '+fmt(BIZ.wageOf(lv+1)))+'<br><br>➖➕ <b>일 Lv</b>을 낮추면 그만큼만 일하고 월급도 줄어요. 올리면 다시 고용한 레벨까지 일해요(돈 안 들어요)'+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
-    fn:()=>{if(c==null)return;buyFx(BIZ.hire(save,x.k),x.an+' '+nm+' Lv'+(lv+1)+'!')}})});
+   h+=card({e:x.an,n:nm,top:lvN(lv),ex,st:c==null?v[0]+' '+n1(v[1])+v[3]+' 최고!':v[0]+' '+(x.k==='promo'?'+':'')+n1(v[1])+v[3]+' → <b>'+(x.k==='promo'?'+':'')+n1(v[2])+v[3]+'</b>',btn:c==null?'✅ 최고':full?'🏠 넓히면 Lv'+(nr?BIZ.STCAP[nr.n]:BIZ.SMAX):fmt(c)+'🪙',can:full||c!=null&&save.coins>=c,done:c==null,hot:rk.includes(x.k)&&c!=null&&!full,warn:capped?'⚠️':'',
+    info:[x.an,x.e+' '+x.n+' · Lv '+lv+'/'+BIZ.SMAX,x.d+'<br>🏠 지금 가게('+save.room+'×'+save.room+')에서는 <b>Lv'+cap+'</b>까지 · 넓히면 더 키울 수 있어요<br>'+({bake:'시간당 구울 수 있는 손님 수',serve:'시간당 계산할 수 있는 손님 수',promo:'오는 손님이 늘어요',barista:'시간당 만들 수 있는 음료 수'}[x.k])+'<br>💵 월급 '+fmt(BIZ.wageOf(u))+'원/시간'+(c==null?'':' → 올리면 '+fmt(BIZ.wageOf(lv+1)))+'<br><br>➖➕ <b>일 Lv</b>을 낮추면 그만큼만 일하고 월급도 줄어요. 올리면 다시 고용한 레벨까지 일해요(돈 안 들어요)'+(capped?'<br><br>⚠️ 지금은 굽기·계산이 막혀서 <b>홍보해도 손님이 안 늘어요</b>. 💰 값을 올려 보세요!':'')+'<br><br>💡 빨간 칸(👆)부터 키우면 손해가 없어요'],
+    fn:()=>{if(c==null)return;if(full){toast('🏠 '+(nr?nr.n+'×'+nr.n+'로 넓히면 Lv'+BIZ.STCAP[nr.n]+'까지 키울 수 있어요':'가게를 넓히면 더 키울 수 있어요'));snd('no');utab=1;renderUp(true);return}buyFx(BIZ.hire(save,x.k),x.an+' '+nm+' Lv'+(lv+1)+'!')}})});
   h+='</div>'}
  else if(utab===1){const p=BIZ.place(save),own=BIZ.owned(save),n=save.room;
-  h+='<div class="srow"><span>🏠 크기<b>'+n+'×'+n+'</b></span><span>💸 월세<b>'+fmt(BIZ.rentOf(save))+'</b></span><span>🐾 손님<b>+'+Math.round((p.mul-1)*100)+'%</b></span></div>';
+  h+='<div class="srow"><span>🏠 크기<b>'+n+'×'+n+'</b></span><span>💸 월세<b>'+fmt(BIZ.rentOf(save))+'</b></span><span>🐾 손님<b>+'+Math.round((p.mul-1)*100)+'%</b></span><span>👥 알바<b>Lv'+BIZ.capOf(save)+'</b></span><span>✨ 매력<b>'+Math.round(BIZ.charmCap(save)*100)+'%</b></span></div>';
   h+='<div class="cur"><div class="av">'+p.e+'</div><div class="tx"><b>'+p.n+'</b><div>'+(!p.rent?'월세 없음 ✅':own?'내 가게 ✅ 월세 0':'월세 '+fmt(p.rent)+'/시간 · '+Math.round(p.buy/p.rent)+'시간이면 본전')+'</div></div>'+(p.rent&&!own?'<button class="ub'+(save.coins>=p.buy?'':' no')+'" data-act="'+act(()=>{buyFx(BIZ.buyPlace(save),'🎉 '+p.n+'이 내 가게가 됐어요! 월세 0원')})+'">🏠 '+fmt(p.buy)+'</button>':'')+'</div>';
   const nx=IS.ROOM.find(q=>q.n===n+1);
-  if(nx){const q=BIZ.PLACE[nx.n],lk=nx.g>grade();h+='<div class="dn2">▼</div><div class="nx"><div class="av">'+q.e+'</div><div class="tx"><b>'+q.n+' '+nx.n+'×'+nx.n+'</b><div class="chips" style="justify-content:flex-start;margin:3px 0 0"><span class="chip">🐾 +'+Math.round((q.mul-1)*100)+'%</span><span class="chip">💸 '+fmt(q.rent)+'</span><span class="chip">🪑 칸 +'+(nx.n*nx.n-n*n)+'</span></div></div><button class="ub'+(lk?' no':save.coins>=nx.p?'':' no')+'" data-act="'+act(()=>{if(lk){toast(GR[nx.g].e+' '+GR[nx.g].n+' 등급이 되면 넓힐 수 있어요');snd('no');return}openDeco('up',true)})+'">'+(lk?'🔒 '+GR[nx.g].e:'📐 '+fmt(nx.p))+'</button></div>'}
+  if(nx){const q=BIZ.PLACE[nx.n],lk=nx.g>grade();h+='<div class="dn2">▼</div><div class="nx"><div class="av">'+q.e+'</div><div class="tx"><b>'+q.n+' '+nx.n+'×'+nx.n+'</b><div class="chips" style="justify-content:flex-start;margin:3px 0 0"><span class="chip">🐾 +'+Math.round((q.mul-1)*100)+'%</span><span class="chip">💸 '+fmt(q.rent)+'</span><span class="chip">🪑 칸 +'+(nx.n*nx.n-n*n)+'</span><span class="chip">👥 알바 Lv'+BIZ.STCAP[nx.n]+'</span><span class="chip">✨ 매력 '+Math.round(BIZ.CHCAP[nx.n]*100)+'%</span></div></div><button class="ub'+(lk?' no':save.coins>=nx.p?'':' no')+'" data-act="'+act(()=>{if(lk){toast(GR[nx.g].e+' '+GR[nx.g].n+' 등급이 되면 넓힐 수 있어요');snd('no');return}openDeco('up',true)})+'">'+(lk?'🔒 '+GR[nx.g].e:'📐 '+fmt(nx.p))+'</button></div>'}
   else h+='<div class="tip">🎉 가장 넓은 가게예요!</div>';
   h+='<button class="more" data-act="'+act(()=>{upAll=!upAll;renderUp()})+'">📐 모든 크기 '+(upAll?'접기 ▴':'보기 ▾')+'</button>';
-  if(upAll){h+='<div class="gr3">';[5,6,7,8,9,10,11].forEach(k=>{const q=BIZ.PLACE[k];h+='<div class="uc'+(k===n?' hot':'')+'" style="padding-bottom:6px"><div class="av">'+q.e+'</div><div class="nm">'+k+'×'+k+'</div><div class="st">🐾 +'+Math.round((q.mul-1)*100)+'%<br>💸 '+fmt(q.rent)+(save.bought.includes(k)?' ✅':'')+'</div></div>'});h+='</div>'}}
+  if(upAll){h+='<div class="gr3">';[5,6,7,8,9,10,11].forEach(k=>{const q=BIZ.PLACE[k];h+='<div class="uc'+(k===n?' hot':'')+'" style="padding-bottom:6px"><div class="av">'+q.e+'</div><div class="nm">'+k+'×'+k+'</div><div class="st">🐾 +'+Math.round((q.mul-1)*100)+'%<br>👥 Lv'+BIZ.STCAP[k]+' · ✨ '+Math.round(BIZ.CHCAP[k]*100)+'%<br>💸 '+fmt(q.rent)+(save.bought.includes(k)?' ✅':'')+'</div></div>'});h+='</div>'}}
  else if(utab===3){const cf=BIZ.cafe(save);
   if(!cf.on){h+='<div class="hero"><div class="av">☕</div><h3>카페 열기</h3><div class="chips"><span class="chip">🐾 손님 +10%</span><span class="chip">🥤 음료도 팔아요</span><span class="chip">🙋 직접 만들기</span></div><button class="ub'+(save.coins>=BIZ.MACHINE?'':' no')+'" data-act="'+act(()=>{if(!BIZ.buyMachine(save)){toast('코인이 부족해요!');snd('no');return}store();snd('win');renderUp(true);bizBtn();bzShow('☕','카페를 열었어요!','• 🧊 아이스 아메리카노 · ☕ 카페라떼를 팔아요<br>• <b>🙋 도와주기 → ☕ 음료 만들기</b>로 직접 만들 수 있어요<br>• 👥 직원에서 🐼 바리스타를 뽑아요','좋아요!')})+'">'+fmt(BIZ.MACHINE)+'🪙</button></div><div class="gr3">';
    BIZ.DRINKS.forEach(d=>{h+='<div class="uc'+(d.un?' lk':'')+'"><div class="av">'+d.e+'</div><div class="nm">'+d.s+'</div><div class="st">'+fmt(d.p)+'원</div></div>'});h+='</div>'}
@@ -491,7 +492,7 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
   IS.ROOM.forEach(r=>{const own=save.room>=r.n,lk=!own&&r.g>grade()?'🔒 '+GR[r.g].n:null;card('📐',r.n+'×'+r.n,own?(save.room===r.n?'지금 크기':'✅'):lk?lk.replace('🔒 ',''):'🪙'+fmt(r.p),(prev&&prev.k==='room'&&prev.id===r.n?'on':save.room===r.n?'eq':'')+(lk?' lk':''),()=>{prev=own?null:{k:'room',id:r.n};renderDeco()})});
   const nx=IS.ROOM.find(r=>r.n===save.room+1);
   if(prev&&prev.k==='room'){const r=IS.ROOM.find(q=>q.n===prev.id),lk=r.g>grade(),seq=r.n===save.room+1;
-   dbtn('da1',lk?'🔒 '+GR[r.g].n+' 등급':!seq?'먼저 '+(save.room+1)+'×'+(save.room+1):'📐 넓히기 🪙'+fmt(r.p),lk||!seq?'dis':'go',()=>{if(lk||!seq)return;if(save.coins<r.p){toast('코인이 부족해요!');snd('no');return}save.coins-=r.p;save.room=r.n;prev=null;IS.reset();store();snd('fanfare');if(window.JUICE)JUICE.confetti(120);toast('가게가 '+r.n+'×'+r.n+'로 넓어졌어요! 🎉');renderDeco();bizBtn()});{const q=BIZ.PLACE[r.n];msg=q.e+' '+q.n+' · 보증금 🪙'+fmt(r.p)+' · 월세 '+fmt(q.rent)+'/시간 (사면 0원) · 손님 +'+Math.round((q.mul-1)*100)+'%'}}
+   dbtn('da1',lk?'🔒 '+GR[r.g].n+' 등급':!seq?'먼저 '+(save.room+1)+'×'+(save.room+1):'📐 넓히기 🪙'+fmt(r.p),lk||!seq?'dis':'go',()=>{if(lk||!seq)return;if(save.coins<r.p){toast('코인이 부족해요!');snd('no');return}save.coins-=r.p;save.room=r.n;prev=null;IS.reset();store();snd('fanfare');if(window.JUICE)JUICE.confetti(120);toast('가게가 '+r.n+'×'+r.n+'로 넓어졌어요! 🎉 알바 Lv'+BIZ.STCAP[r.n]+'·매력 '+Math.round(BIZ.CHCAP[r.n]*100)+'%까지');renderDeco();bizBtn()});{const q=BIZ.PLACE[r.n];msg=q.e+' '+q.n+' · 보증금 🪙'+fmt(r.p)+' · 월세 '+fmt(q.rent)+'/시간 (사면 0원) · 손님 +'+Math.round((q.mul-1)*100)+'% · 👥 알바 Lv'+BIZ.STCAP[r.n]+'까지 · ✨ 매력 '+Math.round(BIZ.CHCAP[r.n]*100)+'%까지'}}
   else{dbtn('da1',nx?'다음: '+nx.n+'×'+nx.n:'최대 크기예요!','dis');msg=nx?'카드를 눌러 넓어진 모습을 미리 봐요':'가장 넓은 가게예요 🎉'}
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
@@ -736,7 +737,10 @@ addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(documen
 document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(0){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
-setInterval(()=>{if(document.hidden)return;bizTick(false);if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
+/* 💸 11/10 알바 값 내림 차액: 게임을 켜 둔 동안 5분마다 최대 200만씩 (클라우드 백업 규칙 '한 번에 +300만' 안쪽) */
+let rfdT=Date.now()-270e3;
+function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(2e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분마다)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
+setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
 window.__shop={get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🛋️ 2칸 가구로 바뀐 뒤 처음: 겹치는 소파·벤치는 돌려 보고, 안 되면 보관함으로 */
