@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8"><script src="js/move.js?v=3"></script>
+<html lang="ko"><head><meta charset="utf-8"><script src="js/move.js?v=3"></script><script>/* 📱 11/11 앱·홈 화면 앱으로 열면 가게부터 (도전장·공유 링크, 가게에서 🔥 챌린지로 온 건 그대로) */
+(function(){try{var q=location.search,app=(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform())||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||/[?&]app=1/.test(q);if(!app)return;if(/[?&](c|s|w|r|stay|tut)=/.test(q)||location.hash)return;if(/shop\.html/.test(document.referrer))return;if(sessionStorage.getItem('bpToShop'))return;sessionStorage.setItem('bpToShop','1');location.replace('shop.html')}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>🔥 붕어빵 챌린지</title>
 <meta name="description" content="컷트라인을 못 넘으면 탈락! 친구들과 이번 주 순위를 겨뤄 보세요 🐟">
@@ -107,7 +108,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #e0c4a0}
 <script src="js/share.js?v=2"></script>
 <script src="js/news.js?v=98"></script>
 <script src="js/install.js?v=6"></script>
-<script src="js/challenge.js?v=111"></script>
+<script src="js/challenge.js?v=112"></script>
 <script src="js/hide.js?v=1"></script>
 <script type="module" src="js/lb.js?v=11"></script>
 <script type="module" src="js/xfer.js?v=3"></script>
