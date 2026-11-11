@@ -192,7 +192,7 @@ service cloud.firestore {
       allow read, delete: if mine(uid) && gl();
       allow create: if mine(uid) && gl() && okSave(request.resource.data);
       allow update: if mine(uid) && gl() && okSave(request.resource.data)
-        && request.resource.data.c <= resource.data.c + (request.time.toMillis() - resource.data.t.toMillis()) / 1000 * 200 + 3000000
+        && request.resource.data.c <= resource.data.c + (request.time.toMillis() - resource.data.t.toMillis()) / 1000 * 200 + 100000000
         && request.resource.data.m <= resource.data.m + (request.time.toMillis() - resource.data.t.toMillis()) / 604800000 * 60 + 60;
     }
 

@@ -365,7 +365,7 @@ function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse()
  h+=grpTxt(grp)+adBtn(gain)+chLink();h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
  $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;adBind();scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 const cafeXY=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]};
-cv.addEventListener('pointerdown',e=>{if(scr!=='cafe'||paused)return;e.preventDefault();au();const [x,y]=cafeXY(e);CF.down(x,y)});
+const cafeDown=e=>{if(scr!=='cafe'||paused)return;e.preventDefault();au();if(typeof dupTap==='function'&&dupTap(e))return;const [x,y]=cafeXY(e);CF.down(x,y)};cv.addEventListener('pointerdown',cafeDown);setTimeout(()=>touchAlso(cv,cafeDown),0);
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev,()=>{if(scr==='cafe')CF.up()}));
 $('r1').onclick=()=>{if(lastHelp==='cafe')startCafe();else startDay()};$('r4').onclick=()=>{toHome()};
 $('r2').onclick=()=>openDeco('res');$('r3').onclick=()=>openUp('res');
@@ -637,7 +637,12 @@ $('home2').onclick=pauseGame;$('p1').onclick=resumeGame;
 function tap(x,y){const h=A.tapPlay(x,y);if(h&&h.k==='c')count();drain()}
 function count(){for(const c of s.cust){if(c&&c.happy&&!c.cnt){c.cnt=1;if(c.an==='🧐')continue;if(save.dex[c.an]===undefined){save.dex[c.an]=0;(s.dxNew=s.dxNew||[]).push(c.an);ui.ft.push({t:'도감 등록! '+c.an,x:225,y:150,c:'#fff',l:1.6})}save.dex[c.an]++}}}
 function drain(){A.drainFx()}
-cv.addEventListener('pointerdown',e=>{e.preventDefault();au();if(scr!=='game'||paused||!s||s.ph!=='play')return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)});
+/* 📱 11/11 아이폰 VOC '아래쪽 틀이 잘 안 눌려요': 아이폰은 터치 신호(touchstart)도 같이 받아서, 한쪽이 씹혀도 들어가게 (같은 자리 120ms 안 두 번은 한 번으로) */
+const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform||'')&&navigator.maxTouchPoints>1);let tgT=0,tgX=0,tgY=0;
+const dupTap=e=>{const n=performance.now(),d=Math.hypot(e.clientX-tgX,e.clientY-tgY);if(n-tgT<120&&d<30)return true;tgT=n;tgX=e.clientX;tgY=e.clientY;return false};
+const touchAlso=(el,fn)=>{if(!IOS)return;el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)fn({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',preventDefault(){}})},{passive:true})};
+const gameDown=e=>{e.preventDefault();au();if(scr!=='game'||paused||!s||s.ph!=='play')return;if(dupTap(e))return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)};
+cv.addEventListener('pointerdown',gameDown);touchAlso(cv,gameDown);
 /* ---------- 하루 그리기 (공용 화면 + 내 가게 꾸밈 색) ---------- */
 const FLC=['#c9935f','#d2a46a','#c89a64','#7fbf6a','#a8a498','#b8384a','#8ac8e8','#f4c6d4','#c98d55','#a9d6f5','#d6a66e','#c8a6e8','#e8c069'];
 /* 장사 화면: 챌린지처럼 가게 앞 거리 + 걸어오는 손님, 차양·마스코트는 내 가게 꾸밈 */
@@ -782,15 +787,15 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
 let EXT=0,fitScr='';
 function boxBg(){if(!EXT){$('box').style.background='';return}try{const d=cx.getImageData(2,cv.height-3,1,1).data;$('box').style.background='rgb('+d[0]+','+d[1]+','+d[2]+')'}catch(e){}}
 function hmLay(){const p=document.querySelector('#hm .pn');if(!p||scr!=='home'||!p.offsetParent)return;const t=p.offsetTop,y=Math.min(470+EXT,t-56);for(const id of ['nst','nms']){const e=$(id);if(e)e.style.top=y+'px'}const z=$('zf');if(z)z.style.top=(y-46)+'px'}
-function fit(){const b=document.body,w=b.clientWidth,h=b.clientHeight,ex=scr==='home'?Math.min(170,h*W/w-H):0;EXT=ex>6?Math.round(ex):0;const BH=H+EXT,sc=Math.min(w/W,h/BH),bx=$('box');
+function fit(){const b=document.body,w=b.clientWidth,h=window.visualViewport?Math.min(b.clientHeight,Math.round(visualViewport.height)):b.clientHeight,ex=scr==='home'?Math.min(170,h*W/w-H):0;EXT=ex>6?Math.round(ex):0;const BH=H+EXT,sc=Math.min(w/W,h/BH),bx=$('box');
  bx.style.height=BH+'px';bx.style.transform='translate('+(w-W*sc)/2+'px,'+(h-BH*sc)/2+'px) scale('+sc+')';fitScr=scr;boxBg();hmLay()}
-addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(document.body)}catch(e){}addEventListener('orientationchange',()=>setTimeout(fit,200));
+addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(document.body)}catch(e){}try{visualViewport.addEventListener('resize',()=>fit())}catch(e){}addEventListener('orientationchange',()=>setTimeout(fit,200));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(0){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 /* 1초마다 직원 장사 정산 */
 /* 💸 11/10 알바 값 내림 차액: 게임을 켜 둔 동안 5분마다 최대 150만씩 (클라우드 백업 규칙 '한 번에 +300만' 안쪽) */
-let rfdT=Date.now()-270e3;
-function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(15e5,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분마다)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
+let rfdT=Date.now()-300e3; /* 11/11 남은 차액은 한 번에 (클라우드 규칙 +1억 허용 · 1억 넘게 남으면 5분 뒤 나머지) */
+function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(95e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분 뒤)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();lkTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
 window.__shop={visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};

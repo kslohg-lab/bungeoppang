@@ -154,7 +154,7 @@ function steam(x,y,k,p){for(let j=0;j<3;j++){const ph=(s.t*.8+j/3+k*.17)%1;cx.fi
 const MW=205,MH=66,mpos=i=>({x:15+(i%2)*215,y:400+(i>>1)*72});
 const QC={p:'#f0b850',o:'#ecae4a',g:'#e8aa46'};
 function hit(x,y){if(y>=64&&y<330)return{k:'c',i:Math.max(0,Math.min(2,Math.floor(x/150)))};
- if(y>=400&&y<686){const rw=Math.floor((y-400)/72),i=rw*2+(x<225?0:1);if(rw<4&&y-400-rw*72<MH+4)return{k:'m',i};return null}
+ if(y>=396&&y<698){const rw=Math.max(0,Math.min(3,Math.floor((y-396)/72))),i=rw*2+(x<225?0:1);return{k:'m',i}} /* 11/11 줄 사이·맨 아래 빈틈도 가까운 틀로 */
  if(y>=698){const n=run.nf;return{k:'f',i:Math.max(0,Math.min(n-1,Math.floor(x/(450/n))))}}return null}
 function at(f){return f.a==='m'?{x:mpos(f.i).x+64,y:mpos(f.i).y+4}:{x:f.i*150+75,y:(STM?286:156)-(f.dy||0)}}
 function mold(i){const X=mpos(i).x,Y=mpos(i).y;
