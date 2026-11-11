@@ -32,13 +32,13 @@ const FUR=[
  {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
  /* 🎄 크리스마스 세트 (12월 한정 판매 xm:1 · 산 건 계속 써요) — 그림 오기 전엔 이모지 스티커 */
- {k:'x_candle',n:'촛대 원탁',e:'🕯️',p:120000,g:2,emo:1,b:'#8a2a2a',z:.55,glow:1,set:'xmas',xm:1,noimg:1,c:'sit'},
- {k:'x_giftmt',n:'선물 산',e:'🎁',p:400000,g:3,emo:1,b:'#c8283c',z:.75,set:'xmas',xm:1,noimg:1,c:'deco'},
- {k:'x_rudolph',n:'루돌프 장식',e:'🦌',p:1500000,g:4,emo:1,b:'#a85a34',z:.78,set:'xmas',xm:1,noimg:1,c:'deco'},
- {k:'x_cookie',n:'쿠키 하우스 테이블',e:'🍪',p:3000000,g:4,emo:1,b:'#c88a50',z:.6,set:'xmas',xm:1,noimg:1,c:'sit'},
- {k:'x_snowlit',n:'눈꽃 조명',e:'❄️',p:6000000,g:5,emo:1,b:'#6a9ccc',z:.85,glow:1,set:'xmas',xm:1,noimg:1,c:'lit'},
- {k:'x_sleigh',n:'산타 썰매',e:'🛷',p:10000000,g:5,emo:1,b:'#c8283c',z:.62,set:'xmas',xm:1,noimg:1,c:'sp'},
- {k:'x_tree',n:'황금 대형 트리',e:'🎄',p:20000000,g:6,emo:1,b:'#d4a020',z:1.15,tree:1,glow:1,set:'xmas',xm:1,noimg:1,c:'plant'},
+ {k:'x_candle',n:'촛대 원탁',e:'🕯️',p:120000,g:2,emo:1,b:'#8a2a2a',z:.68,glow:1,set:'xmas',xm:1,c:'sit'},
+ {k:'x_giftmt',n:'선물 산',e:'🎁',p:400000,g:3,emo:1,b:'#c8283c',z:.75,set:'xmas',xm:1,c:'deco'},
+ {k:'x_rudolph',n:'루돌프 장식',e:'🦌',p:1500000,g:4,emo:1,b:'#a85a34',z:.78,set:'xmas',xm:1,c:'deco'},
+ {k:'x_cookie',n:'쿠키 하우스 테이블',e:'🍪',p:3000000,g:4,emo:1,b:'#c88a50',z:.6,set:'xmas',xm:1,c:'sit'},
+ {k:'x_snowlit',n:'눈꽃 조명',e:'❄️',p:6000000,g:5,emo:1,b:'#6a9ccc',z:.85,glow:1,set:'xmas',xm:1,c:'lit'},
+ {k:'x_sleigh',n:'산타 썰매',e:'🛷',p:10000000,g:5,emo:1,b:'#c8283c',z:.8,set:'xmas',xm:1,c:'sp'},
+ {k:'x_tree',n:'황금 대형 트리',e:'🎄',p:20000000,g:6,emo:1,b:'#d4a020',z:1.15,tree:1,glow:1,set:'xmas',xm:1,c:'plant'},
  /* ---- 테마 세트 (다 놓으면 꾸미기 점수 보너스) ---- */
  {k:'ctable',n:'카페 원탁',e:'☕',p:3500,g:1,as:'table',c1:'#f4efe6',c2:'#5a4a40',cup:1,set:'cafe',c:'sit'},
  {k:'cchair',n:'카페 의자',e:'🪑',p:1800,g:1,rot:1,seat:1,as:'chair',c1:'#7fae6a',c2:'#5a8a4a',set:'cafe',c:'sit'},
@@ -72,7 +72,7 @@ const WFUR=[
  {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.08,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.08,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.08,c:'wall'},
  {k:'w_wreath',n:'크리스마스 리스',e:'🎄',p:30000,g:0,glow:1,xm:1,c:'wall'}];
 /* 그림이 준비된 벽 장식만 여기에 (없는 파일을 매번 찾지 않게) */
-const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
+const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief','w_wreath']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
 const WK={};WFUR.forEach(f=>WK[f.k]=f);const CK=k=>FK[k]||WK[k];
 /* 벽 칸: 왼쪽 벽은 간판(0~2칸) 다음부터, 오른쪽 벽은 차양·메뉴판(1~3칸) 다음부터 끝까지. 창문 칸에 걸면 창문은 안 그려요 */
 const wallSlots=(n=N)=>{const L=[];for(let i=3;i<n;i++){L.push({x:-1,y:i});L.push({x:i,y:-1})}return L};
