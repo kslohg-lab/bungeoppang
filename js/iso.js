@@ -32,6 +32,10 @@ const FUR=[
  {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
  /* 🎄 크리스마스 세트 (12월 한정 판매 xm:1 · 산 건 계속 써요) — 그림 오기 전엔 이모지 스티커 */
+ /* 💎 11/11 프리미엄 가구 (2층을 올린 가게만 사기, f2:1) */
+ {k:'p_chand',n:'크리스탈 샹들리에',e:'💎',p:12000000,g:6,emo:1,b:'#d4a020',z:.7,tall:.5,glow:1,f2:1,c:'prem'},{k:'p_swan',n:'백조 벨벳 의자',e:'🦢',p:18000000,g:6,rot:1,seat:1,f2:1,c:'prem'},
+ {k:'p_fount',n:'황금 붕어 분수',e:'⛲',p:30000000,g:6,emo:1,b:'#d8e0e8',z:.85,f2:1,c:'prem'},{k:'p_aqua',n:'산호초 수족관',e:'🐠',p:45000000,g:6,emo:1,b:'#3a6a9a',z:.6,tall:.4,glass:1,f2:1,c:'prem'},
+ {k:'p_scope',n:'천체 망원경',e:'🔭',p:60000000,g:6,emo:1,b:'#6a4a2a',z:.8,f2:1,c:'prem'},{k:'p_diamond',n:'다이아 붕어 조각',e:'💎',p:100000000,g:6,emo:1,b:'#c8283c',z:.72,glow:1,f2:1,c:'prem'},
  {k:'x_candle',n:'촛대 원탁',e:'🕯️',p:120000,g:2,emo:1,b:'#8a2a2a',z:.68,glow:1,set:'xmas',xm:1,c:'sit'},
  {k:'x_giftmt',n:'선물 산',e:'🎁',p:400000,g:3,emo:1,b:'#c8283c',z:.75,set:'xmas',xm:1,c:'deco'},
  {k:'x_rudolph',n:'루돌프 장식',e:'🦌',p:1500000,g:4,emo:1,b:'#a85a34',z:.78,set:'xmas',xm:1,c:'deco'},
@@ -179,7 +183,7 @@ const STK={};
 /* AI 그림 가구 (img/fu): 소품(emo) + 아래 목록. w = 칸 너비 대비 그림 너비, fr = 그림이 오른쪽 아래를 봄, b = 뒷모습 그림(_b) 있음.
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
-const FIMG={chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
+const FIMG={p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
  stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:1.15,r:7},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
@@ -461,6 +465,10 @@ function staffBack2(t,look){const S=look.staff||{};
   const hop=m2(t*.8,1);if(hop<.5){const u=hop/.5;A.bread(q.x-q.s*.42,q.y+q.s*.55-Math.sin(u*Math.PI)*q.s*.55,TW*.0024,'#f0b850',{rot:u*Math.PI*2,plain:true})}}}
 /* 앞쪽 직원: 🐰 계산 알바는 카운터 왼쪽 바닥(계산대), 🦊 홍보 알바는 입구 앞 길가 */
 function staffFront(t,look,L){const S=look.staff||{};
+ /* 🏢 2호 알바 (2층이 생기면, 그림 있을 때만): 🐹 굽기 2호는 카운터 오른쪽 옆(벽 쪽, 줄 서는 길 밖) · 🐧 계산 2호는 🐰 옆에서 포장 */
+ if(S.bake2>0&&stImg('bake2')){const gx=3.38,gy=.36;L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),s=TW*.37,hop=m2(t*.7+.5,1),y=p.y-s*.88;shadow(p.x,p.y,s*.3);animal('st_bake2',p.x,y,s,{t,ph:11,mood:'h'});
+  if(hop<.4){const u=hop/.4;A.bread(p.x+s*.36,y+s*.45-Math.sin(u*Math.PI)*s*.5,TW*.0022,'#f0b850',{rot:-u*Math.PI*2,plain:true})}}})}
+ if(S.serve2>0&&stImg('serve2')){const gx=.5,gy=1.32;L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),s=TW*.36,y=p.y-s*.88;shadow(p.x,p.y,s*.3);animal('st_serve2',p.x,y,s,{t,ph:13,mood:'h',tilt:Math.sin(t*2.2)*.04})}})}
  if(S.serve>0){const gx=.5,gy=.42;L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),s=TW*.38,y=p.y-s*.88;shadow(p.x,p.y,s*.3);
   const q=iso(gx+.32,gy+.18);rr(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5,'#a8744a');cx.strokeStyle=OL;cx.lineWidth=Math.max(1.4,TW*.02);cx.beginPath();cx.roundRect(q.x-s*.26,q.y-s*.62,s*.52,s*.62,5);cx.stroke();
   animal(stKey('serve','🐰'),p.x,y,s,{t,ph:7,mood:'h'});if(!stImg('serve'))apron(p.x,y,s,SCOL.serve);

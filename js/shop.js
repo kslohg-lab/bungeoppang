@@ -17,7 +17,7 @@ const SKY=[{n:'맑은 낮',e:'☀️',p:0,g:0},{n:'노을',e:'🌇',p:3000,g:0},
 const TOP=[{n:'없음',e:'➖',p:0,g:0},{n:'잉어 깃발 줄',e:'🎏',p:2000,g:0},{n:'풍선 아치',e:'🎈',p:6500,g:1},{n:'대형 붕어 조형물',e:'🐟',p:24000,g:2},{n:'LED 전광판',e:'🪧',p:60000,g:3},{n:'황금 왕관 장식',e:'👑',p:200000,g:4},{n:'불꽃놀이',e:'🎆',p:450000,g:5}];
 const MSH=[{n:'붕어 틀',e:'🐟',p:0,g:0},{n:'동그라미 틀',e:'⚪',p:800,g:0},{n:'네모 틀',e:'🟧',p:1500,g:0},{n:'세모 틀',e:'🔺',p:2600,g:1},{n:'하트 틀',e:'💗',p:6000,g:1},{n:'별 틀',e:'⭐',p:14000,g:2},{n:'곰돌이 틀',e:'🐻',p:38000,g:3},{n:'구름 틀',e:'☁️',p:90000,g:4},{n:'왕관 틀',e:'👑',p:240000,g:5}];
 /* 🏠 외관 스킨: 붕어빵 거리에서 보이는 가게 겉모습 (그림은 street.js) */
-const MS2=1796050800000; /* 2026-12-01 00:00 한국 시간 */
+const MS2=1796050800000,MS3=1798729200000; /* 2026-12-01 · 2027-01-01 00:00 한국 시간 */
 const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000,g:1,img:'img/sk/c1.webp'},{n:'통나무 오두막',e:'🪵',p:150000,g:2,img:'img/sk/c2.webp'},{n:'한옥',e:'🏯',p:350000,g:3,img:'img/sk/c3.webp'},{n:'카페 테라스',e:'☕',p:700000,g:4,img:'img/sk/c4.webp'},{n:'과자집',e:'🍭',p:1300000,g:5,img:'img/sk/c5.webp'},{n:'성',e:'🏰',p:2500000,g:6,img:'img/sk/c6.webp'},
  /* 🏅 메달 스킨: 메달로만 사요 (그림 img/sk, 싼 것 → 비싼 것) */
  {n:'분홍 비늘 집',e:'🏅',p:0,g:0,m:30,img:'img/sk/m1.webp',a:2,h:0},{n:'숲속 트리하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m2.webp',a:0,h:3},{n:'붕어 기차',e:'🏅',p:0,g:0,m:30,img:'img/sk/m3.webp',a:0,h:3},{n:'눈 오는 오두막',e:'🏅',p:0,g:0,m:30,img:'img/sk/m4.webp',a:2,h:0},{n:'진저브레드 하우스',e:'🏅',p:0,g:0,m:30,img:'img/sk/m5.webp',a:0,h:3},{n:'붕어 목조 주막',e:'🏅',p:0,g:0,m:50,img:'img/sk/m6.webp',a:0,h:4},{n:'벚꽃 한옥',e:'🏅',p:0,g:0,m:50,img:'img/sk/m7.webp',a:3,h:0},{n:'붕어 버섯 집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m8.webp',a:0,h:4},{n:'우주 돔 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m9.webp',a:3,h:0},{n:'붕어 지붕 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m10.webp',a:0,h:6},{n:'하얀 붕어 집',e:'🏅',p:0,g:0,m:80,img:'img/sk/m11.webp',a:4,h:0},{n:'눈 덮인 붕어 오두막',e:'🏅',p:0,g:0,m:80,img:'img/sk/m12.webp',a:4,h:0},{n:'붕어 등대',e:'🏅',p:0,g:0,m:80,img:'img/sk/m13.webp',a:0,h:6},{n:'붕어 잠수함',e:'🏅',p:0,g:0,m:120,img:'img/sk/m14.webp',a:0,h:8},{n:'벚꽃 붕어 가게',e:'🏅',p:0,g:0,m:120,img:'img/sk/m15.webp',a:5,h:0},{n:'왕관 붕어 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m16.webp',a:0,h:8},{n:'분홍 고양이 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m17.webp',a:5,h:0},{n:'황금 붕어 궁전',e:'🏅',p:0,g:0,m:150,img:'img/sk/m18.webp',a:6,h:5},{n:'고양이 얼굴 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m19.webp',a:6,h:5},{n:'꼬리 붕어빵 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m20.webp',a:6,h:5},
@@ -25,7 +25,12 @@ const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000
  {n:'분홍 지붕 작은 집',e:'🏅',p:0,g:0,m:30,img:'img/sk/m21.webp',a:2,h:0,from:MS2},{n:'빨간 기와 가게',e:'🏅',p:0,g:0,m:30,img:'img/sk/m22.webp',a:0,h:3,from:MS2},
  {n:'아이싱 쿠키 집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m23.webp',a:3,h:0,from:MS2},{n:'비늘 지붕 통나무집',e:'🏅',p:0,g:0,m:50,img:'img/sk/m24.webp',a:0,h:4,from:MS2},
  {n:'아치 지붕 카라반',e:'🏅',p:0,g:0,m:80,img:'img/sk/m25.webp',a:4,h:0,from:MS2},{n:'분홍 마차 가게',e:'🏅',p:0,g:0,m:80,img:'img/sk/m26.webp',a:0,h:6,from:MS2},
- {n:'이층 붕어 간판 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m27.webp',a:0,h:8,from:MS2},{n:'눈 내린 크리스마스 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m28.webp',a:6,h:5,from:MS2}];
+ {n:'이층 붕어 간판 집',e:'🏅',p:0,g:0,m:120,img:'img/sk/m27.webp',a:0,h:8,from:MS2},{n:'눈 내린 크리스마스 집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m28.webp',a:6,h:5,from:MS2},
+ /* 🏅 3차 (1월) */
+ {n:'귤 가게',e:'🏅',p:0,g:0,m:30,img:'img/sk/m31.webp',a:2,h:0,from:MS3},{n:'북극곰 가게',e:'🏅',p:0,g:0,m:30,img:'img/sk/m32.webp',a:0,h:3,from:MS3},
+ {n:'코코아 머그 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m34.webp',a:3,h:0,from:MS3},{n:'이글루 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m30.webp',a:0,h:4,from:MS3},
+ {n:'복주머니 가게',e:'🏅',p:0,g:0,m:80,img:'img/sk/m36.webp',a:4,h:0,from:MS3},{n:'군고구마 가게',e:'🏅',p:0,g:0,m:80,img:'img/sk/m35.webp',a:0,h:6,from:MS3},
+ {n:'얼음 성',e:'🏅',p:0,g:0,m:120,img:'img/sk/m33.webp',a:0,h:8,from:MS3},{n:'설날 한옥 떡집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m29.webp',a:6,h:5,from:MS3}];
 const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
@@ -47,7 +52,9 @@ const stCost=it=>{const f=IS.CK(it.k);return f&&(it.s|0)<3?f.p*STC[it.s|0]:0};
 let F2V=false;
 /* 🧱 11/11 2층 벽지·바닥은 따로 (save.eq2 {wall,floor}, 없으면 1층 것). 산 무늬(save.own)는 두 층 같이 써요 */
 const F2K=k=>F2V&&(k==='wall'||k==='floor'),eqG=k=>F2K(k)&&save.eq2&&save.eq2[k]!=null?save.eq2[k]:save.eq[k],eqS=(k,id)=>{if(F2K(k)){save.eq2=save.eq2||{};save.eq2[k]=id}else save.eq[k]=id};const allFur=()=>(save.fur||[]).concat(save.fur2||[]),FUR=()=>F2V?save.fur2:save.fur,RMN=()=>F2V?BIZ.f2Of(save):save.room,setFUR=a=>{if(F2V)save.fur2=a;else save.fur=a};
-const stScore=()=>{let v=0;allFur().forEach(it=>{const f=IS.CK(it.k);if(f&&it.s&&!it.pend)v+=f.p*STS[Math.min(3,it.s|0)]});return Math.floor(v/200)};
+/* 💎 1,000만 넘는 가구는 점수가 1/10씩만 (순위 점수 폭주 막기) */
+const ptV=p=>p<=1e7?p:1e7+(p-1e7)/10;
+const stScore=()=>{let v=0;allFur().forEach(it=>{const f=IS.CK(it.k);if(f&&it.s&&!it.pend)v+=ptV(f.p)*STS[Math.min(3,it.s|0)]});return Math.floor(v/200)};
 function grabS(k){const L=save.stS&&save.stS[k];if(!L||!L.length)return 0;L.sort((a,b)=>a-b);const v=L.pop();if(!L.length)delete save.stS[k];return v|0}
 function keepS(it){if(it&&it.s&&!it.pend){save.stS=save.stS||{};(save.stS[it.k]=save.stS[it.k]||[]).push(it.s|0)}}
 const fmtS=n=>n>=1e4?(Math.round(n/1e3)/10).toLocaleString('ko-KR')+'만':fmt(n);
@@ -62,12 +69,12 @@ const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.
 const nm=()=>save.name||'붕어빵';
 /* 사장님 그림: 0=기본(코드 그림), 1=곰, 2=얼룩곰 */
 const COOKS=[{n:'기본 요리사'},{n:'곰 사장님',f:'img/cook1.webp?v=2'},{n:'얼룩곰 사장님',f:'img/cook2.webp?v=2'},{n:'고양이 사장님',f:'img/cook3.webp?v=2'},{n:'너구리 사장님',f:'img/cook4.webp?v=2'}];
-/* 직원 전용 그림 */if(typeof ART_LOAD==='function')ART_LOAD({st_bake:'img/st_bake.webp?v=2',st_serve:'img/st_serve.webp?v=2',st_promo:'img/st_promo.webp?v=2',st_barista:'img/st_barista.webp?v=2'});
+/* 직원 전용 그림 */if(typeof ART_LOAD==='function')ART_LOAD({st_bake:'img/st_bake.webp?v=2',st_serve:'img/st_serve.webp?v=2',st_promo:'img/st_promo.webp?v=2',st_barista:'img/st_barista.webp?v=2',st_bake2:'img/st_bake2.webp',st_serve2:'img/st_serve2.webp'});
 function applyCook(){const c=COOKS[save.cook|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}
 applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
 function decoScore(){let sc=0;SLOTS.forEach(sl=>{const it=sl.L[save.eq[sl.k]]||sl.L[0];const v=it.p>0?it.p:(it.st?it.st*1500:0);sc+=Math.floor(v/100)});
- const kinds=new Set();allFur().forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(f.p/100);kinds.add(it.k)}});sc+=kinds.size*KIND_PT+((save.room-1)*(save.room-1)-16)*15+BIZ.f2Of(save)*BIZ.f2Of(save)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
+ const kinds=new Set();allFur().forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(ptV(f.p)/100);kinds.add(it.k)}});sc+=kinds.size*KIND_PT+((save.room-1)*(save.room-1)-16)*15+BIZ.f2Of(save)*BIZ.f2Of(save)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
  /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc+stScore()}
 function setDone(k,kinds){kinds=kinds||new Set(allFur().map(it=>it.k));return IS.FUR.filter(f=>f.set===k).every(f=>kinds.has(f.k))}
 const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
@@ -470,7 +477,7 @@ let dback='home',dsel=null,dpick=null,dghost=null;
 const DPH=324; /* 꾸미기 아래 판 높이 */
 const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'skin',n:'🏠 외관',sl:['skin']},{k:'room',n:'📐 넓히기'}];
 let dsub=0,fcat=1;
-const FCAT=[{k:'own',n:'📦 내 가구'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'wall',n:'🖼️ 벽 장식'}];
+const FCAT=[{k:'own',n:'📦 내 가구'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'prem',n:'💎 프리미엄'},{k:'wall',n:'🖼️ 벽 장식'}];
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
 const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
@@ -484,7 +491,7 @@ const dtabK=()=>{const g=DT()[dtab]||DT()[0];return g.sl?g.sl[Math.min(dsub,g.sl
 let dFit0=null;
 function openMedal(from){dMed=true;openDeco(from||'home');dtab=0;dsub=0;const L=SKIN.map((it,i)=>i).filter(i=>SKIN[i].m);prev={k:'skin',id:L.find(i=>!save.own.skin.includes(i))??L[0]};renderDeco()}
 function openDeco(from,room){if(!dMed)dMed=false;if(dFit0==null){dFit0=IS.fit;IS.fit=true;IS.resetPan();zfK=''}save.dHint=(save.dHint|0)+1;dback=from;dtab=room?DG.length-1:0;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
-function lockOf(it){if(it.xm&&!(window.XMAS&&XMAS()))return'🔒 12월 한정';if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3600e3);return'🔒 '+(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 공개'}if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
+function lockOf(it){if(it.xm&&!(window.XMAS&&XMAS()))return'🔒 12월 한정';if(it.f2&&!BIZ.f2Of(save))return'🔒 🏢 2층을 올리면';if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3600e3);return'🔒 '+(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 공개'}if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
 const f0=k=>IS.CK(k)||{n:'',p:0};const placed=k=>allFur().filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 const pendList=()=>{const L=allFur().filter(f=>f.pend);return{L,n:L.length,sum:L.reduce((a,f)=>a+((IS.CK(f.k)||{}).p||0),0)}};
 /* 🏢 2층 올리기·넓히기 (계단 자리 = 입구 옆 칸의 가구는 1·2층 모두 보관함으로) */
@@ -508,7 +515,7 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
  let msg='';
  if(tk==='fur'){
   const fc=FCAT[fcat].k,fcard=f=>{const sp=spare(f.k),lk=sp>0?null:lockOf(f),pl=placed(f.k),b=document.createElement('button');b.className='cd fu'+(dpick===f.k?' on':'')+(lk?' lk':'');
-   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(f.p/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
+   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(f.xm?'🎄 크리스마스 세트는 12월에만 살 수 있어요 (산 건 언제든 놓아요)':lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+IS.SET_BONUS:' · 다 놓으면 ✨+'+IS.SET_BONUS)+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else if(fc==='own'){const my=IS.FUR.concat(IS.WFUR).filter(f=>(save.inv[f.k]|0)>0||placed(f.k)>0).sort((a,b)=>(spare(b.k)>0)-(spare(a.k)>0)||b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>아직 가진 가구가 없어요</b><small>다른 칸에서 골라 놓으면 여기 모여요</small>';L.appendChild(h)}}
@@ -520,7 +527,7 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
    const Ls=save.stS&&save.stS[sellK];if(Ls&&Ls.length>Math.max(0,spare(sellK))){Ls.sort((a,b)=>a-b);while(Ls.length>Math.max(0,spare(sellK)))Ls.shift();if(!Ls.length)delete save.stS[sellK]}
    if(spare(sellK)<=0)dpick=null;store();snd('coins');toast('💰 '+F.n+' 팔았어요 +🪙'+fmt(v));renderDeco();bizBtn()},'그만두기',()=>{})})}
   else{const it=dsel,sv=it?it.s|0:0,tk=(save.tix|0)>0,c=it&&!tk?stCost(it):0;dbtn('da3',!it?'✨ 강화'+(tk?' 🎫'+save.tix:''):sv>=3?'✨ ★3 최고':'✨ ★'+(sv+1)+(tk?' 🎫 강화권':' 🪙'+fmtS(c)),it&&sv<3?'go':'dis',()=>{if(!it||sv>=3)return;if(it.pend){toast('🛒 먼저 사야 강화할 수 있어요 (✔ 완료)');snd('no');return}
-   if(save.coins<c){toast('코인이 부족해요! 🪙'+fmt(c));snd('no');return}const F=IS.CK(it.k),gain=Math.floor(F.p*(STS[sv+1]-STS[sv])/200);
+   if(save.coins<c){toast('코인이 부족해요! 🪙'+fmt(c));snd('no');return}const F=IS.CK(it.k),gain=Math.floor(ptV(F.p)*(STS[sv+1]-STS[sv])/200);
    JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화',(tk?'🎫 강화권 1장 (남은 '+save.tix+'장)':'🪙'+fmt(c))+' · 반짝이가 붙고 꾸미기 ✨+'+fmt(gain),'✨ 강화하기',()=>{if(save.coins<c||(it.s|0)!==sv)return;if(tk){if((save.tix|0)<=0)return;save.tix--}else save.coins-=c;it.s=sv+1;store();snd('win');JUICE.confetti(50);IS.bounce(it);toast('✨ '+F.n+' ★'+it.s+'! 꾸미기 +'+fmt(gain));renderDeco()},'그만두기',()=>{})})}
   dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(FUR(),dsel,RMN());if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
   dbtn('da2','📦 보관',dsel?'':'dis',()=>{if(dsel){keepS(dsel);setFUR(FUR().filter(it=>it!==dsel));dsel=null;store();snd('tap');renderDeco()}});
@@ -801,7 +808,7 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 let rfdT=Date.now()-300e3; /* 11/11 남은 차액은 한 번에 (클라우드 규칙 +1억 허용 · 1억 넘게 남으면 5분 뒤 나머지) */
 function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(95e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분 뒤)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();lkTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
-window.__shop={setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🚪 11/10 입구를 3시로 옮긴 뒤 처음: 문·길을 막는 가구는 보관함으로 (★은 그대로 보관) */
 if(!save.d4){save.d4=1;const n=stClr();store();if(n&&save.name)setTimeout(()=>bzShow('🪜','계단이 입구 옆으로 옮겨졌어요!','<p style="text-align:center;margin:0">이제 계단이 <b>입구 바로 옆</b>에 있어서<br>가구 때문에 2층 길이 막히지 않아요.<br><br>새 계단 자리에 있던 가구 <b>'+n+'개</b>는 📦 보관함에 넣어 뒀어요.</p>','🎨 꾸미러 가기',()=>openDeco('home')),2200)}
