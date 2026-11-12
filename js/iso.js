@@ -176,7 +176,11 @@ function box(gx,gy,m,h,col,o={}){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=is
  /* 윗면 앞 모서리 하이라이트 */cx.strokeStyle='rgba(255,255,255,.35)';cx.lineWidth=Math.max(1,lw*.6);cx.beginPath();cx.moveTo(L1.x+(B1.x-L1.x)*.08,L1.y+(B1.y-L1.y)*.08-1);cx.lineTo(B1.x,B1.y-1.2);cx.lineTo(R1.x+(B1.x-R1.x)*.08,R1.y+(B1.y-R1.y)*.08-1);cx.stroke();return{T:T1,R:R1,B:B1,L:L1,c:{x:(T1.x+B1.x)/2,y:(T1.y+B1.y)/2}}}
 function panel(gx,gy,d,m,z,h,col){const T=iso(gx+m,gy+m),Rr=iso(gx+1-m,gy+m),B=iso(gx+1-m,gy+1-m),L=iso(gx+m,gy+1-m);const E=[[T,Rr],[L,T],[Rr,B],[B,L]][d];
  const g=cx.createLinearGradient(0,up(E[0],z+h).y,0,up(E[0],z).y);g.addColorStop(0,lite(d>=2?dark(col,.08):col,.06));g.addColorStop(1,dark(col,d>=2?.24:.14));poly([up(E[0],z),up(E[1],z),up(E[1],z+h),up(E[0],z+h)],g,dark(col,.55),Math.max(1.6,TW*.026))}
-function shadow(x,y,w){cx.save();cx.translate(x,y);cx.scale(1,.45);const g=cx.createRadialGradient(0,0,w*.2,0,0,w*1.15);g.addColorStop(0,'rgba(40,24,14,.28)');g.addColorStop(1,'rgba(40,24,14,0)');cx.fillStyle=g;cx.beginPath();cx.arc(0,0,w*1.15,0,7);cx.fill();cx.restore()}
+/* ⚡ 11/12 그림자·★ 바닥 빛은 매번 그라데이션을 만들지 않고 미리 만든 그림을 늘려 붙임 (모양 같음) */
+const SPR=(f)=>{try{const c=document.createElement('canvas');c.width=c.height=128;f(c.getContext('2d'));return c}catch(e){return null}};
+const SHD=SPR(g=>{const r=g.createRadialGradient(64,64,64*.2/1.15,64,64,64);r.addColorStop(0,'rgba(40,24,14,.28)');r.addColorStop(1,'rgba(40,24,14,0)');g.fillStyle=r;g.fillRect(0,0,128,128)});
+const GLW=SPR(g=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,220,100,1)');r.addColorStop(.7,'rgba(255,200,60,.35)');r.addColorStop(1,'rgba(255,200,60,0)');g.fillStyle=r;g.fillRect(0,0,128,128)});
+function shadow(x,y,w){const r=w*1.15;if(SHD&&r>0){cx.drawImage(SHD,x-r,y-r*.45,r*2,r*.9);return}cx.save();cx.translate(x,y);cx.scale(1,.45);const g=cx.createRadialGradient(0,0,w*.2,0,0,w*1.15);g.addColorStop(0,'rgba(40,24,14,.28)');g.addColorStop(1,'rgba(40,24,14,0)');cx.fillStyle=g;cx.beginPath();cx.arc(0,0,w*1.15,0,7);cx.fill();cx.restore()}
 /* ---------- 가구 ---------- */
 /* 스티커 이모지: 캐릭터 그림처럼 흰 테두리 + 그림자 (크기별로 한 번만 만들어 둬요) */
 const STK={};
@@ -217,7 +221,8 @@ function starFx(x0,y0,hg,wd,s,t,seed,sel){cx.save();
    const x=x0+(h1-.5)*wd*.8,y=y0-hg*(.2+.75*h2),r=TW*(.03+.05*a);cx.globalAlpha=a*.85;
    sparkle(x,y,r,s===3?'hsl('+Math.round(h1*360)+',90%,78%)':s===2?'#ffd84a':'#fff3b8');cx.globalAlpha=a*.8;sparkle(x,y,r*.4,'#fff')}}
  cx.restore()}
-function starGlow(it,t,sel){const s=it.s|0;if(s<2)return;const c=iso(it.x+.5,it.y+.5),a=sel?(s===3?.5:.32)*(.8+.2*Math.sin(t*2.2+it.x+it.y)):(s===3?.2:.11);cx.save();cx.translate(c.x,c.y);cx.scale(1,TH/TW);
+function starGlow(it,t,sel){const s=it.s|0;if(s<2)return;const c=iso(it.x+.5,it.y+.5),a=sel?(s===3?.5:.32)*(.8+.2*Math.sin(t*2.2+it.x+it.y)):(s===3?.2:.11);if(GLW){const r=TW*.62,ry=r*TH/TW,ga=cx.globalAlpha;cx.globalAlpha=ga*a;cx.drawImage(GLW,c.x-r,c.y-ry,r*2,ry*2);cx.globalAlpha=ga;return}
+ cx.save();cx.translate(c.x,c.y);cx.scale(1,TH/TW);
  const g=cx.createRadialGradient(0,0,0,0,0,TW*.62);g.addColorStop(0,'rgba(255,220,100,'+a+')');g.addColorStop(.7,'rgba(255,200,60,'+(a*.35)+')');g.addColorStop(1,'rgba(255,200,60,0)');cx.fillStyle=g;cx.beginPath();cx.arc(0,0,TW*.62,0,7);cx.fill();cx.restore()}
 function starTag(x,y,s){const t='★'.repeat(s),fs=Math.max(10,TW*.17);cx.save();cx.font='900 '+fs+'px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.lineWidth=fs*.28;cx.strokeStyle='#5a3a22';cx.strokeText(t,x,y);cx.fillStyle='#ffd23a';cx.fillText(t,x,y);cx.restore()}
 function drawB(it,t,sel){const s=it.s|0;if(s>=2)starGlow(it,t,sel);drawB0(it,t,sel);if(s){const c=iso(it.x+.5,it.y+.5);starFx(c.x,c.y,TW*.85,TW*.75,s,t,it.x*7+it.y*13+1,sel);if(sel)starTag(c.x,c.y+TH*.42,s)}}
@@ -424,7 +429,9 @@ function stairHole(){const n=N,P=(a,b)=>iso(n-2+b,a);poly([P(.08,.08),P(.92,.08)
  for(let k=1;k<5;k++){const u=k/5;poly([P(.08+u*.84,.1),P(.92,.1),P(.92,.9),P(.08+u*.84,.9)],'rgba(214,162,106,'+(.25+u*.15)+')')}}
 function stairRail(){const n=N,h=WH*.28,lw=Math.max(2,TW*.03),a=iso(n-2+.06,.94),b=iso(n-1-.06,.94),c=iso(n-2+.06,.06);cx.strokeStyle='#8a5a3a';cx.lineWidth=lw;cx.lineCap='round';
  for(const [p,q] of [[a,b],[c,a]]){cx.beginPath();cx.moveTo(p.x,p.y-h);cx.lineTo(q.x,q.y-h);cx.stroke();for(let i=0;i<=3;i++){const u=i/3,x=p.x+(q.x-p.x)*u,y=p.y+(q.y-p.y)*u;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x,y-h);cx.stroke()}}cx.lineCap='butt'}
-function drawFloor(look,t,edit,items){const f=FLR[look.floor|0]||FLR[0];
+/* ⚡ 11/12 VOC(1위 가게) '가게 화면 움직일 때 버벅': 바닥 칸(최대 121칸×무늬)은 안 바뀌니 한 번 그려 두고 끌 때는 붙이기만 */
+let FC=null;
+function floorBase(f){
  for(let gx=0;gx<N;gx++)for(let gy=0;gy<N;gy++){const pts=[iso(gx,gy),iso(gx+1,gy),iso(gx+1,gy+1),iso(gx,gy+1)];let c=f[0];
   if(f[2]===1&&(gx+gy)%2)c=f[1];if(f[2]===4)c=(gx*7+gy*3)%3?f[0]:f[1];
   if(f[2]===6){c=(gx+gy)%2?f[0]:f[1]}let st=f[2]===0||f[2]===2||f[2]===4||f[2]===10?'rgba(0,0,0,.08)':null,lw=1;
@@ -442,6 +449,12 @@ function drawFloor(look,t,edit,items){const f=FLR[look.floor|0]||FLR[0];
   const r=R*.42;cx.fillStyle='#c98a54';for(const sx of[-1,1]){cx.beginPath();cx.arc(sx*r*.72,-r*.72,r*.38,0,7);cx.fill()}cx.beginPath();cx.arc(0,0,r,0,7);cx.fill();
   cx.fillStyle='#f6dfb8';cx.beginPath();cx.ellipse(0,r*.28,r*.48,r*.36,0,0,7);cx.fill();cx.fillStyle='#4a2c18';for(const sx of[-1,1]){cx.beginPath();cx.arc(sx*r*.36,-r*.14,r*.1,0,7);cx.fill()}cx.beginPath();cx.ellipse(0,r*.16,r*.14,r*.1,0,0,7);cx.fill();
   cx.fillStyle='rgba(255,130,150,.55)';for(const sx of[-1,1]){cx.beginPath();cx.arc(sx*r*.62,r*.18,r*.12,0,7);cx.fill()}cx.restore()}
+}
+function drawFloor(look,t,edit,items){const f=FLR[look.floor|0]||FLR[0];
+ if(f[2]===12||f[2]===3||typeof document==='undefined')floorBase(f);else{
+  const key=[look.floor|0,N,TW,FL].join(','),m=8,w=Math.ceil(N*TW+2*m),h=Math.ceil(N*TH+2*m);
+  if(!FC||FC.key!==key){try{const c=FC&&FC.c||document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d'),o=cx,ox=OX,oy=OY;cx=g;OX=m+N*TW/2;OY=m;try{floorBase(f)}finally{cx=o;OX=ox;OY=oy}FC={key,c}}catch(e){FC=null}}
+  if(FC)cx.drawImage(FC.c,OX-N*TW/2-m,OY-m);else floorBase(f)}
  if(f[2]===6)for(let i=0;i<8;i++){const p=iso((i*.37%1)*N,(i*.71%1)*N);cx.globalAlpha=.3+.7*Math.abs(Math.sin(t*1.6+i));em('✨',p.x,p.y,TW*.14);cx.globalAlpha=1}
  /* 꾸미는 중: 손님이 걷는 길(문→카운터)을 옅게, 꼭 비울 칸은 진하게 */
  const rt=edit?(mainRoute(items||[])||[]):[];const on=new Set(rt.map(p=>p.gx+','+p.gy));
