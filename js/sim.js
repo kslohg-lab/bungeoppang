@@ -62,7 +62,9 @@ function newRun(seed,mode){return{lg:[],v:1,seed:seed>>>0,mode:mode||'week',day:
 const nMold=run=>Math.min(8,2+run.up.mold+cn(run,'mold')),MOLDS=8;
 const fuLv=(run,f)=>(run.fu&&run.fu[f])|0;
 const fuXf=(run,f)=>(V5(run)?R.fuX5:R.fuX)[f];
-const price=(run,f)=>{let v=R.menu[f].p*(1+(fuXf(run,f)-1)*fuLv(run,f)/R.fuC.length);if(f===0&&wkr(run)==='pat')v*=2;if(run.cards){for(const c of run.cards)if(c==='flav:'+f)v*=1.25;if(cn(run,'big'))v*=1.12}return Math.round(v)};
+/* 11/12 VOC: 강화 미리보기 '→ 다음 값'에 카드(⭐ 오늘의 추천·🎲 큰손)·팥 주간이 빠져서 값이 떨어져 보였음 → 같은 계산(priceL)으로 */
+const price=(run,f)=>priceL(run,f,fuLv(run,f));
+const priceL=(run,f,lv)=>{let v=R.menu[f].p*(1+(fuXf(run,f)-1)*lv/R.fuC.length);if(f===0&&wkr(run)==='pat')v*=2;if(run.cards){for(const c of run.cards)if(c==='flav:'+f)v*=1.25;if(cn(run,'big'))v*=1.12}return Math.round(v)};
 const speedF=run=>Math.max(.6,(1-.06*run.up.speed)*(1-.08*cn(run,'fast')));
 const tSide=(run,f)=>R.menu[f].t*speedF(run);
 const L=run=>R.loc[run.up.loc];
@@ -214,7 +216,7 @@ function replay(seed,lg,wid){const run=newRun(seed,'week');run.lg=null;run.wid=w
 /* 키우기 목록 글자: [그림, 이름, 설명, 'Lv a/b'] (가게·챌린지 공용) */
 function upInfo(run,k){const lvT=(a,b)=>'Lv '+a+'/'+b;
  if(k==='fl'){const m=R.menu[run.nf];return m?['🆕','새 메뉴',m.e+' '+m.n+' · 판매가 '+fmt(m.p)+'원 (더 비싸고 더 어려워요)',lvT(run.nf-1,R.menu.length-1)]:['🆕','새 메뉴','모든 맛을 열었어요!',lvT(run.nf-1,R.menu.length-1)]}
- if(k[0]==='f'&&k[1]==='u'){const f=+k[2],m=R.menu[f],lv=fuLv(run,f),n=R.fuC.length,nx=Math.round(m.p*(1+(fuXf(run,f)-1)*Math.min(n,lv+1)/n));
+ if(k[0]==='f'&&k[1]==='u'){const f=+k[2],m=R.menu[f],lv=fuLv(run,f),n=R.fuC.length,nx=priceL(run,f,Math.min(n,lv+1));
   return[m.e,m.n+' 강화',lv>=n?'최고 단계! 판매가 '+fmt(price(run,f))+'원':(R.fuN[lv+1]+' '+m.n+' · 판매가 '+fmt(price(run,f))+' → '+fmt(nx)+'원'),lvT(lv,n)]}
  const u=R.up[k],lv=run.up[k]|0,L=R.loc;
  const d={mold:nMold(run)>=8?'틀 8개 · 최대예요!':'틀 '+nMold(run)+'개 → '+(nMold(run)+1)+'개 (최대 8개)',speed:'굽는 시간 -6% (지금 -'+6*lv+'%)',auto:'빈 틀을 한 번 톡! 하면 반죽+속+덮기',pat:'손님 참을성 +8% (지금 +'+8*lv+'%)',
