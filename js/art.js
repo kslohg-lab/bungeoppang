@@ -331,6 +331,7 @@ function tapPlay(x,y){const B=BP2,h=hit(x,y);if(!h)return null;
  else if(h.k==='m'){const i=h.i;if(i<B.nMold(run)){const m=s.mold[i],pre=m.s,pr=s.rack.length,f=m.f,now=performance.now();
   /* 11/12 VOC '꺼내기만 했는데 반죽까지 들어감' = 손가락이 두 번 닿음 → 방금(0.25초 안) 비운 틀을 또 누르면 무시 (기록엔 안 남아서 리플레이 그대로) */
   ui.emp=ui.emp||[];if(pre===0&&ui.emp[i]&&now-ui.emp[i]<250)return null;
+  ui.lt=ui.lt||[];if(ui.lt[i]&&now-ui.lt[i]<90)return null;ui.lt[i]=now; /* 같은 틀 0.09초 안 두 번째 톡 = 손가락 튐 */
   ui.tp[i]=s.t;B.moldTap(s,run,i);if(pre!==0&&m.s===0)ui.emp[i]=now;if(m.s===3&&pre!==3&&pre!==4)OPT.snd('sizzle');if(pre===4&&m.s===0&&s.rack.length>pr){const it=s.rack[s.rack.length-1],rw=(450-50)/run.nf;ui.fly.push({x0:mpos(i).x+64,y0:mpos(i).y+29,x1:48+f*rw+30,y1:362,t:0,q:it.q})}}}
  else B.selFl(s,run,h.i);return h}
 /* 효과 큐 처리 공용 */

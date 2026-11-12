@@ -649,9 +649,10 @@ function tap(x,y){const h=A.tapPlay(x,y);if(h&&h.k==='c')count();drain()}
 function count(){for(const c of s.cust){if(c&&c.happy&&!c.cnt){c.cnt=1;if(c.an==='🧐')continue;if(save.dex[c.an]===undefined){save.dex[c.an]=0;(s.dxNew=s.dxNew||[]).push(c.an);ui.ft.push({t:'도감 등록! '+c.an,x:225,y:150,c:'#fff',l:1.6})}save.dex[c.an]++}}}
 function drain(){A.drainFx()}
 /* 📱 11/11 아이폰 VOC '아래쪽 틀이 잘 안 눌려요': 아이폰은 터치 신호(touchstart)도 같이 받아서, 한쪽이 씹혀도 들어가게 (같은 자리 120ms 안 두 번은 한 번으로) */
-const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform||'')&&navigator.maxTouchPoints>1);let tgT=0,tgX=0,tgY=0;
-const dupTap=e=>{const n=performance.now(),d=Math.hypot(e.clientX-tgX,e.clientY-tgY);if(n-tgT<120&&d<30)return true;tgT=n;tgX=e.clientX;tgY=e.clientY;return false};
-const touchAlso=(el,fn)=>{if(!IOS)return;el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)fn({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',preventDefault(){}})},{passive:true})};
+const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform||'')&&navigator.maxTouchPoints>1);/* 11/12 VOC(아이폰) '반죽만 놨는데 아직!' = 터치 하나에 pointerdown·touchstart 둘 다 들어옴 (폰이 바쁘면 120ms 넘게 벌어짐) → 시간 대신 '다른 종류 신호끼리 짝'으로 한 번만 */
+const PQ=[];const dupTap=e=>{const n=performance.now(),tp=e.__t?'t':'p';for(let i=PQ.length-1;i>=0;i--)if(n-PQ[i].n>700)PQ.splice(i,1);
+ const j=PQ.findIndex(q=>q.tp!==tp&&Math.hypot(e.clientX-q.x,e.clientY-q.y)<40);if(j>=0){PQ.splice(j,1);return true}PQ.push({tp,n,x:e.clientX,y:e.clientY});return false};
+const touchAlso=(el,fn)=>{if(!IOS)return;el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)fn({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',__t:1,preventDefault(){}})},{passive:true})};
 const gameDown=e=>{e.preventDefault();au();if(scr!=='game'||paused||!s||s.ph!=='play')return;if(dupTap(e))return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)};
 cv.addEventListener('pointerdown',gameDown);touchAlso(cv,gameDown);
 /* ---------- 하루 그리기 (공용 화면 + 내 가게 꾸밈 색) ---------- */

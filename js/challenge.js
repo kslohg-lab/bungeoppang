@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.9.3';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.9.4';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -238,9 +238,10 @@ JUICE.backGuard(()=>scr==='game'&&s&&s.ph==='play',()=>{pauseGame();askQuit()});
 /* ---------- 조작 ---------- */
 A=ART(cx,{shape:()=>0,toast:t=>toast(t),snd:k=>snd(k)});const {em,tx,rr,m2,lite,dark}=A;
 /* 📱 11/11 아이폰 VOC '아래쪽 틀이 잘 안 눌려요': 아이폰은 터치 신호(touchstart)도 같이 받아서, 한쪽이 씹혀도 들어가게 (같은 자리 120ms 안 두 번은 한 번으로) */
-const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform||'')&&navigator.maxTouchPoints>1);let tgT=0,tgX=0,tgY=0;
-const dupTap=e=>{const n=performance.now(),d=Math.hypot(e.clientX-tgX,e.clientY-tgY);if(n-tgT<120&&d<30)return true;tgT=n;tgX=e.clientX;tgY=e.clientY;return false};
-const touchAlso=(el,fn)=>{if(!IOS)return;el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)fn({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',preventDefault(){}})},{passive:true})};
+const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Mac/.test(navigator.platform||'')&&navigator.maxTouchPoints>1);/* 11/12 VOC(아이폰) '반죽만 놨는데 아직!' = 터치 하나에 pointerdown·touchstart 둘 다 들어옴 (폰이 바쁘면 120ms 넘게 벌어짐) → 시간 대신 '다른 종류 신호끼리 짝'으로 한 번만 */
+const PQ=[];const dupTap=e=>{const n=performance.now(),tp=e.__t?'t':'p';for(let i=PQ.length-1;i>=0;i--)if(n-PQ[i].n>700)PQ.splice(i,1);
+ const j=PQ.findIndex(q=>q.tp!==tp&&Math.hypot(e.clientX-q.x,e.clientY-q.y)<40);if(j>=0){PQ.splice(j,1);return true}PQ.push({tp,n,x:e.clientX,y:e.clientY});return false};
+const touchAlso=(el,fn)=>{if(!IOS)return;el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)fn({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',__t:1,preventDefault(){}})},{passive:true})};
 const cvDown=e=>{e.preventDefault();au();if(dupTap(e))return;if(scr==='tut'&&tut){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;if(tut.done){if(tut.done>.4&&y>420&&y<490)endTut(true);return}const st=TS[tut.i];if(st.hold&&!tut.ready)return;tap(x,y);return}if(scr!=='game'||paused||!s||s.ph!=='play')return;const r=cv.getBoundingClientRect();tap((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)};cv.addEventListener('pointerdown',cvDown);touchAlso(cv,cvDown);
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 function tap(x,y){if(y<34&&ui.pill&&x>=ui.pill[0]&&x<=ui.pill[1]&&run){const lc=B.L(run),dl=run.up.deco|0,as=run.as?B.ASSIST.find(a=>a.k===run.as):null;toast(lc.e+' '+lc.n+(dl?' · 🏮 장식 '+dl+'단계(손님↑)':'')+(as?' · '+as.e+' '+as.n:''));return}A.tapPlay(x,y);drain()}
