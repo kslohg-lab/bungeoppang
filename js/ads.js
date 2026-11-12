@@ -27,7 +27,7 @@ async function show(){if(!P||busy||!left())return false;busy=true;
  try{if(!await boot())return false;if(!await load())return false;ready=null;
   const ok=await new Promise(res=>{wait=res;P.showRewardVideoAd().then(()=>{if(wait){/* 보상 받음 → 닫힐 때 마무리 */}},()=>{if(wait){wait=null;res(false)}})});
   if(ok){const s=st();s.n++;put(s)}
-  setTimeout(()=>{load()},1500);return ok}
+  return ok} /* 11/12: 다음 광고는 다음 도와주기를 시작할 때 미리 받음 (평소엔 광고를 들고 있지 않게) */
  catch(e){return false}finally{busy=false}}
 function warm(){if(P&&left())boot().then(o=>{if(o)load()})}
 return{on:!!P,MAX,left,show,warm}})();
