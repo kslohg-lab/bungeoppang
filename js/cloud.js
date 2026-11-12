@@ -58,9 +58,13 @@ async function backend(){
    await deleteUser(u);try{await signInAnonymously(auth)}catch(e){}}
  }}
 
-(async()=>{
- if(!(CFG&&CFG.apiKey&&CFG.projectId)&&!window.__cloudFake)return;
- let B;try{B=await backend()}catch(e){return}
+/* 11/12 VOC '설정에 구글 로그인이 없어요': 서버 부품을 받는 동안·받기 실패하면 칸이 비어 있었음 → '준비 중' 표시 + 실패하면 다시 시도 버튼 */
+const cbox=h=>{const b=document.getElementById('cloudBox');if(b)b.innerHTML=h};
+const WAIT='<div style="font-size:13px;color:#8a6a50;margin:4px 0 8px">🔐 구글 로그인 준비 중…</div>';
+cbox(WAIT);
+(async function start(){
+ if(!(CFG&&CFG.apiKey&&CFG.projectId)&&!window.__cloudFake){cbox('');return}
+ let B;try{B=await backend()}catch(e){cbox('<button class="big sm" data-c="retry" style="background:#ffe3d6">🔐 로그인 연결이 안 됐어요 · 다시 시도</button>');const b=document.getElementById('cloudBox');if(b)b.onclick=ev=>{const c=ev.target&&ev.target.closest&&ev.target.closest('[data-c=retry]');if(c){cbox(WAIT);start()}};return}
  let busy=false,lastUp=0;
  const isG=()=>{const u=B.user();return!!(u&&u.g)};
  const payload=()=>{const k=snap(),s=JSON.stringify(k);return{k,s,h:hash(s)}};
