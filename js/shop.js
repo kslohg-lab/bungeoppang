@@ -486,6 +486,8 @@ const FCAT=[{k:'own',n:'📦 내 가구'},{k:'sit',n:'🪑 의자·탁자'},{k:'
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
 const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
+/* 11/13 그림이 아직 안 받아졌으면 카드가 비어 보여서: 받아지는 대로 카드 그림을 다시 그려요 */
+let thW=null;function thFix(){if(thW)return;let n=0;thW=setInterval(()=>{const ims=document.querySelectorAll('#dl img[data-k]');let left=0;ims.forEach(im=>{const k=im.dataset.k;if(TI.imgReady(k)){im.src=thumbOf(k);im.removeAttribute('data-k')}else left++});if(!left||++n>60){clearInterval(thW);thW=null}},250)}
 /* 🏅 메달 상점: 꾸미기 화면을 '메달 전용 탭'으로 열어요. 나중에 품목이 늘면 MG에 탭을 더해요 */
 const MG=[{k:'mskin',n:'🏠 메달 스킨',sl:['skin']},{k:'mwall',n:'🧱 벽지',sl:['wall']},{k:'mfloor',n:'🟫 바닥',sl:['floor']}];
 /* 벽·바닥은 가격순으로 보여 줘요 (번호는 저장값이라 그대로) */
@@ -511,7 +513,7 @@ function buildF2(){const first=!BIZ.f2Of(save),nx=BIZ.f2Next(save);if(!nx)return
 function setF2V(v){if(F2V===!!v)return;F2V=!!v&&BIZ.f2Of(save)>0;IS.resetPan();dsel=null;dghost=null;IS.reset();hPre=0;if(scr==='deco'){prev=null;renderDeco()}snd('tap')}
 let flbK='';function flbSync(){const b=$('flb');if(!b)return;const hm=scr==='home'&&$('hm').style.display==='block',vis=scr==='visit'&&vd&&((vd.eq&&vd.eq.f2)|0)>=5,on=vis||BIZ.f2Of(save)>0&&(hm||(scr==='deco'&&!dMed&&dtabK()!=='skin')),up=vis?vF2:F2V,k=on+'|'+up+'|'+scr;if(k===flbK)return;flbK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=up?'⬇️ 1층':'⬆️ 2층';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
-function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
+function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=dtabK();
  {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent=dMed?'🔥 챌린지에서 모아요':'✨ 매력 +'+Math.round(charmBonus()*100)+'%';if(dMed&&window.MEDAL)$('dcw').textContent='🏅 메달 '+MEDAL.get().n+'개';
  const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
  {const S=$('dsub'),g=DT()[dtab];S.innerHTML='';S.style.display=!dMed&&(g.sl||g.k==='fur')?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)});if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
@@ -520,7 +522,7 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
  let msg='';
  if(tk==='fur'){
   const fc=FCAT[fcat].k,fcard=f=>{const sp=spare(f.k),lk=sp>0?null:lockOf(f),pl=placed(f.k),b=document.createElement('button');b.className='cd fu'+(dpick===f.k?' on':'')+(lk?' lk':'');
-   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
+   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""'+(TI.imgReady(f.k)?'':' data-k="'+f.k+'"')+'><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(f.xm?'🎄 크리스마스 세트는 12월에만 살 수 있어요 (산 건 언제든 놓아요)':lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+(st.b||IS.SET_BONUS):' · 다 놓으면 ✨+'+(st.b||IS.SET_BONUS))+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else if(fc==='own'){const my=IS.FUR.concat(IS.WFUR).filter(f=>(save.inv[f.k]|0)>0||placed(f.k)>0).sort((a,b)=>(spare(b.k)>0)-(spare(a.k)>0)||b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>아직 가진 가구가 없어요</b><small>다른 칸에서 골라 놓으면 여기 모여요</small>';L.appendChild(h)}}
