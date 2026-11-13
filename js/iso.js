@@ -375,12 +375,15 @@ function skyline(look,t){const Lc=iso(0,N),hz=OY+(Lc.y-OY)*.2,nt=look.night;
  cx.fillStyle=nt?'rgba(60,80,120,.55)':'rgba(170,215,160,.55)';cx.beginPath();cx.ellipse(90,hz+8,190,46,0,Math.PI,0);cx.ellipse(380,hz+10,170,38,0,Math.PI,0);cx.fill();
  for(let i=0;i<14;i++){const w=22+(i*37)%26,h=26+(i*53)%58,x=-8+i*34+(i%3)*4,y=hz-h;cx.fillStyle=nt?'rgba(40,52,90,.8)':'rgba(255,255,255,'+(.32+(i%3)*.08)+')';cx.beginPath();cx.roundRect(x,y,w,h+12,[5,5,0,0]);cx.fill();
   if(nt){cx.fillStyle='rgba(255,220,120,.85)';for(let r=0;r<Math.floor(h/14);r++)for(let q=0;q<2;q++)if((i+r*3+q)%3)cx.fillRect(x+5+q*(w-14),y+6+r*14,4,5)}}}
-function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorStop(0,look.sky[0]);g.addColorStop(1,look.sky[1]);cx.fillStyle=g;cx.fillRect(0,0,W,800);skyline(look,t);
+function drawSky(look,t){const g=cx.createLinearGradient(0,0,0,OY);g.addColorStop(0,look.sky[0]);g.addColorStop(1,look.sky[1]);cx.fillStyle=g;cx.fillRect(0,0,W,800);
+ /* 🏞️ 그림 배경: 그림 속 땅이 시작하는 줄(hf)을 가게 벽 윗부분 높이에 맞춰 풍경이 벽 위로 보이게, 그 아래는 땅 색 */
+ const bg=look.bg;if(bg&&bg.im&&bg.im.complete&&bg.im.naturalWidth){const im=bg.im,L_=iso(0,N),R_=iso(N,0),hz=(L_.y+R_.y)/2-WH*1.02,ar=im.naturalWidth/im.naturalHeight;let ih=Math.max(W/ar,hz/bg.hf),iw=ih*ar,iy=hz-ih*bg.hf;cx.fillStyle=bg.gr;cx.fillRect(0,iy+ih-2,W,800);cx.drawImage(im,(W-iw)/2,iy,iw,ih)}
+ const pic=bg&&bg.im&&bg.im.complete&&bg.im.naturalWidth;if(!pic){skyline(look,t);
  if(look.night){cx.fillStyle='#fff';for(let i=0;i<30;i++){cx.globalAlpha=.4+.6*Math.abs(Math.sin(t*1.5+i));cx.beginPath();cx.arc((i*97)%W,(i*53)%Math.max(60,OY-WH-20)+60,1.4,0,7);cx.fill()}cx.globalAlpha=1;em('🌙',380,110,34)}
- else{em('☀️',385,120,46);cx.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<4;i++){const x=m2(t*5+i*130,560)-60;cx.beginPath();cx.ellipse(x,100+i*16,30,9,0,0,7);cx.fill()}}
+ else{em('☀️',385,120,46);cx.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<4;i++){const x=m2(t*5+i*130,560)-60;cx.beginPath();cx.ellipse(x,100+i*16,30,9,0,0,7);cx.fill()}}}
  if(look.lit===5){for(let b=0;b<3;b++){const g2=cx.createLinearGradient(0,60,0,OY);const c=['120,255,200','180,120,255','120,200,255'][b];g2.addColorStop(0,'rgba('+c+',0)');g2.addColorStop(.5,'rgba('+c+','+(.18+.08*Math.sin(t+b))+')');g2.addColorStop(1,'rgba('+c+',0)');cx.fillStyle=g2;const x=60+b*130+Math.sin(t*.7+b)*30;cx.beginPath();cx.moveTo(x,60);cx.lineTo(x+70,60);cx.lineTo(x+120,OY);cx.lineTo(x+20,OY);cx.closePath();cx.fill()}}
  if(look.top===6){const cl=['255,90,120','255,200,60','120,220,255','160,255,140'];for(let b=0;b<4;b++){const ph=m2(t*.6+b*.27,1),bx=60+b*110,by=110+(b%2)*30,cc=cl[b];if(ph<.8){const u=ph/.8,rad=12+u*40;cx.fillStyle='rgba('+cc+','+(1-u)+')';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;cx.beginPath();cx.arc(bx+Math.cos(a)*rad,by+Math.sin(a)*rad+u*u*12,2.4,0,7);cx.fill()}}}}}
-function drawGround(look,t){const ground=look.xmas?(look.night?'#c8d4e2':'#eef3f8'):look.night?'#6f9a62':'#a8d890',Rc=iso(N,0),Bc=iso(N,N),Lc=iso(0,N);
+function drawGround(look,t){const ground=look.bg&&look.bg.gr?look.bg.gr:look.xmas?(look.night?'#c8d4e2':'#eef3f8'):look.night?'#6f9a62':'#a8d890',Rc=iso(N,0),Bc=iso(N,N),Lc=iso(0,N);
  cx.fillStyle=ground;cx.beginPath();cx.moveTo(0,OY+(Lc.y-OY)*.2);cx.lineTo(W,OY+(Rc.y-OY)*.2);cx.lineTo(W,800);cx.lineTo(0,800);cx.closePath();cx.fill();
 if(!FL){ /* 인도 (문 = 3시 쪽) */
  poly([iso(N,0),iso(N+3,0),iso(N+3,1),iso(N,1)],'#d8cbb6','#bba98e');for(let k=0;k<3;k++)poly([iso(N+k,0),iso(N+k+1,0),iso(N+k+1,1),iso(N+k,1)],null,'rgba(120,100,80,.25)',1)}
