@@ -58,8 +58,16 @@ function mouth(r,mood,y){cx.strokeStyle='#4a2a14';cx.lineWidth=r*.06;cx.lineCap=
  else{cx.beginPath();cx.moveTo(-r*.14,y);cx.quadraticCurveTo(-r*.07,y+r*.1,0,y);cx.quadraticCurveTo(r*.07,y+r*.1,r*.14,y);cx.stroke()}}
 /* 동물/사람 반신 그리기: kind(이모지 키), 중심(x,y)=얼굴 중심, 얼굴 지름 s */
 /* 그림 파일이 있으면 코드 그림 대신 사용 (ART_IMG[kind]=Image) */
+let WALK_OFF=false;try{WALK_OFF=localStorage.getItem('bpWalkOld')==='1'}catch(e){}
 function animal(kind,x,y,s,o={}){const im=window.ART_IMG&&window.ART_IMG[kind];if(im&&im.complete&&im.naturalWidth){const h=s*1.62,w=h*im.naturalWidth/im.naturalHeight,bob=Math.sin((o.t||0)*2.2+(o.ph||0))*s*.03;
-  cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);/* 뒤뚱 걷기: 발을 축으로 좌우로 기울고 걸음마다 살짝 눌려요 */if(o.walk!=null){cx.rotate(Math.sin(o.walk)*.13);const k=1-.06*Math.abs(Math.cos(o.walk));cx.scale(1+(1-k)*.6,k)}if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);if(o.hat!==false&&window.XMAS()&&String(kind).length<=3&&(Math.floor(Math.abs(o.ph||0)*13)+kind.codePointAt(0))%3)santaHat(w*.06,-h*.9,s*.36);cx.restore();return}
+  cx.save();cx.translate(x,y+s*.9+bob);if(o.tilt)cx.rotate(o.tilt);
+  /* 🚶 11/13 걷기: 빙으로 그린 걷는 그림 4장을 차례로 보여줘요 (그림이 아직 없으면 예전 뒤뚱 걸음) */
+  let ws=null;if(o.walk!=null&&!WALK_OFF&&!o.oldWalk&&WSRC[kind]){ws=window.ART_IMG['W'+kind];if(!ws){ws=new Image();ws.decoding='async';ws.src=WSRC[kind];window.ART_IMG['W'+kind]=ws}}
+  if(ws&&ws.complete&&ws.naturalWidth){const fw=ws.naturalWidth/4,k=Math.floor((((o.walk/6.2832)%1)+1)%1*4)%4,up=(k%2===0?h*.012:0);
+   if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}
+   cx.drawImage(ws,k*fw,0,fw,ws.naturalHeight,-w/2,-h-up,w,h);
+   if(o.hat!==false&&window.XMAS()&&String(kind).length<=3&&(Math.floor(Math.abs(o.ph||0)*13)+kind.codePointAt(0))%3)santaHat(w*.06,-h*.9-up,s*.36);cx.restore();return}
+  if(o.walk!=null){cx.rotate(Math.sin(o.walk)*.13);const k=1-.06*Math.abs(Math.cos(o.walk));cx.scale(1+(1-k)*.6,k)}if(o.mood==='a'){cx.filter='saturate(1.3) hue-rotate(-12deg)'}const sq=o.mood==='h'?1+.03*Math.sin((o.t||0)*9):1;cx.scale(1/sq,sq);cx.drawImage(im,-w/2,-h,w,h);if(o.hat!==false&&window.XMAS()&&String(kind).length<=3&&(Math.floor(Math.abs(o.ph||0)*13)+kind.codePointAt(0))%3)santaHat(w*.06,-h*.9,s*.36);cx.restore();return}
  return animalCode(kind,x,y,s,o)}
 /* 🎅 산타 모자 (머리 위, 살짝 기울게) */
 function santaHat(x,y,z){cx.save();cx.translate(x,y);cx.rotate(.22);cx.fillStyle='#e0302e';cx.strokeStyle='#7a1a18';cx.lineWidth=Math.max(1,z*.05);cx.beginPath();cx.moveTo(-z*.55,z*.12);cx.quadraticCurveTo(-z*.1,-z*.9,z*.55,-z*.55);cx.lineTo(z*.5,z*.12);cx.closePath();cx.fill();cx.stroke();
@@ -347,4 +355,6 @@ const newUi=()=>({ft:[],pa:[],rb:0,ma:[],tp:[],fly:[],coin:[],shake:0,hud:0,rg:[
 
 return{use,E,em,tx,rr,m2,fish,rgbOf,mix,lite,dark,animal,fish2,shapePath,bread,bakeCol,steam,mold,custDraw,mpos,hit,at,rackRow,menuBar,hints,weather,fxDraw,timeBar,drawPlay,tapPlay,drainFx,tickFx,newUi,QC}};
 /* 손님 동물 그림 (img/an_*.webp, AI 일러스트) */
-ART_LOAD({'🐿️':'img/an_squirrel.webp','🍁':'img/an_redpanda.webp','🦔':'img/an_hedgehog.webp','🦆':'img/an_duck.webp','🐑':'img/an_sheep.webp','🦝':'img/an_raccoon.webp','🦌':'img/an_deer.webp','🦦':'img/an_otter.webp','🦉':'img/an_owl.webp','🐮':'img/an_cow.webp','🐷':'img/an_pig.webp','🐨':'img/an_koala.webp','🐶':'img/an_dog.webp?v=2','🐱':'img/an_cat.webp?v=2','🐰':'img/an_rabbit.webp?v=2','🐻':'img/an_bear.webp?v=2','🐼':'img/an_panda.webp?v=2','🦊':'img/an_fox.webp?v=2','🐯':'img/an_tiger.webp?v=2','🐸':'img/an_frog.webp?v=2','🐵':'img/an_monkey.webp?v=2','🐧':'img/an_penguin.webp?v=2','🐹':'img/an_hamster.webp?v=2','🦁':'img/an_lion.webp'});
+ART_LOAD({'🐿️':'img/an_squirrel.webp?v=3','🍁':'img/an_redpanda.webp?v=3','🦔':'img/an_hedgehog.webp?v=3','🦆':'img/an_duck.webp?v=3','🐑':'img/an_sheep.webp?v=3','🦝':'img/an_raccoon.webp?v=3','🦌':'img/an_deer.webp?v=3','🦦':'img/an_otter.webp?v=3','🦉':'img/an_owl.webp?v=3','🐮':'img/an_cow.webp?v=3','🐷':'img/an_pig.webp?v=3','🐨':'img/an_koala.webp?v=3','🐶':'img/an_dog.webp?v=3','🐱':'img/an_cat.webp?v=3','🐰':'img/an_rabbit.webp?v=3','🐻':'img/an_bear.webp?v=3','🐼':'img/an_panda.webp?v=3','🦊':'img/an_fox.webp?v=3','🐯':'img/an_tiger.webp?v=3','🐸':'img/an_frog.webp?v=3','🐵':'img/an_monkey.webp?v=3','🐧':'img/an_penguin.webp?v=3','🐹':'img/an_hamster.webp?v=3','🦁':'img/an_lion.webp?v=3'});
+/* 🚶 11/13 걷는 그림 4장(왼발·서기·오른발·서기)을 가로로 붙인 그림 — 처음 걸을 때 받아요 */
+const WSRC=({'🐿️':'img/aw_squirrel.webp','🍁':'img/aw_redpanda.webp','🦔':'img/aw_hedgehog.webp','🦆':'img/aw_duck.webp','🐑':'img/aw_sheep.webp','🦝':'img/aw_raccoon.webp','🦌':'img/aw_deer.webp','🦦':'img/aw_otter.webp','🦉':'img/aw_owl.webp','🐮':'img/aw_cow.webp','🐷':'img/aw_pig.webp','🐨':'img/aw_koala.webp','🐶':'img/aw_dog.webp','🐱':'img/aw_cat.webp','🐰':'img/aw_rabbit.webp','🐻':'img/aw_bear.webp','🐼':'img/aw_panda.webp','🦊':'img/aw_fox.webp','🐯':'img/aw_tiger.webp','🐸':'img/aw_frog.webp','🐵':'img/aw_monkey.webp','🐧':'img/aw_penguin.webp','🐹':'img/aw_hamster.webp','🦁':'img/aw_lion.webp'})
