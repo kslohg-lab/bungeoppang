@@ -75,7 +75,7 @@ applyCook();
 /* 꾸미기 점수: 꾸밈 칸 가치 + 놓은 가구 가치(가격/100) + 가구 종류 보너스 + 넓이 → 가게 레벨(손님 수·주문 크기) */
 function decoScore(){let sc=0;SLOTS.forEach(sl=>{const it=sl.L[save.eq[sl.k]]||sl.L[0];const v=it.p>0?it.p:(it.st?it.st*1500:0);sc+=Math.floor(v/100)});
  const kinds=new Set();allFur().forEach(it=>{const f=IS.CK(it.k);if(f){sc+=Math.floor(ptV(f.p)/100);kinds.add(it.k)}});sc+=kinds.size*KIND_PT+((save.room-1)*(save.room-1)-16)*15+BIZ.f2Of(save)*BIZ.f2Of(save)*15; /* 11/8 +1칸 뒤에도 점수는 그대로 */
- /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=IS.SET_BONUS});return sc+stScore()}
+ /* 테마 세트를 다 놓으면 보너스 */IS.SETS.forEach(st=>{if(setDone(st.k,kinds))sc+=(st.b||IS.SET_BONUS)});return sc+stScore()}
 function setDone(k,kinds){kinds=kinds||new Set(allFur().map(it=>it.k));return IS.FUR.filter(f=>f.set===k).every(f=>kinds.has(f.k))}
 const shopLv=()=>Math.min(40,1+Math.floor(Math.sqrt(decoScore()/20)));
 /* ---------- 상태 ---------- */
@@ -517,7 +517,7 @@ function renderDeco(){$('da3').style.display='none';const tabs=DT(),tk=dtabK();
   const fc=FCAT[fcat].k,fcard=f=>{const sp=spare(f.k),lk=sp>0?null:lockOf(f),pl=placed(f.k),b=document.createElement('button');b.className='cd fu'+(dpick===f.k?' on':'')+(lk?' lk':'');
    b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(f.xm?'🎄 크리스마스 세트는 12월에만 살 수 있어요 (산 건 언제든 놓아요)':lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
-  if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+IS.SET_BONUS:' · 다 놓으면 ✨+'+IS.SET_BONUS)+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
+  if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+(st.b||IS.SET_BONUS):' · 다 놓으면 ✨+'+(st.b||IS.SET_BONUS))+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else if(fc==='own'){const my=IS.FUR.concat(IS.WFUR).filter(f=>(save.inv[f.k]|0)>0||placed(f.k)>0).sort((a,b)=>(spare(b.k)>0)-(spare(a.k)>0)||b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>아직 가진 가구가 없어요</b><small>다른 칸에서 골라 놓으면 여기 모여요</small>';L.appendChild(h)}}
   else if(fc==='wall')IS.WFUR.forEach(fcard);
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
@@ -583,7 +583,7 @@ function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=RMN(),{gx
  const f=IS.FK[dpick];
  /* 🛒 보관함에 없으면 바로 사지 않고 담아 둬요 → ✔ 완료 때 한꺼번에 계산 */
  let pend=0;if(spare(dpick)<=0){pend=1;toast('🛒 '+f.n+' 담았어요 · 완료할 때 계산해요')}
- const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};if(pend)nw.pend=1;else{const s0=grabS(dpick);if(s0)nw.s=s0}FUR().push(nw);dsel=nw;store();snd('place');IS.bounce(nw);if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+IS.SET_BONUS);snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
+ const was=f.set&&setDone(f.set),nw={k:dpick,x:gx,y:gy,d:0};if(pend)nw.pend=1;else{const s0=grabS(dpick);if(s0)nw.s=s0}FUR().push(nw);dsel=nw;store();snd('place');IS.bounce(nw);if(f.set&&!was&&setDone(f.set)){const st=IS.SETS.find(x=>x.k===f.set);setTimeout(()=>{toast('🎉 '+st.n+' 완성! 꾸미기 ✨+'+(st.b||IS.SET_BONUS));snd('win')},300)}seatWarn();dghost={x:gx,y:gy,ok:true};setTimeout(()=>dghost=null,250);renderDeco()}
 /* 가게 화면 손가락: 움직이면 끌어서 둘러보기, 제자리에서 떼면 톡(꾸미기에서 놓기·고르기), 두 손가락 = 확대·축소(핀치)
    가게에서 다 줄인 상태에서 더 줄이면 🏙️ 거리로, 거리에서 다 키운 상태에서 더 키우면 내 가게로 */
 let drg=null,pin=null;const pts=new Map();const cvPt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}};

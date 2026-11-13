@@ -28,7 +28,12 @@ const FUR=[
  {k:'ptable',n:'체크무늬 식탁',e:'🍽️',p:8000,g:2,c:'sit'},{k:'rattan',n:'라탄 의자',e:'🪑',p:9000,g:2,rot:1,seat:1,c:'sit'},
  {k:'barstool',n:'바 의자',e:'🪑',p:12000,g:2,seat:1,c:'sit'},{k:'beanbag',n:'빈백',e:'🛋️',p:15000,g:2,seat:1,c:'sit'},
  {k:'bartable',n:'바 테이블',e:'🍸',p:25000,g:3,c:'sit'},{k:'marble',n:'대리석 원탁',e:'🍽️',p:60000,g:3,c:'sit'},
- {k:'leather',n:'가죽 소파',e:'🛋️',p:120000,g:4,rot:1,seat:1,c:'sit'},{k:'cloud',n:'구름 소파',e:'☁️',p:400000,g:5,rot:1,seat:1,c:'sit'},
+ {k:'leather',n:'가죽 소파',e:'🛋️',p:120000,g:4,rot:1,seat:1,c:'sit'},{k:'cloud',n:'구름 소파',e:'☁️',p:400000,g:5,rot:1,seat:1,set:'cloud',c:'sit'},
+ /* ☁️ 11/13 VOC '구름 의자랑 어울리는 낮은 탁자 · 구름 의자 더' → 구름 세트 */
+ {k:'c_white',n:'하얀 구름 의자',e:'☁️',p:450000,g:5,rot:1,seat:1,set:'cloud',c:'sit'},{k:'c_pink',n:'솜사탕 구름 의자',e:'💗',p:550000,g:5,rot:1,seat:1,set:'cloud',c:'sit'},
+ {k:'c_sky',n:'별 하늘 구름 의자',e:'⭐',p:550000,g:5,rot:1,seat:1,set:'cloud',c:'sit'},{k:'c_night',n:'밤하늘 구름 의자',e:'🌙',p:800000,g:6,rot:1,seat:1,set:'cloud',c:'sit'},
+ {k:'c_pouf',n:'무지개 구름 쿠션',e:'🌈',p:350000,g:5,rot:1,seat:1,set:'cloud',c:'sit'},
+ {k:'c_table',n:'구름 낮은 탁자',e:'☁️',p:600000,g:5,set:'cloud',c:'sit'},{k:'c_tea',n:'구름 티테이블',e:'🍵',p:700000,g:5,rot:1,set:'cloud',c:'sit'},
  {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
  /* 🎄 크리스마스 세트 (12월 한정 판매 xm:1 · 산 건 계속 써요) — 그림 오기 전엔 이모지 스티커 */
@@ -64,7 +69,7 @@ const FUR=[
  {k:'bbag',n:'봉투 진열대',e:'🛍️',p:3500,g:1,emo:1,b:'#d8b890',z:.46,set:'bungeo',c:'deco'},
  {k:'bflag',n:'붕어 깃발',e:'🎏',p:4500,g:1,as:'fflag',set:'bungeo',c:'deco'},
  {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'}];
-const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'}];
+const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'},{k:'cloud',n:'☁️ 구름 세트',b:3000}]; /* b = 세트 보너스(없으면 SET_BONUS 400) — 비싼 구름 세트는 3,000 */
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 🖼️ 벽 장식: 뒤쪽 두 벽에 거는 물건. 바닥 가구와 같은 save.fur에 담고 자리만 벽(왼쪽 벽 {x:-1,y:칸} · 오른쪽 벽 {x:칸,y:-1}).
@@ -187,7 +192,7 @@ const STK={};
 /* AI 그림 가구 (img/fu): 소품(emo) + 아래 목록. w = 칸 너비 대비 그림 너비, fr = 그림이 오른쪽 아래를 봄, b = 뒷모습 그림(_b) 있음.
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
-const FIMG={p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
+const FIMG={c_white:{w:.72},c_pink:{w:.74},c_sky:{w:.7},c_night:{w:.72},c_pouf:{w:.6},c_table:{w:.95},c_tea:{w:.9},p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
  stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:1.15,r:7},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
