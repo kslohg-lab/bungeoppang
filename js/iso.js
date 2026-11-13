@@ -38,6 +38,19 @@ const FUR=[
  {k:'d_donut',n:'도넛 스툴',e:'🍩',p:3000,g:0,seat:1,set:'dessert',c:'sit'},{k:'d_candy',n:'사탕 화분',e:'🍭',p:4000,g:0,set:'dessert',c:'plant'},{k:'d_cookie',n:'쿠키 탁자',e:'🍪',p:6000,g:1,set:'dessert',c:'sit'},
  {k:'d_mac_p',n:'딸기 의자',e:'🍓',p:8000,g:1,rot:1,seat:1,set:'dessert',c:'sit'},{k:'d_mac_m',n:'민트 마카롱 의자',e:'🟢',p:8000,g:1,rot:1,seat:1,set:'dessert',c:'sit'},{k:'d_lolli',n:'롤리팝 조명',e:'🍭',p:25000,g:2,set:'dessert',c:'lit'},
  {k:'d_sofa',n:'생크림 소파',e:'🍰',p:300000,g:4,rot:1,seat:1,set:'dessert',c:'sit'},{k:'d_cake',n:'딸기 케이크 탁자',e:'🎂',p:1500000,g:5,set:'dessert',c:'sit'},{k:'d_choco',n:'초콜릿 분수',e:'🍫',p:6000000,g:6,set:'dessert',c:'deco'},
+ /* 🏖️ 11/14 바다 세트 */
+ {k:'s_ring',n:'튜브 스툴',e:'🛟',p:3500,g:0,seat:1,set:'sea',c:'sit'},{k:'s_coral',n:'산호 화분',e:'🪸',p:5000,g:0,set:'sea',c:'plant'},{k:'s_drift',n:'유목 탁자',e:'🪵',p:7000,g:1,set:'sea',c:'sit'},
+ {k:'s_shell',n:'조개 의자',e:'🐚',p:9000,g:1,rot:1,seat:1,set:'sea',c:'sit'},{k:'s_light',n:'등대 조명',e:'🗼',p:30000,g:2,glow:1,set:'sea',c:'lit'},{k:'s_lounge',n:'선베드',e:'🏖️',p:80000,g:3,seat:1,set:'sea',c:'sit'},
+ {k:'s_umb',n:'파라솔 테이블',e:'⛱️',p:250000,g:4,set:'sea',c:'sit'},{k:'s_boat',n:'보트 소파',e:'🚣',p:1200000,g:5,seat:1,set:'sea',c:'sit'},{k:'s_whale',n:'고래 분수',e:'🐳',p:8000000,g:6,set:'sea',c:'deco'},
+ /* 🧣 11/14 따뜻한 겨울 세트 (12월에만 살 수 있어요) */
+ {k:'v_log',n:'눈 그루터기 스툴',e:'🪵',p:3000,g:0,seat:1,set:'xmas2',xm:1,c:'sit'},{k:'v_pine',n:'눈 소나무 화분',e:'🌲',p:5000,g:0,set:'xmas2',xm:1,c:'plant'},{k:'v_knit',n:'니트 의자',e:'🧶',p:10000,g:1,rot:1,seat:1,set:'xmas2',xm:1,c:'sit'},
+ {k:'v_cane',n:'캔디케인 조명',e:'🍬',p:35000,g:2,glow:1,set:'xmas2',xm:1,c:'lit'},{k:'v_cocoa',n:'핫초코 탁자',e:'☕',p:120000,g:3,set:'xmas2',xm:1,c:'sit'},{k:'v_snowsofa',n:'눈사람 소파',e:'⛄',p:900000,g:5,rot:1,seat:1,set:'xmas2',xm:1,c:'sit'},
+ {k:'v_globe',n:'대형 스노우볼',e:'🔮',p:7000000,g:6,set:'xmas2',xm:1,c:'deco'},
+ /* 🎨 11/14 인기 가구 색깔 버전 */
+ {k:'bean_p',n:'딸기 빈백',e:'🛋️',p:18000,g:2,seat:1,c:'sit'},{k:'bean_m',n:'민트 빈백',e:'🛋️',p:18000,g:2,seat:1,c:'sit'},{k:'bean_l',n:'라벤더 빈백',e:'🛋️',p:18000,g:2,seat:1,c:'sit'},
+ {k:'mar_p',n:'로즈 대리석 원탁',e:'🍽️',p:70000,g:3,c:'sit'},{k:'mar_k',n:'블랙 대리석 원탁',e:'🍽️',p:70000,g:3,c:'sit'},
+ {k:'lea_p',n:'로즈 가죽 소파',e:'🛋️',p:150000,g:4,rot:1,seat:1,c:'sit'},{k:'lea_n',n:'네이비 가죽 소파',e:'🛋️',p:150000,g:4,rot:1,seat:1,c:'sit'},
+ {k:'cld_p',n:'딸기 구름 소파',e:'☁️',p:450000,g:5,rot:1,seat:1,c:'sit'},{k:'cld_s',n:'하늘 구름 소파',e:'☁️',p:450000,g:5,rot:1,seat:1,c:'sit'},
  {k:'gtable',n:'황금 원탁',e:'👑',p:800000,g:6,c:'sit'},
  {k:'galaxy',n:'은하 수족관',e:'🌌',p:2500000,g:6,emo:1,b:'#1a1a3a',z:.5,tall:.5,glass:1,glow:1,c:'sp'},
  /* 🎄 크리스마스 세트 (12월 한정 판매 xm:1 · 산 건 계속 써요) — 그림 오기 전엔 이모지 스티커 */
@@ -73,7 +86,7 @@ const FUR=[
  {k:'bbag',n:'봉투 진열대',e:'🛍️',p:3500,g:1,emo:1,b:'#d8b890',z:.46,set:'bungeo',c:'deco'},
  {k:'bflag',n:'붕어 깃발',e:'🎏',p:4500,g:1,as:'fflag',set:'bungeo',c:'deco'},
  {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'}];
-const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'},{k:'cloud',n:'☁️ 구름 세트',b:3000},{k:'dessert',n:'🍰 디저트 세트',b:2000}]; /* b = 세트 보너스(없으면 SET_BONUS 400) — 비싼 구름 세트는 3,000 */
+const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'},{k:'cloud',n:'☁️ 구름 세트',b:3000},{k:'dessert',n:'🍰 디저트 세트',b:2000},{k:'sea',n:'🏖️ 바다 세트',b:2000},{k:'xmas2',n:'🧣 따뜻한 겨울 세트 (12월 한정)',b:2000}]; /* b = 세트 보너스(없으면 SET_BONUS 400) — 비싼 구름 세트는 3,000 */
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
 /* 🖼️ 벽 장식: 뒤쪽 두 벽에 거는 물건. 바닥 가구와 같은 save.fur에 담고 자리만 벽(왼쪽 벽 {x:-1,y:칸} · 오른쪽 벽 {x:칸,y:-1}).
@@ -83,9 +96,9 @@ const WFUR=[
  {k:'w_scroll',n:'붕어빵 족자',e:'📜',p:4000,g:1,s:1.05,c:'wall'},{k:'w_mirror',n:'둥근 거울',e:'🪞',p:6000,g:1,c:'wall'},{k:'w_shelf',n:'벽 선반',e:'🫙',p:9000,g:2,h:.5,s:1.08,c:'wall'},
  {k:'w_cert',n:'장인 상장',e:'🎖️',p:12000,g:2,c:'wall'},{k:'w_neon',n:'붕어 네온사인',e:'🐟',p:20000,g:3,glow:1,s:1.05,c:'wall'},{k:'w_plaque',n:'황금 붕어 방패',e:'🛡️',p:45000,g:3,c:'wall'},
  {k:'w_art',n:'명화 액자',e:'🎨',p:80000,g:4,s:1.08,c:'wall'},{k:'w_glass',n:'스테인드글라스',e:'🪟',p:150000,g:5,s:1.08,c:'wall'},{k:'w_relief',n:'황금 붕어 부조',e:'👑',p:400000,g:6,glow:1,s:1.08,c:'wall'},
- {k:'w_wreath',n:'크리스마스 리스',e:'🎄',p:30000,g:0,glow:1,xm:1,c:'wall'},{k:'w_mac',n:'마카롱 벽 선반',e:'🧁',p:40000,g:2,h:.5,s:1.08,c:'wall'}];
+ {k:'w_wreath',n:'크리스마스 리스',e:'🎄',p:30000,g:0,glow:1,xm:1,c:'wall'},{k:'w_mac',n:'마카롱 벽 선반',e:'🧁',p:40000,g:2,h:.5,s:1.08,c:'wall'},{k:'w_wheel',n:'배 키 장식',e:'⚓',p:20000,g:1,h:.5,s:1,c:'wall'},{k:'w_stock',n:'양말 선반',e:'🧦',p:30000,g:1,h:.5,s:1.08,xm:1,c:'wall'}];
 /* 그림이 준비된 벽 장식만 여기에 (없는 파일을 매번 찾지 않게) */
-const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief','w_wreath','w_mac']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
+const WIMG=new Set(['w_frame','w_clock','w_hplant','w_scroll','w_mirror','w_shelf','w_cert','w_neon','w_plaque','w_art','w_glass','w_relief','w_wreath','w_mac','w_wheel','w_stock']);const wImg=k=>WIMG.has(k)?ld('img/fu/'+k+'.webp'):null;
 const WK={};WFUR.forEach(f=>WK[f.k]=f);const CK=k=>FK[k]||WK[k];
 /* 벽 칸: 왼쪽 벽은 간판(0~2칸) 다음부터, 오른쪽 벽은 차양·메뉴판(1~3칸) 다음부터 끝까지. 창문 칸에 걸면 창문은 안 그려요 */
 const wallSlots=(n=N)=>{const L=[];for(let i=3;i<n;i++){L.push({x:-1,y:i});L.push({x:i,y:-1})}return L};
@@ -196,7 +209,7 @@ const STK={};
 /* AI 그림 가구 (img/fu): 소품(emo) + 아래 목록. w = 칸 너비 대비 그림 너비, fr = 그림이 오른쪽 아래를 봄, b = 뒷모습 그림(_b) 있음.
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
-const FIMG={d_donut:{w:.58},d_candy:{w:.52},d_cookie:{w:.72},d_mac_p:{w:.66,b:1},d_mac_m:{w:.66,b:1,fy:1},d_lolli:{w:.42},d_sofa:{w:.8,b:1,fy:1},d_cake:{w:.78},d_choco:{w:.95},c_white:{w:.72,b:1},c_pink:{w:.74,b:1},c_sky:{w:.7,b:1},c_night:{w:.72,b:1},c_pouf:{w:.6,b:1},c_table:{w:.95},c_tea:{w:.9,b:1},p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
+const FIMG={s_ring:{w:.62},s_coral:{w:.55},s_drift:{w:.72},s_shell:{w:.66,b:1},s_light:{w:.42},s_lounge:{w:.8},s_umb:{w:.8},s_boat:{w:.9},s_whale:{w:.9},v_log:{w:.6},v_pine:{w:.5},v_knit:{w:.68,b:1},v_cane:{w:.42},v_cocoa:{w:.75},v_snowsofa:{w:.82,b:1},v_globe:{w:.75},bean_p:{w:.74},bean_m:{w:.74},bean_l:{w:.74},mar_p:{w:.86},mar_k:{w:.86},lea_p:{w:.7,fr:1,b:1},lea_n:{w:.7,fr:1,b:1},cld_p:{w:.9,b:1},cld_s:{w:.9,b:1},d_donut:{w:.58},d_candy:{w:.52},d_cookie:{w:.72},d_mac_p:{w:.66,b:1},d_mac_m:{w:.66,b:1,fy:1},d_lolli:{w:.42},d_sofa:{w:.8,b:1,fy:1},d_cake:{w:.78},d_choco:{w:.95},c_white:{w:.72,b:1},c_pink:{w:.74,b:1},c_sky:{w:.7,b:1},c_night:{w:.72,b:1},c_pouf:{w:.6,b:1},c_table:{w:.95},c_tea:{w:.9,b:1},p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
  stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:1.15,r:7},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
