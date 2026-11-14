@@ -252,7 +252,7 @@ function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');t
 const skyNt=k=>k===2||k===6||!!(SKY[k]&&SKY[k].nt);
 function skyBg(k){const s=SKY[k];if(!s||!s.img)return null;let im=window.ART_IMG&&ART_IMG['bg_'+s.img];if(!im&&typeof ART_LOAD==='function'){ART_LOAD({['bg_'+s.img]:'img/bg_'+s.img+'.webp'});im=ART_IMG['bg_'+s.img]}return{im,gr:s.gr,hf:s.hf}}
 function skyCols(k){let c=SKYC[k]||SKYC[0];if(k===0){const se=seasonNow();if(se===2)c=['#8fcdff','#e6f4ff'];else if(se===3)c=['#b8cde4','#eef4fb'];else if(se===0)c=['#b6e0ff','#f4f9ff']}return c}
-function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),xmas:window.XMAS&&XMAS(),staff:BIZ.useSt(save),f2v:F2V,st:BIZ.f2Of(save)>0,n:F2V?(pv&&pv.k==='room2'?pv.id:BIZ.f2Of(save)):pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),bg:skyBg(sk),night:skyNt(sk),awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
+function look(pv){const sk=id_('sky',pv),wi=id_('wall',pv);return{g:grade(),cafe:BIZ.cafeOn(save),xmas:window.XMAS&&XMAS(),staff:BIZ.useSt(save),f2v:F2V,st:BIZ.f2Of(save)>0,n:F2V?(pv&&pv.k==='room2'?pv.id:BIZ.f2Of(save)):pv&&pv.k==='room'?pv.id:save.room,wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:id_('floor',pv),sky:skyCols(sk),bg:skyBg(sk),night:skyNt(sk),mg:mgKey(),awn:id_('awn',pv),sign:id_('sign',pv),name:nm(),top:id_('top',pv),lit:id_('lit',pv),sL:SIDE[id_('sL',pv)]||SIDE[0],sR:SIDE[id_('sR',pv)]||SIDE[0],mas:MAS[id_('mas',pv)]||MAS[0]}}
 function drawHome(t,deco){
  cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);
  if(deco&&dtabK()==='skin'){SV.preview(t,myD(prev),0,H-DPH+30);return}
@@ -347,7 +347,7 @@ function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!E
  if(e.k==='group'&&e.ch===0){if(e.res==='ok')return'<div class="evl ok">🚌 단체 주문 완료! ✅</div>';if(e.res==='fail')return'<div class="evl">🚌 단체 주문 실패 😢</div>';return'<div class="evl">🚌 단체 주문 '+(e.got|0)+'/'+e.need+'명 · '+hm(Math.max(0,(e.until-Date.now())/3600e3))+' 남음 · 🙋 도와주기!</div>'}
  return e.msg?'<div class="evl">'+T[0]+' '+e.msg+'</div>':''}
 function renderHome(){setTimeout(hmLay,0);unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
- $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+(save.name&&att().n?attLine():'');{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
+ $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+mgLine()+(save.name&&att().n?attLine():'');{const ml=$('mgl');if(ml)ml.onclick=()=>{snd('tap');mgCard()}}{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0)}
 /* 오늘의 사건 카드: 다른 창(자리 비운 동안·새 소식·선물 등)이 다 닫힌 뒤 한 번 자동으로 */
@@ -368,7 +368,7 @@ function hbUse(){const h=hbNow(),m=hbMul(h.n);h.n++;return m}
 function hbTxt(m){const h=hbNow(),left=Math.max(0,HB1-h.n);return m<1?'🎁 오늘 보너스 판을 다 써서 <b>'+Math.round(m*100)+'%</b>만 받아요 · 내일 다시 100%!':'🎁 오늘 보너스 판 <b>'+left+'/'+HB1+'</b> 남았어요'+(left?'':' · 다음 판부터 50%')}
 function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl=goals.map((g,i)=>({g,ok:g.p.ok(res,g.n),was:gd.done[i]}));let star=0,bonus=0;const g0=grade();
  gl.forEach((x,i)=>{if(x.ok&&!x.was){gd.done[i]=1;star++}});const got=gd.done.filter(Boolean).length;if(got===3&&!gd.all){gd.all=1;bonus=500+lv*250}
- const hm=res.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.round((Math.max(0,res.net)-tax)*hm*(1+skBuf().h))+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
+ const hm=res.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,res.net)*BIZ.TAX),gain=Math.round((Math.max(0,res.net)-tax)*hm*(1+skBuf().h)*(1+mgB('shop')))+bonus;save.coins+=gain;BIZ.ledger(save,Date.now()).help+=gain;save.stars+=star;save.served+=res.served;mgCount(res.served,res.perf|0,0);save.days++;save.avg=save.avg?Math.round(save.avg*.7+res.net*.3):Math.max(0,res.net);
  save.bestNet=Math.max(save.bestNet,res.net);save.bestCombo=Math.max(save.bestCombo,res.bc);
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
@@ -385,8 +385,8 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
 let lastHelp='bread';
 const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
 function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}try{if(window.ADS&&ADS.warm)ADS.warm()}catch(e){}CF.start({save,mul:BIZ.beanMul(save),dp:d=>BIZ.dPrice(save,d),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
-function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h));
- save.coins+=gain;save.served+=r.served;save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
+function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h)*(1+mgB('cafe')));
+ save.coins+=gain;save.served+=r.served;mgCount(r.served,0,r.served);save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();
  let h=resTop(gain,r.net,tax,hm)+'<div class="chips"><span class="chip">☕ '+r.served+'잔</span><span class="chip">✨ '+r.perf+'</span><span class="chip">👍 '+r.great+'</span><span class="chip">🙂 '+r.good+'</span><span class="chip'+(r.lost?' red':'')+'">😡 '+r.lost+'</span><span class="chip'+(r.wrong?' red':'')+'">😣 '+r.wrong+'</span><span class="chip'+(r.spill?' red':'')+'">💦 '+r.spill+'</span><span class="chip">🔥 '+r.bc+'</span></div>';
  h+=grpTxt(grp)+adBtn(gain)+chLink();h+='<div class="tip">💡 샷이 내려가는 동안 다른 컵을 만들고, 우유는 초록 온도에서 멈추면 ✨ PERFECT (값 1.5배)</div><div class="chips"><span class="chip">🪙 '+fmt(save.coins)+'</span><span class="chip">🏆 최고 '+fmt(save.cafeBest|0)+'</span></div>';
  $('rt').textContent='☕ 음료 도와주기 끝!';$('rb').innerHTML=h;adBind();scr='res';snd('win');setTimeout(()=>snd('coins'),380);show('res')}
@@ -642,6 +642,41 @@ $('dx').onclick=()=>{if(dMed){dMed=false;prev=null;dtab=0;dsub=0;if(dFit0!=null)
  if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}prev=null;dsel=null;dpick=null;syncShop(true);bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome();
  /* 📸 11/14 꾸미기 점수가 꽤 오르면 하루 한 번 '자랑할까요?' (공짜 홍보) */
  {const sc=decoScore(),up=sc-dSc0,nb=$('nbs');if(up>=Math.max(500,dSc0*.03)&&save.brg!==dayKey()&&nb&&!nb.classList.contains('lk0')&&window.JUICE){save.brg=dayKey();store();setTimeout(()=>JUICE.ask('📸 가게가 더 예뻐졌어요!','꾸미기 ✨+'+fmt(up)+' · 친구에게 가게 사진을 보내 자랑해 볼까요?','다음에',()=>{},'📤 자랑하기',()=>nb.click()),900)}}};
+/* ===== 🦙 11/14 점장 키우기 1단계: 수습생 4명 중 1명을 골라 함께 장사하며 키워요 =====
+   save.mgr={k:고른 수습생,lv:단계,p:{play,srv,pf,cup,dn,dk}=이 단계 들어와서 함께 한 기록,w:선배 선물 받음}
+   미션은 '고른 뒤 함께 한 장사'만 세요 (예전 기록은 안 쳐요 → 모두 수습생부터) · 승급하면 기록을 새로 세요
+   다 크면 특기 보너스(작게) · 2단계(점장 시험 · 2호점 독립)는 출시 뒤에 */
+const MGK=[{k:'al',n:'몽실이',a:'알파카',e:'🦙',sp:'친절',d:'손님에게 상냥해요',m:'shop'},{k:'bv',n:'뚝딱이',a:'비버',e:'🦫',sp:'손재주',d:'붕어빵을 야무지게 구워요',m:'shop'},
+ {k:'cp',n:'느긋이',a:'카피바라',e:'🍊',sp:'느긋함',d:'카페에서 차분하게 음료를 만들어요',m:'cafe'},{k:'mk',n:'망보리',a:'미어캣',e:'👀',sp:'눈치',d:'지나가는 손님을 잘 불러와요',m:'all'}];
+const MGRB=[0,.01,.03,.05],MGRB2=[0,.01,.02,.03];
+function mgr(){let M=save.mgr;if(!M||typeof M!=='object'||!('p' in M)){M=save.mgr={k:null,lv:0,p:{},w:0}}if(!M.p||typeof M.p!=='object')M.p={};return M}
+const mgOf=()=>MGK.find(x=>x.k===mgr().k)||null;
+function mgKey(){const M=mgr();if(!save.name||!M.k)return null;const k='mg_'+M.k+Math.min(3,M.lv|0);if(!(window.ART_IMG&&ART_IMG[k])&&typeof ART_LOAD==='function')ART_LOAD({[k]:'img/'+k+'.webp'});return k}
+const mgB=mode=>{const o=mgOf();if(!o)return 0;const L=Math.min(3,mgr().lv|0);return o.m==='all'?MGRB2[L]:o.m===mode?MGRB[L]:0};
+function mgCount(srv,pf,cup){const M=mgr();if(!M.k)return;const p=M.p,dk=dayKey();p.play=(p.play|0)+1;p.srv=(p.srv|0)+(srv|0);p.pf=(p.pf|0)+(pf|0);p.cup=(p.cup|0)+(cup|0);if(p.dk!==dk){p.dk=dk;p.dn=(p.dn|0)+1}}
+const MGRN={play:'🤝 함께 장사',srv:'🙋 함께 손님 대접',pf:'✨ 함께 완벽하게 굽기',cup:'☕ 함께 카페 음료',dn:'📅 함께 일한 날'};
+const MGR_=[{n:'수습생',e:'🐣'},{n:'정식 직원',e:'🧑‍🍳'},{n:'매니저',e:'📋'},{n:'점장 후보',e:'🎓'}];
+const mgMis=lv=>lv===0?[['play',3],['srv',80],['pf',30]]:lv===1?[['play',8],['srv',250],BIZ.cafeOn(save)?['cup',40]:['pf',80],['dn',3]]:lv===2?[['play',15],['srv',500],['dn',7]]:null;
+const mgRw=lv=>lv===0?{t:'🪙 '+fmt(Math.max(10000,r1k((save.avg|0)*1.5))),f:()=>{save.coins+=Math.max(10000,r1k((save.avg|0)*1.5))}}:lv===1?{t:'🎫 강화권 3장',f:()=>{save.tix=(save.tix|0)+3}}:{t:'🏅 메달 10개',f:()=>{if(window.MEDAL)MEDAL.add(10)}};
+const mgDone=()=>{const m=mgMis(mgr().lv);return m?m.filter(([k,n])=>(mgr().p[k]|0)>=n).length:0};
+const mbar=(a,b,col)=>'<div style="height:12px;border-radius:6px;background:rgba(0,0,0,.12);overflow:hidden;margin:3px 0 2px"><div style="height:100%;width:'+Math.max(3,Math.min(100,a/b*100))+'%;background:'+col+';border-radius:6px"></div></div>';
+function mgLine(){if(!save.name)return'';const M=mgr(),o=mgOf();if(!o)return'<div class="evl" id="mgl" style="background:#ffe08a">🐣 <b>수습생이 왔어요! 함께 일할 친구를 골라요 ›</b></div>';
+ const st=MGR_[M.lv],m=mgMis(M.lv);if(!m)return'<div class="evl" id="mgl" style="background:#efe6ff">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · 🏪 2호점 준비 중 ›</div>';
+ const d=mgDone(),all=d>=m.length;return'<div class="evl" id="mgl" style="background:'+(all?'#ffe08a':'#fff0e0')+'">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · '+(all?'<b>🎉 승급할 수 있어요! ›</b>':'승급 미션 '+d+'/'+m.length+' ›')+'</div>'}
+function mgPick(){let h='<div class="sum" style="text-align:center"><small>함께 장사하며 키울 수습생을 1명 골라요<br>잘 키우면 언젠가 🏪 <b>2호점 점장</b>이 돼요 · 다음 수습생은 그때 골라요</small></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+ MGK.forEach(o=>{h+='<button class="mgp" data-k="'+o.k+'" style="height:auto;padding:8px 4px;border-radius:16px;background:#fff8ec;display:block;width:100%"><img src="img/mg_'+o.k+'0.webp" alt="" style="height:96px;display:block;margin:0 auto 2px"><b style="font-size:16px">'+o.e+' '+o.n+'</b><br><small style="font-weight:400">'+o.a+' · 특기 '+o.sp+'<br>'+o.d+'</small></button>'});
+ h+='</div><div class="sum"><small>💡 특기 보너스는 작아요 (다 커도 3~5%) · 마음에 드는 친구를 골라요</small></div>';
+ bzShow('🐣','수습생 고르기',h,'다음에 고를게요',()=>bzHide());
+ document.querySelectorAll('.mgp').forEach(b=>b.onclick=()=>{const o=MGK.find(x=>x.k===b.dataset.k),M=mgr();M.k=o.k;M.lv=0;M.p={};let g='';if(!M.w&&(save.served|0)>0){M.w=1;save.tix=(save.tix|0)+3;g=' · 🎁 선배 사장님 선물 🎫 강화권 3장!'}store();snd('win');if(window.JUICE)JUICE.confetti(50);toast(o.e+' '+o.n+'와(과) 함께 일해요!'+g);bzHide();renderHome();setTimeout(mgCard,500)})}
+function mgCard(){const M=mgr(),o=mgOf();if(!o){mgPick();return}const L=M.lv,st=MGR_[L],nx=MGR_[L+1],m=mgMis(L);
+ let h='<div style="text-align:center"><img src="img/mg_'+o.k+Math.min(3,L)+'.webp" alt="" style="height:130px"></div><div class="sum" style="text-align:center"><b>'+st.e+' '+st.n+' '+o.n+'</b> <small>('+o.a+' · 특기 '+o.sp+')</small><br><small>장사할 때마다 '+o.n+'이(가) 함께 일해요 · 함께 한 장사만 미션에 쳐요</small></div>';
+ if(m){h+='<div class="sum"><b>'+nx.e+' '+nx.n+'(으)로 승급하려면</b>';m.forEach(([k,n])=>{const v=Math.min(n,M.p[k]|0);h+='<div style="margin-top:6px"><small>'+(v>=n?'✅ ':'')+MGRN[k]+' <b>'+fmt(v)+'</b> / '+fmt(n)+'</small>'+mbar(v,n,v>=n?'#7cc86a':'#ffb35a')+'</div>'});h+='<small>🎁 승급 선물: '+mgRw(L).t+'</small></div>'}
+ else h+='<div class="sum"><small>🎓 점장 시험과 🏪 2호점 독립은 곧 열려요! 조금만 기다려 주세요</small></div>';
+ {const b0=Math.round(mgB(o.m==='cafe'?'cafe':'shop')*100),bx=Math.round((o.m==='all'?MGRB2[3]:MGRB[3])*100),md=o.m==='cafe'?'☕ 카페 수익':o.m==='all'?'🏪 가게·☕ 카페 수익':'🏪 가게 수익';h+='<div class="sum"><small>⭐ 특기 보너스: '+md+' <b>+'+b0+'%</b> (다 크면 +'+bx+'%)</small></div>'}
+ h+='<div class="sum"><small>'+MGR_.map((x,i)=>(i<=L?'<b>':'<span style="opacity:.45">')+x.e+' '+x.n+(i<=L?'</b>':'</span>')).join(' → ')+'</small></div>';
+ const all=m&&mgDone()>=m.length;
+ bzShow(o.e,'점장 키우기',h,all?'🎉 승급하기':'🙋 함께 장사하러 가기',all?mgUp:()=>{bzHide();$('h1').click()},'닫기',()=>bzHide())}
+function mgUp(){const M=mgr(),L=M.lv,m=mgMis(L);if(!m||mgDone()<m.length)return;const rw=mgRw(L);rw.f();M.lv=L+1;M.p={dk:M.p.dk};store();snd('win');if(window.JUICE)JUICE.confetti(80);toast('🎉 '+mgOf().n+'이(가) '+MGR_[L+1].e+' '+MGR_[L+1].n+'(으)로 승급! 선물 '+rw.t);bzHide();renderHome();setTimeout(mgCard,600)}
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  let h='<div class="srow"><span>⭐ 별<b>'+save.stars+'</b></span><span>🏅 등급<b>'+GR[g].e+'</b></span><span>📖 도감<b>'+nd+'/'+R.an.length+'</b></span></div>';
@@ -695,7 +730,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
  front:t=>{shopAwning();const g=cx.createLinearGradient(0,318,0,330);g.addColorStop(0,'#b97d4a');g.addColorStop(1,'#a06a3a');cx.fillStyle=g;cx.fillRect(0,318,W,8)},
  head:t=>{rr(0,0,W,58,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(s.wea.e+' 🏪Lv'+run.day,12,18,20,'#fff','left');tx('🪙 '+fmt(save.coins+s.net),388,18,ui.hud>0?27:22,ui.hud>0?'#fff6c0':'#ffe9a0','right');
   const r=live(),gd=gdone();goals.forEach((g,i)=>{const ok=gd.done[i]||g.p.ok(r,g.n),x=8+i*146;rr(x,34,138,20,10,ok?'#4fa860':'rgba(0,0,0,.3)');tx((ok?'✅':'')+g.p.sh(r,g.n),x+69,44,13,'#fff','center','rgba(0,0,0,.4)')})},
- mid:t=>{if(save.eq.mas>0){const M=MAS[save.eq.mas];if(M.e==='🌟')fish(30,300+Math.sin(t*3)*3,.3,'#ffcf3a','#a87010');else em(M.e,26,298+Math.sin(t*3)*3,30)}},
+ mid:t=>{{const k=mgKey(),im=k&&window.ART_IMG&&ART_IMG[k];if(im&&im.complete&&im.naturalWidth){const h=66*im.naturalHeight/230,w=h*im.naturalWidth/im.naturalHeight,b=Math.abs(Math.sin(t*2))*3;cx.drawImage(im,404-w/2,326-h-b,w,h);const L=mgr().lv|0,ph=(t%8);if(ph<1.3){const msg=L===0?(ph<.65?'앗!':'에헤헤'):L===1?'어서 오세요!':L===2?'잘하고 있어요!':'오늘도 화이팅!';rr(404-46,326-h-30,92,24,12,'rgba(255,255,255,.92)');tx(msg,404,326-h-18,13,'#7a4a2a','center')}}}if(save.eq.mas>0){const M=MAS[save.eq.mas];if(M.e==='🌟')fish(30,300+Math.sin(t*3)*3,.3,'#ffcf3a','#a87010');else em(M.e,26,298+Math.sin(t*3)*3,30)}},
  fx:()=>{if(s.wea.e==='☀️')seasonFx(s.t,W,700,.6)}})}
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
@@ -839,7 +874,7 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 let rfdT=Date.now()-300e3; /* 11/11 남은 차액은 한 번에 (클라우드 규칙 +1억 허용 · 1억 넘게 남으면 5분 뒤 나머지) */
 function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(95e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분 뒤)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();lkTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
-window.__shop={gradeCard:()=>gradeCard(),freeN:()=>freeN(),openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={gradeCard:()=>gradeCard(),mgCard:()=>mgCard(),mgr:()=>mgr(),mgCount:(a,b,c)=>mgCount(a,b,c),freeN:()=>freeN(),openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🚪 11/10 입구를 3시로 옮긴 뒤 처음: 문·길을 막는 가구는 보관함으로 (★은 그대로 보관) */
 if(!save.d4){save.d4=1;const n=stClr();store();if(n&&save.name)setTimeout(()=>bzShow('🪜','계단이 입구 옆으로 옮겨졌어요!','<p style="text-align:center;margin:0">이제 계단이 <b>입구 바로 옆</b>에 있어서<br>가구 때문에 2층 길이 막히지 않아요.<br><br>새 계단 자리에 있던 가구 <b>'+n+'개</b>는 📦 보관함에 넣어 뒀어요.</p>','🎨 꾸미러 가기',()=>openDeco('home')),2200)}

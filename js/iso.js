@@ -521,6 +521,10 @@ function staffBack2(t,look){const S=look.staff||{};
  if(S.bake>0){const q=behind(2.85,.32,.36);animal(stKey('bake','🐶'),q.x,q.y,q.s,{t,ph:5,mood:'h'});
   const hop=m2(t*.8,1);if(hop<.5){const u=hop/.5;A.bread(q.x-q.s*.42,q.y+q.s*.55-Math.sin(u*Math.PI)*q.s*.55,TW*.0024,'#f0b850',{rot:u*Math.PI*2,plain:true})}}}
 /* 앞쪽 직원: 🐰 계산 알바는 카운터 왼쪽 바닥(계산대), 🦊 홍보 알바는 입구 앞 길가 */
+/* 🦙 11/14 점장 키우기: 몽실이는 카운터 앞쪽 빈 칸에 서 있어요 (가구 없는 칸만) */
+function mgFront(t,look,items,L){if(!look.mg||FL)return;const im=window.ART_IMG&&window.ART_IMG[look.mg];if(!im||!im.complete||!im.naturalWidth)return;
+ for(const [x,y] of [[0,2],[1,2],[0,3],[2,2],[1,3],[3,2],[0,4]]){if(!inRoom(x,y)||isPath(x,y)||isCounter(x,y)||occAt(items,x,y))continue;const gx=x+.5,gy=y+.45;
+  L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),h=TW*.68*im.naturalHeight/230,w=h*im.naturalWidth/im.naturalHeight,b=Math.abs(Math.sin(t*1.8))*TW*.025;shadow(p.x,p.y,w*.3);cx.drawImage(im,p.x-w/2,p.y-h-b+TW*.03,w,h)}});return}}
 function staffFront(t,look,L){const S=look.staff||{};
  /* 🏢 2호 알바 (2층이 생기면, 그림 있을 때만): 🐹 굽기 2호는 카운터 오른쪽 옆(벽 쪽, 줄 서는 길 밖) · 🐧 계산 2호는 🐰 옆에서 포장 */
  if(S.bake2>0&&stImg('bake2')){const gx=3.38,gy=.36;L.push({z:gx+gy+.3,f:()=>{const p=iso(gx,gy),s=TW*.37,hop=m2(t*.7+.5,1),y=p.y-s*.88;shadow(p.x,p.y,s*.3);animal('st_bake2',p.x,y,s,{t,ph:11,mood:'h'});
@@ -593,7 +597,7 @@ function draw(t,look,items,o={}){FL=look.f2v?1:0;ST=look.st?1:0;layout(look.n,o.
  drawSky(look,t);drawGround(look,t);drawWalls(look,t,items);drawWallItems(items,t,o);drawFloor(look,t,o.edit,items);
  const L=[];for(const it of items)if(FK[it.k]&&inRoom(it.x,it.y))L.push({z:(()=>{const C=cells(it);return C.reduce((a,q)=>a+q.x+q.y,0)/C.length})()+1+(FK[it.k].flat?-.9:0),f:()=>drawB(it,t,o.sel===it)});
  if(FL)L.push({z:N,f:stairRail});else{if(ST)L.push({z:N,f:stairUp});
- L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)})}
+ L.push({z:.2,f:()=>counterUp(t,look,true)});L.push({z:1.4,f:()=>{drawCounter(t,look);counterUp(t,look,false)}});{const a=SIDE_L(),b=SIDE_R();L.push({z:a.gx+a.gy,f:()=>drawSide(look.sL,a)});L.push({z:b.gx+b.gy,f:()=>drawSide(look.sR,b)})}mgFront(t,look,items,L);staffFront(t,look,L);if(look.mas&&look.mas.e&&look.mas.e!=='➖')L.push({z:pet.x+pet.y,f:()=>drawPet(look,t)})}
  if(!o.noCust)for(const c of FL?cust2:cust)L.push({z:c.x+c.y+(c.st==='sit'?.05:0),f:()=>drawCust(c,t)});
  L.sort((a,b)=>a.z-b.z).forEach(q=>q.f());drawChandelier(look,t);
  if(look.xmas&&window.SNOW)SNOW(cx,t,40,Math.min(800,OY+N*TH+40),Math.round(30+N*3));
