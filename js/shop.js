@@ -513,7 +513,7 @@ const dtabK=()=>{const g=DT()[dtab]||DT()[0];return g.sl?g.sl[Math.min(dsub,g.sl
 /* 꾸미기는 처음부터 방 전체가 아래 판 위에 보이게 (나갈 때 원래 보기로) */
 let dFit0=null;
 function openMedal(from){dMed=true;openDeco(from||'home');dtab=0;dsub=0;const L=SKIN.map((it,i)=>i).filter(i=>SKIN[i].m);prev={k:'skin',id:L.find(i=>!save.own.skin.includes(i))??L[0]};renderDeco()}
-function openDeco(from,room){if(!dMed)dMed=false;if(dFit0==null){dFit0=IS.fit;IS.fit=true;IS.resetPan();zfK=''}save.dHint=(save.dHint|0)+1;dback=from;dtab=room?DG.length-1:0;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
+let dSc0=0;function openDeco(from,room){dSc0=decoScore();if(!dMed)dMed=false;if(dFit0==null){dFit0=IS.fit;IS.fit=true;IS.resetPan();zfK=''}save.dHint=(save.dHint|0)+1;dback=from;dtab=room?DG.length-1:0;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
 function lockOf(it){if(it.xm&&!(window.XMAS&&XMAS()))return'🔒 12월 한정';if(it.f2&&!BIZ.f2Of(save))return'🔒 🏢 2층을 올리면';if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3600e3);return'🔒 '+(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 공개'}if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
 const f0=k=>IS.CK(k)||{n:'',p:0};const placed=k=>allFur().filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 const pendList=()=>{const L=allFur().filter(f=>f.pend);return{L,n:L.length,sum:L.reduce((a,f)=>a+((IS.CK(f.k)||{}).p||0),0)}};
@@ -639,7 +639,9 @@ let zfK='';function zfSync(){const b=$('zf'),hm=scr==='home'&&$('hm').style.disp
  $('nst').style.display=hm?'block':'none';$('nms').style.display=hm?'block':'none';b.style.display=on?'block':'none';if(!on)return;b.textContent=IS.fit?'🔎 크게 보기':'🔍 전체 보기';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
 $('dx').onclick=()=>{if(dMed){dMed=false;prev=null;dtab=0;dsub=0;if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}scr='home';toHome();return}const pd=pendList();if(pd.n){const buy=()=>{if(save.coins<pd.sum){toast('코인이 부족해요! 🪙'+fmt(pd.sum-save.coins)+' 모자라요');snd('no');renderDeco();return}save.coins-=pd.sum;pd.L.forEach(f=>{delete f.pend;save.inv[f.k]=(save.inv[f.k]||0)+1});store();snd('buy');if(window.JUICE)JUICE.confetti(50);toast('🛒 '+pd.n+'개 구입! −🪙'+fmt(pd.sum));$('dx').onclick()},drop=()=>{save.fur=save.fur.filter(f=>!f.pend);save.fur2=(save.fur2||[]).filter(f=>!f.pend);dsel=null;store();renderDeco();toast('담아 둔 가구를 뺐어요')};
   JUICE.ask('🛒 '+pd.n+'개를 살까요?','합계 🪙'+fmt(pd.sum)+' · 가진 돈 🪙'+fmt(save.coins),'↩️ 사지 않고 빼기',drop,'🪙 '+fmt(pd.sum)+' 사기',buy);return}
- if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}prev=null;dsel=null;dpick=null;syncShop(true);bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome()};
+ if(dFit0!=null){IS.fit=dFit0;dFit0=null;IS.resetPan();zfK=''}prev=null;dsel=null;dpick=null;syncShop(true);bizBtn();if(dback==='res'){scr='res';show('res')}else if(dback==='up'){scr='up';renderUp(true);show('up')}else toHome();
+ /* 📸 11/14 꾸미기 점수가 꽤 오르면 하루 한 번 '자랑할까요?' (공짜 홍보) */
+ {const sc=decoScore(),up=sc-dSc0,nb=$('nbs');if(up>=Math.max(500,dSc0*.03)&&save.brg!==dayKey()&&nb&&!nb.classList.contains('lk0')&&window.JUICE){save.brg=dayKey();store();setTimeout(()=>JUICE.ask('📸 가게가 더 예뻐졌어요!','꾸미기 ✨+'+fmt(up)+' · 친구에게 가게 사진을 보내 자랑해 볼까요?','다음에',()=>{},'📤 자랑하기',()=>nb.click()),900)}}};
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  let h='<div class="srow"><span>⭐ 별<b>'+save.stars+'</b></span><span>🏅 등급<b>'+GR[g].e+'</b></span><span>📖 도감<b>'+nd+'/'+R.an.length+'</b></span></div>';

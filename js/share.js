@@ -27,8 +27,8 @@ function shop(o){const W=1080,H=1350,cv=document.createElement('canvas');cv.widt
  base(c,W,H,'#8fd0ff','#fff1dc');
  tx(c,'🏪 '+o.name,W/2,100,72,'#fff8ec','center','#3a6a8a',12);tx(c,'Lv'+o.lv+' · ✨ 꾸미기 '+String(o.sc).replace(/\B(?=(\d{3})+(?!\d))/g,',')+(o.lk?' · ❤️ '+o.lk:''),W/2,178,38,'#2a4a6a');
  rr(c,60,226,W-120,820,40,'#fff');
- if(o.snap){const s=o.snap,k=Math.min((W-150)/s.width,790/s.height),w=s.width*k,h=s.height*k;c.save();c.beginPath();c.roundRect(75,241,W-150,790,30);c.clip();c.drawImage(s,(W-w)/2,241+(790-h)/2,w,h);c.restore()}
- rr(c,170,1080,W-340,96,48,'#5a3a22');tx(c,'내 가게 구경 와! 🐟',W/2,1128,48,'#fff6d0');
+ if(o.snap){/* 11/14 빈 하늘은 잘라서 가게를 더 크게 */const s=o.snap,sh=Math.min(s.height,Math.round(s.width*790/(W-150))),sy=s.height-sh,k=Math.min((W-150)/s.width,790/sh),w=s.width*k,h=sh*k;c.save();c.beginPath();c.roundRect(75,241,W-150,790,30);c.clip();c.fillStyle='#a8dc8a';c.fillRect(75,241,W-150,790);c.drawImage(s,0,sy,s.width,sh,(W-w)/2,241+(790-h)/2,w,h);c.restore()}
+ rr(c,170,1080,W-340,96,48,'#5a3a22');tx(c,'🐟 붕어빵 가게 게임 · 구경 와!',W/2,1128,44,'#fff6d0');
  foot(c,W,H,o.url);return cv}
 /* ---------- 공유 ---------- */
 let ov=null;
