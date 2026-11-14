@@ -164,7 +164,7 @@ function seatOk(items,seat,n=N){const d=DOOR(n),b=blockSet(items,n);return!!bfs(
 function deadSeats(items,n=N){const blk=blockSet(items,n),s=STT(n),seen=new Set([s.gx+','+s.gy]),q=[[s.gx,s.gy]];
  while(q.length){const [x,y]=q.shift();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,kk=nx+','+ny;if(!inRoom(nx,ny,n)||isCounter(nx,ny)||seen.has(kk)||blk.has(kk))continue;seen.add(kk);q.push([nx,ny])}}
  let c=0;for(const it of items||[])if(FK[it.k]&&FK[it.k].seat)for(const sl of slotsOf(it))if(![[0,0],[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>seen.has((sl.x+dx)+','+(sl.y+dy))))c++;return c}
-function okPlace(items,gx,gy,k,mv,n=N,d){d=d==null?(mv?mv.d|0:0):d;if(!fitAt(items,k,gx,gy,d,mv,n))return false;if(walkF(FK[k]))return true;const its=items.filter(it=>it!==mv).concat([{k,x:gx,y:gy,d}]);if(FL)return deadSeats(its,n)<=deadSeats(items,n);return!!mainRoute(its,n)}
+function okPlace(items,gx,gy,k,mv,n=N,d){d=d==null?(mv?mv.d|0:0):d;if(!fitAt(items,k,gx,gy,d,mv,n))return false;if(walkF(FK[k]))return true;const its=items.filter(it=>it!==mv).concat([{k,x:gx,y:gy,d}]);/* 11/14 VOC: 2층도 1층처럼 — 놓는 건 막지 않고, 손님이 못 가는 의자가 생기면 ⚠️ 알림만 (계단 칸은 fitAt이 막아요) */if(FL)return true;return!!mainRoute(its,n)}
 /* 돌리기: 다음 방향 중 놓을 수 있는 방향 (없으면 null) */
 /* 돌리기 순서는 시계 방향: 0 왼쪽 아래 → 1 오른쪽 아래 → 3 오른쪽 위 → 2 왼쪽 위 (두 번 돌리면 정확히 반대 = 180°) */
 const RING=[0,1,3,2];
