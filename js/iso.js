@@ -335,8 +335,8 @@ function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP(
    if(c.w>1.2&&ST&&UP2>0&&Math.random()<UP2){const s=tileOf(c),r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>isSt(x,y));if(r){c.st='up';c.route=r.slice(1).map(ctr);say(c,'⬆️ 2층 가 볼래요');continue}}
    if(c.w>1.2){const ch=free(),s=tileOf(c),r=ch&&bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===ch.x&&y===ch.y);
     if(r){c.seat=ch;c.sx=ch.x;c.sy=ch.y;c.st='go';c.route=r.slice(1).map(ctr)}else{c.st='out';c.route=pathOut(items,c)}}}
-  else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
-  else if(c.st==='sit'){c.w+=dt;if(c.w>4.5){c.st='out';c.route=pathOut(items,c);if(c.seat)LASTS.set(c.seat,performance.now());c.seat=null;say(c,'또 올게요 👋')}}
+  else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;c.sd=12+Math.random()*12;say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
+  else if(c.st==='sit'){c.w+=dt;if(c.w>(c.sd||12)){c.st='out';c.route=pathOut(items,c);if(c.seat)LASTS.set(c.seat,performance.now());c.seat=null;say(c,'또 올게요 👋')}}
   if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=1.6*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else if(c.st!=='q')c.mv=0}
  cust=cust.filter(c=>!((c.st==='out'||c.st==='up')&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0)}
 /* 🏢 2층 손님: 계단(0,N-1)에서 올라와 빈 자리에 앉았다가 다시 계단으로 내려가요 (1층에서 '⬆️' 한 손님과 비슷한 빈도) */
@@ -347,8 +347,8 @@ function step2(dt,items){const seats=[];for(const it of items)if(FK[it.k]&&FK[it
   if(r)cust2.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N-1.5,y:.5,st:'go',seat:ch,route:r.slice(1).map(ctr),t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]})}}
  for(const c of cust2){c.t+=dt;if(c.bt>0)c.bt-=dt;
   if(c.seat&&!items.includes(c.seat.it)&&c.st!=='out'){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr)}
-  if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;say(c,['😍 2층 최고!','🌇 경치 좋다~','😋 여기서 먹을래요'][c.id%3])}
-  else if(c.st==='sit'){c.w=(c.w||0)+dt;if(c.w>6){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr);say(c,'잘 먹었어요 👋')}}
+  if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;c.sd=14+Math.random()*12;say(c,['😍 2층 최고!','🌇 경치 좋다~','😋 여기서 먹을래요'][c.id%3])}
+  else if(c.st==='sit'){c.w=(c.w||0)+dt;if(c.w>(c.sd||14)){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr);say(c,'잘 먹었어요 👋')}}
   if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=1.6*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else c.mv=0}
  cust2=cust2.filter(c=>!(c.st==='out'&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0)}
 function reset(){cust=[];spawnT=1.2;cust2=[];spawn2=.6}
