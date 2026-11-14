@@ -239,8 +239,14 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=save.served|0,lv=shopLv(),sc=
   h+='<div class="sum"><b>⭐ 가게 평점: '+R0.v.toFixed(1)+'</b> <small>(손님 '+(m>=1?'+':'−')+Math.round(Math.abs(m-1)*100)+'%)</small>'+bar(R0.v-1,4,'#ffb04a');
   if(R0.rv&&R0.rv.length)h+='<small>💬 '+R0.rv.map(x=>'"'+x+'"').join(' · ')+'</small><br>';
   h+='<small>'+(R0.why&&R0.why.length?R0.why.map(([k,v])=>W[k]+' '+(v>0?'▲':'▼')).join(' · ')+'<br>':'')+'하루에 한 번 바뀌어요 · 줄이 밀리지 않게, 값은 알맞게, 예쁘게 꾸미고, 도와주기에서 ✨완벽하게 구우면 올라요</small></div>'}
- bzShow(GR[g].e,'등급 · 레벨 안내',h,'🙋 도와주러 가기',()=>$('h1').click(),'🎨 꾸미러 가기',()=>openDeco('home'))}
-function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ⭐'+BIZ.rt(save).v.toFixed(1)+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
+{const cb=Math.round(charmBonus()*100),cap=Math.round(BIZ.charmCap(save)*100);
+  h+='<div class="sum"><b>✨ 매력: +'+cb+'%</b> <small>(지금 가게 크기에서 최대 +'+cap+'%)</small>'+bar(cb,Math.max(1,cap),'#ff9ac0')+'<small>손님이 내는 돈이 +'+cb+'% 늘어요 · 가구·꾸밈을 놓을수록 오르고, 가게를 넓히면 최대치가 올라가요'+(cb>=cap?'<br>👉 <b>최대치예요!</b> 가게를 넓히면 더 오를 수 있어요':'')+'</small></div>'}
+ {const nx2=IS.ROOM.find(r=>r.n===save.room+1),fr=(()=>{const v=F2V;F2V=false;const c=freeN();F2V=v;return c})();
+  h+='<div class="sum"><b>🪑 가구를 더 놓고 싶다면?</b><br><small>지금 1층 <b>'+save.room+'×'+save.room+'</b> · 빈 칸 '+fr+'개<br>'+(nx2?'🎨 꾸미기 › <b>📐 넓히기</b>에서 '+nx2.n+'×'+nx2.n+'로 넓혀요 (🪙'+fmt(nx2.p)+(nx2.g>g?' · '+GR[nx2.g].e+' '+GR[nx2.g].n+' 등급부터':'')+')':BIZ.f2Next(save)?'1층은 가장 넓어요 · 📐 넓히기에서 <b>🏢 2층</b>을 올려요':'1층·2층 모두 가장 넓어요 🎉')+'</small>'+(nx2||BIZ.f2Next(save)?'<button id="gcR" style="display:block;width:100%;margin-top:8px;height:44px;font-size:16px">📐 넓히기 보러 가기</button>':'')+'</div>'}
+ h+='<div class="sum"><small>🪙 <b>코인</b>: 장사로 벌어요 · 가구·넓히기·직원에 써요<br>🏅 <b>메달</b>: 🔥 챌린지에서 모아요 · 메달 상점의 특별 외관에 써요</small></div>';
+ save.hudT=1;store();
+ bzShow(GR[g].e,'등급 · 레벨 안내',h,'🙋 도와주러 가기',()=>$('h1').click(),'🎨 꾸미러 가기',()=>openDeco('home'));{const b=$('gcR');if(b)b.onclick=()=>{bzHide();openDeco('home',true);if(save.room>=11&&BIZ.f2Of(save)>0)setF2V(true)}}}
+function hud(){rr(0,0,W,64,0,typeof THEME!=='undefined'?THEME.hud():'#8a5a3a');tx(nm(),12,22,24,'#fff','left');tx(GR[grade()].e+' '+GR[grade()].n+' · 🏪Lv'+shopLv()+' · ⭐'+BIZ.rt(save).v.toFixed(1)+' · ✨+'+Math.round(charmBonus()*100)+'% ⓘ',12,48,15,'#ffe9a0','left');{const tv=save.coins;if(hud.cv==null||Math.abs(tv-hud.cv)>1e9)hud.cv=tv;const up=tv>hud.cv+.5;hud.cv+=(tv-hud.cv)*.14;if(Math.abs(tv-hud.cv)<1)hud.cv=tv;tx('🪙 '+fmt(Math.round(hud.cv)),438,22,up?25:22,up?'#fff6c0':'#ffe9a0','right')}if(!save.hudT&&scr==='home'){const a=.75+.25*Math.sin(Date.now()/260);cx.save();cx.globalAlpha=a;rr(140,70,170,30,15,'#5a3a22');tx('👆 위 숫자를 누르면 설명',225,90,14,'#fff6c0','center');cx.restore()}lvWatch();tx(dateStr()+' '+SEAS[seasonNow()].split(' ')[0],438,48,15,'#fff','right')}
 /* 가게 모습 (아이소메트릭): 꾸밈 칸 + 놓은 가구. pv=꾸미기 미리보기 */
 /* 밤 하늘인지 · 그림 배경 (처음 쓸 때 받아요) */
 const skyNt=k=>k===2||k===6||!!(SKY[k]&&SKY[k].nt);
@@ -487,8 +493,12 @@ let dback='home',dsel=null,dpick=null,dghost=null;
 /* 꾸미기 탭 4개: 가구 / 벽·바닥 / 간판·장식 / 넓히기 (벽·바닥·장식은 아래 작은 칸으로 고르기) */
 const DPH=324; /* 꾸미기 아래 판 높이 */
 const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'skin',n:'🏠 외관',sl:['skin']},{k:'room',n:'📐 넓히기'}];
-let dsub=0,fcat=1;
-const FCAT=[{k:'own',n:'📦 내 가구'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'prem',n:'💎 프리미엄'},{k:'wall',n:'🖼️ 벽 장식'}];
+let dsub=0,fcat=2;
+/* 🆕 11/14 새로 나온 가구: 나온 날부터 2주 동안 'NEW' + 🆕 칸 (키 앞부분 → 나온 날) */
+const NEWP=[['c_',Date.UTC(2026,10,12)],['d_',Date.UTC(2026,10,13)],['w_mac',Date.UTC(2026,10,13)],['s_',Date.UTC(2026,10,14)],['v_',Date.UTC(2026,10,14)],['w_wheel',Date.UTC(2026,10,14)],['w_stock',Date.UTC(2026,10,14)],['bean_',Date.UTC(2026,10,14)],['mar_',Date.UTC(2026,10,14)],['lea_',Date.UTC(2026,10,14)],['cld_',Date.UTC(2026,10,14)]];
+const isNewF=k=>{const p=NEWP.find(([q])=>k.indexOf(q)===0);return!!p&&Date.now()<p[1]+15*864e5};
+const FCAT=[{k:'own',n:'📦 내 가구'},{k:'new',n:'🆕 새로 나온'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'prem',n:'💎 프리미엄'},{k:'wall',n:'🖼️ 벽 장식'}];
+if(IS.FUR.some(f=>isNewF(f.k)))fcat=1;
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
 const thumbOf=k=>{if(THC[k])return THC[k];const v=TI.thumb(k);if(TI.imgReady(k))THC[k]=v;return v};
@@ -518,20 +528,24 @@ function buildF2(){const first=!BIZ.f2Of(save),nx=BIZ.f2Next(save);if(!nx)return
  if(scr==='deco')renderDeco();else if(scr==='up')renderUp(true);bizBtn()}
 function setF2V(v){if(F2V===!!v)return;F2V=!!v&&BIZ.f2Of(save)>0;IS.resetPan();dsel=null;dghost=null;IS.reset();hPre=0;if(scr==='deco'){prev=null;renderDeco()}snd('tap')}
 let flbK='';function flbSync(){const b=$('flb');if(!b)return;const hm=scr==='home'&&$('hm').style.display==='block',vis=scr==='visit'&&vd&&((vd.eq&&vd.eq.f2)|0)>=5,on=vis||BIZ.f2Of(save)>0&&(hm||(scr==='deco'&&!dMed&&dtabK()!=='skin')),up=vis?vF2:F2V,k=on+'|'+up+'|'+scr;if(k===flbK)return;flbK=k;b.style.display=on?'block':'none';if(!on)return;b.textContent=up?'⬇️ 1층':'⬆️ 2층';b.style.top=(scr==='deco'?H-DPH-50:scr==='visit'?560:424)+'px'}
+/* 🧱 11/14 VOC '가구 더 놓고 싶은데 어떻게 넓혀요?': 빈 칸이 적으면 넓히기로 안내 */
+function freeN(){const n=RMN(),L=FUR();let c=0;for(let x=0;x<n;x++)for(let y=0;y<n;y++){if(!IS.inRoom(x,y,n)||IS.isCounter(x,y)||IS.isPath(x,y,n)||IS.occAt(L,x,y))continue;c++}return c}
+const canGrow=()=>F2V?!!BIZ.f2Next(save):save.room<11;
 function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls||'';b.onclick=fn||null}
 function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=dtabK();
  {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent=dMed?'🔥 챌린지에서 모아요':'✨ 매력 +'+Math.round(charmBonus()*100)+'%';if(dMed&&window.MEDAL)$('dcw').textContent='🏅 메달 '+MEDAL.get().n+'개';
- const T=$('dtabs');T.innerHTML='';tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n;if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
+ const T=$('dtabs');T.innerHTML='';const tight=!dMed&&tk==='fur'&&canGrow()&&freeN()<=4;tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n+(tight&&x.k==='room'?' ❗':'');if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
  {const S=$('dsub'),g=DT()[dtab];S.innerHTML='';S.style.display=!dMed&&(g.sl||g.k==='fur')?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)});if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
  const L=$('dl'),sl0=L.scrollLeft;L.innerHTML='';
  const card=(e,n,sub,cls,fn)=>{const b=document.createElement('button');b.className='cd '+(cls||'');b.innerHTML='<b>'+e+'</b>'+n+'<small>'+sub+'</small>';b.onclick=fn;L.appendChild(b)};
  let msg='';
  if(tk==='fur'){
   const fc=FCAT[fcat].k,fcard=f=>{const sp=spare(f.k),lk=sp>0?null:lockOf(f),pl=placed(f.k),b=document.createElement('button');b.className='cd fu'+(dpick===f.k?' on':'')+(lk?' lk':'');
-   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""'+(TI.imgReady(f.k)?'':' data-k="'+f.k+'"')+'><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':'');b.querySelector('.fn').textContent=f.n;
+   b.innerHTML='<img src="'+thumbOf(f.k)+'" alt=""'+(TI.imgReady(f.k)?'':' data-k="'+f.k+'"')+'><span class="fn"></span><small class="fp">'+(lk?lk.replace(' 등급','부터'):sp>0?'📦 보관 '+sp+'개':'🪙 '+fmt(f.p))+'</small><i class="fs">✨+'+(Math.floor(ptV(f.p)/100)+(pl?0:KIND_PT))+'</i>'+(pl?'<i class="fpl">놓음 '+pl+'</i>':isNewF(f.k)&&!(save.inv[f.k]|0)?'<i class="fnw">NEW</i>':'');b.querySelector('.fn').textContent=f.n;
    b.onclick=()=>{if(lk){toast(f.xm?'🎄 12월 한정 가구는 12월에만 살 수 있어요 (산 건 언제든 놓아요)':lk.replace('🔒 ','')+'이 되면 살 수 있어요');snd('no');return}dpick=dpick===f.k?null:f.k;dsel=null;renderDeco()};L.appendChild(b)};
   if(fc==='set')IS.SETS.forEach(st=>{const its=IS.FUR.filter(f=>f.set===st.k),hv=its.filter(f=>placed(f.k)>0).length,h=document.createElement('div');h.className='cdh'+(hv===its.length?' done':'');h.innerHTML='<b></b><small>'+hv+'/'+its.length+(hv===its.length?' 완성! ✨+'+(st.b||IS.SET_BONUS):' · 다 놓으면 ✨+'+(st.b||IS.SET_BONUS))+'</small>';h.querySelector('b').textContent=st.n;L.appendChild(h);its.forEach(fcard)});
   else if(fc==='own'){const my=IS.FUR.concat(IS.WFUR).filter(f=>(save.inv[f.k]|0)>0||placed(f.k)>0).sort((a,b)=>(spare(b.k)>0)-(spare(a.k)>0)||b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>아직 가진 가구가 없어요</b><small>다른 칸에서 골라 놓으면 여기 모여요</small>';L.appendChild(h)}}
+  else if(fc==='new'){const nl=IS.FUR.concat(IS.WFUR).filter(f=>isNewF(f.k)).sort((a,b)=>a.p-b.p);if(nl.length)nl.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>지금은 새 가구가 없어요</b><small>새 가구가 나오면 2주 동안 여기 모여요</small>';L.appendChild(h)}}
   else if(fc==='wall')IS.WFUR.forEach(fcard);
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.CK(dsel.k),wsel=dsel&&IS.WK[dsel.k],wpk=dpick&&IS.WK[dpick];
@@ -544,7 +558,8 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
    JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화',(tk?'🎫 강화권 1장 (남은 '+save.tix+'장)':'🪙'+fmt(c))+' · 반짝이가 붙고 꾸미기 ✨+'+fmt(gain),'✨ 강화하기',()=>{if(save.coins<c||(it.s|0)!==sv)return;if(tk){if((save.tix|0)<=0)return;save.tix--}else save.coins-=c;it.s=sv+1;store();snd('win');JUICE.confetti(50);IS.bounce(it);toast('✨ '+F.n+' ★'+it.s+'! 꾸미기 +'+fmt(gain));renderDeco()},'그만두기',()=>{})})}
   dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(FUR(),dsel,RMN());if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
   dbtn('da2','📦 보관',dsel?'':'dis',()=>{if(dsel){keepS(dsel);setFUR(FUR().filter(it=>it!==dsel));dsel=null;store();snd('tap');renderDeco()}});
-  msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+(dsel.s?' ★'+dsel.s:'')+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'')}
+  msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+(dsel.s?' ★'+dsel.s:'')+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'');
+  if(tight&&!dsel&&!wsel&&fc!=='wall'){const fn_=freeN();msg=(fn_?'🧱 빈 칸 '+fn_+'개 남았어요':'🧱 빈 칸이 없어요')+' → 📐 넓히기로 가게를 넓혀요'}}
  else if(tk==='room'&&F2V){const f2=BIZ.f2Of(save);
   BIZ.F2ROOM.forEach(r=>{const own=f2>=r.n;card('🏢',r.n+'×'+r.n,own?(f2===r.n?'지금 크기':'✅'):'🪙'+fmtS(r.p),(prev&&prev.k==='room2'&&prev.id===r.n?'on':f2===r.n?'eq':''),()=>{prev=own?null:{k:'room2',id:r.n};renderDeco()})});
   if(prev&&prev.k==='room2'){const r=BIZ.F2ROOM.find(q=>q.n===prev.id),seq=r.n===f2+1;dbtn('da1',!seq?'먼저 '+(f2+1)+'×'+(f2+1):'🏢 넓히기 🪙'+fmtS(r.p),seq?'go':'dis',()=>{if(seq)buildF2()});msg='🏢 2층 '+r.n+'×'+r.n+' · ✨ 매력 상한 +'+Math.round(BIZ.F2CH[r.n]*100)+'%p · 🐾 손님 +'+Math.round(BIZ.F2MUL[r.n]*100)+'%'}
@@ -822,7 +837,7 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 let rfdT=Date.now()-300e3; /* 11/11 남은 차액은 한 번에 (클라우드 규칙 +1억 허용 · 1억 넘게 남으면 5분 뒤 나머지) */
 function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(95e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분 뒤)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();lkTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
-window.__shop={openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={gradeCard:()=>gradeCard(),freeN:()=>freeN(),openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🚪 11/10 입구를 3시로 옮긴 뒤 처음: 문·길을 막는 가구는 보관함으로 (★은 그대로 보관) */
 if(!save.d4){save.d4=1;const n=stClr();store();if(n&&save.name)setTimeout(()=>bzShow('🪜','계단이 입구 옆으로 옮겨졌어요!','<p style="text-align:center;margin:0">이제 계단이 <b>입구 바로 옆</b>에 있어서<br>가구 때문에 2층 길이 막히지 않아요.<br><br>새 계단 자리에 있던 가구 <b>'+n+'개</b>는 📦 보관함에 넣어 뒀어요.</p>','🎨 꾸미러 가기',()=>openDeco('home')),2200)}
