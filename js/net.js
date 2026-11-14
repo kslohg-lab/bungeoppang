@@ -24,9 +24,9 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
        → 저장할 때마다 내 가게 문서를 한 번 읽어요. 돌려주는 값 = 실제로 올린 점수 */
     async save(d){const uid=await login();N.uid=uid;const r=doc(db,'shops',uid),o=await getDoc(r),wk=Math.floor((day()+3)/7);
      const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});
-     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc;body.wp=0;body.gwp=0}
+     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc;body.wp=0;body.gwp=0;body.hi=body.sc}
      else{const x=o.data(),t0=x.ts&&x.ts.toMillis?x.ts.toMillis():Date.now(),el=Math.max(0,(Date.now()-t0)/1000-120);
-      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;N.myLk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0);
+      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;N.myLk=x.lk|0;/* 🏔️ 11/14 주 시작 점수 = 지금까지 최고 점수 (떼었다 다시 놓기로 성장 부풀리기 막기) */const hi0=Number.isInteger(x.hi)?x.hi:(x.sc|0);body.hi=Math.max(hi0,body.sc);body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:hi0;
       /* 🏆 11/14 지난 주 성장 옮기기 (규칙이 그대로 옮기는지 확인해요) */if(x.w===wk){body.wp=x.wp|0;body.gwp=x.gwp|0}else{body.wp=x.w|0;body.gwp=x.gw|0}}
      /* 11/8 5.6.7: 주마다 칸 이름을 바꾸던 gw<주> → gw 한 칸 + w(주 번호) (규칙의 string()이 거절을 일으켜서) */body.gw=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */

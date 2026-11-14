@@ -54,7 +54,9 @@ service cloud.firestore {
 
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
     function okShop(d) {
-      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp'])
+      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp', 'hi'])
+        // 🏔️ 최고 점수(11/14): hi = 지금까지 가장 높았던 꾸미기 점수 (있으면 정수, sc 이상)
+        && (!('hi' in d) || (d.hi is int && d.hi >= d.sc))
         // 🏆 지난 주 성장(11/14): wp = 지난 기록 주 번호, gwp = 그 주 성장 (있으면 둘 다 정수)
         && (!('wp' in d) || (d.wp is int && d.gwp is int))
         && d.n is string && d.n.size() >= 1 && d.n.size() <= 12 && clean(d.n)
@@ -74,7 +76,11 @@ service cloud.firestore {
     function okShopUp(d, o) {
       return d.sc <= o.sc + 152000
         && d.sc <= o.sc + (request.time.toMillis() - o.ts.toMillis()) * 24 / 10000 + 2000
-        && ((o.get('w', 0) == weekNow() && d.s0 == o.get('s0', -1)) || (o.get('w', 0) != weekNow() && d.s0 == o.sc))
+        // 📈 주 시작 점수: 옛 방식(hi 없음) = 지난 점수 · 새 방식 = 지금까지 최고 점수 (11/14: 주 바뀔 때 떼었다 다시 놓기로 성장 부풀리기 막기)
+        && ((!('hi' in d) && ((o.get('w', 0) == weekNow() && d.s0 == o.get('s0', -1)) || (o.get('w', 0) != weekNow() && d.s0 == o.sc)))
+          || (('hi' in d)
+            && ((d.hi == o.get('hi', o.sc) && d.sc <= d.hi) || (d.hi == d.sc && d.sc > o.get('hi', o.sc)))
+            && ((o.get('w', 0) == weekNow() && d.s0 == o.get('s0', -1)) || (o.get('w', 0) != weekNow() && d.s0 == o.get('hi', o.sc)))))
         // 🏆 지난 주 성장은 만들 수 없고 옮기기만: 같은 주면 그대로, 주가 바뀌면 지난 문서의 w·gw를 그대로 옮겨요
         && (!('wp' in d) || (o.get('w', 0) == weekNow() && d.wp == o.get('wp', 0) && d.gwp == o.get('gwp', 0))
             || (o.get('w', 0) != weekNow() && d.wp == o.get('w', 0) && d.gwp == o.get('gw', 0)));
@@ -91,6 +97,7 @@ service cloud.firestore {
       // 새 가게는 6만 점까지로 시작 (기기를 옮겨 새로 만들면 하루 이틀에 걸쳐 원래 점수로 돌아와요)
       allow create: if mine(uid) && okShop(request.resource.data) && request.resource.data.lk == 0
         && request.resource.data.sc <= 60000 && request.resource.data.s0 == request.resource.data.sc
+        && request.resource.data.get('hi', request.resource.data.sc) == request.resource.data.sc
         && request.resource.data.get('wp', 0) == 0 && request.resource.data.get('gwp', 0) == 0;
       allow update: if (mine(uid) && okShop(request.resource.data) && request.resource.data.lk == resource.data.lk && okShopUp(request.resource.data, resource.data))
         || (request.auth != null && !mine(uid)
