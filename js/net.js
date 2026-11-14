@@ -24,15 +24,22 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
        → 저장할 때마다 내 가게 문서를 한 번 읽어요. 돌려주는 값 = 실제로 올린 점수 */
     async save(d){const uid=await login();N.uid=uid;const r=doc(db,'shops',uid),o=await getDoc(r),wk=Math.floor((day()+3)/7);
      const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});
-     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc}
+     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc;body.wp=0;body.gwp=0}
      else{const x=o.data(),t0=x.ts&&x.ts.toMillis?x.ts.toMillis():Date.now(),el=Math.max(0,(Date.now()-t0)/1000-120);
-      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;N.myLk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0)}
+      body.sc=Math.min(body.sc,(x.sc|0)+Math.min(150000,Math.floor(el*2.2)));body.lk=x.lk|0;N.myLk=x.lk|0;body.s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:(x.sc|0);
+      /* 🏆 11/14 지난 주 성장 옮기기 (규칙이 그대로 옮기는지 확인해요) */if(x.w===wk){body.wp=x.wp|0;body.gwp=x.gwp|0}else{body.wp=x.w|0;body.gwp=x.gw|0}}
      /* 11/8 5.6.7: 주마다 칸 이름을 바꾸던 gw<주> → gw 한 칸 + w(주 번호) (규칙의 string()이 거절을 일으켜서) */body.gw=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */
      const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc';
      const H=await hid();const snap=await getDocs(query(collection(db,'shops'),orderBy(f,'desc'),limit(by==='wk'?80:40))).catch(full);
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
      const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&d.gw>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
+    /* 🏆 11/14 지난 주 꾸미기 성장 상위 30: 아직 이번 주에 저장 안 한 가게(w·gw) + 저장한 가게(wp·gwp) → 읽기 최대 160, 한 주에 한 번 */
+    async lastWk(){const wk=Math.floor((day()+3)/7),W=wk-1,H=await hid(),col=collection(db,'shops');
+     const [a,b]=await Promise.all([getDocs(query(col,orderBy('gw','desc'),limit(80))),getDocs(query(col,orderBy('gwp','desc'),limit(80)))]).catch(full);
+     const m=new Map();for(const x of a.docs.concat(b.docs)){if(H(x.id)||m.has(x.id))continue;const d=x.data(),v=d.w===W?d.gw|0:d.wp===W?d.gwp|0:0;if(v>0)m.set(x.id,{u:x.id,n:d.n,nk:d.nk,v})}
+     const seen=new Set(),rows=[];for(const r of [...m.values()].sort((p,q)=>q.v-p.v)){const k=String(r.n||'').trim()+'|'+String(r.nk||'').trim();if(seen.has(k))continue;seen.add(k);rows.push(r);if(rows.length>=30)break}
+     return{W,rows}},
     /* 🐟 붕어빵 동네 후보: 비슷한 가게(위·아래 12씩) + 큰 가게(내 점수 3배 이상 8) + 상위권 8 → 최대 읽기 40, 하루 한 번 */
     async pool(sc,me){const uid=await login().catch(()=>null),col=collection(db,'shops'),big=Math.max(sc*3,sc+5000),H=await hid();
      const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(20))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(20))),

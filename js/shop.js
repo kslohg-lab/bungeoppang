@@ -349,7 +349,7 @@ function evLine(){const e=save.ev,dk=BIZ.dayKey(Date.now());if(!e||e.dk!==dk||!E
 function renderHome(){setTimeout(hmLay,0);unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
  $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+mgLine()+(save.name&&att().n?attLine():'');{const ml=$('mgl');if(ml)ml.onclick=()=>{snd('tap');mgCard()}}{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
-function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0)}
+function toHome(){scr='home';s=null;paused=false;prev=null;renderHome();show('hm');attAuto(0);evAuto(0);setTimeout(()=>{if(scr==='home'&&$('bz').style.display!=='block')decoWkReward()},2500)}
 /* 오늘의 사건 카드: 다른 창(자리 비운 동안·새 소식·선물 등)이 다 닫힌 뒤 한 번 자동으로 */
 function evAuto(n){if(evShown||!save.name||n>40)return;setTimeout(()=>{if(evShown)return;if(attCan()){evAuto(n+1);return}const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
  if(scr!=='home'||busy){evAuto(n+1);return}evShown=true;evCard()},n?1500:1200)}
@@ -677,6 +677,12 @@ function mgCard(){const M=mgr(),o=mgOf();if(!o){mgPick();return}const L=M.lv,st=
  const all=m&&mgDone()>=m.length;
  bzShow(o.e,'점장 키우기',h,all?'🎉 승급하기':'🙋 함께 장사하러 가기',all?mgUp:()=>{bzHide();$('h1').click()},'닫기',()=>bzHide())}
 function mgUp(){const M=mgr(),L=M.lv,m=mgMis(L);if(!m||mgDone()<m.length)return;const rw=mgRw(L);rw.f();M.lv=L+1;M.p={dk:M.p.dk};store();snd('win');if(window.JUICE)JUICE.confetti(80);toast('🎉 '+mgOf().n+'이(가) '+MGR_[L+1].e+' '+MGR_[L+1].n+'(으)로 승급! 선물 '+rw.t);bzHide();renderHome();setTimeout(mgCard,600)}
+/* 🏆 11/14 지난 주 꾸미기 성장 상위 30 보상: 월요일 뒤 처음 들어올 때 한 번 (2968주=11/16부터) */
+const DWR=r=>r===1?30:r<=3?20:r<=10?10:r<=30?5:0;
+function decoWkReward(){const W=Math.floor((Math.floor((Date.now()+32400000)/86400000)+3)/7)-1;if(W<2967||(save.dwR|0)>=W||!save.name)return;
+ whenNet(N=>{if(!N.lastWk)return;N.lastWk().then(({W:w,rows})=>{if(w!==W||(save.dwR|0)>=W)return;save.dwR=W;const i=rows.findIndex(r=>r.u===N.uid),rk=i+1,n=rk?DWR(rk):0;store();if(!n)return;
+  if(window.MEDAL)MEDAL.add(n);snd('fanfare');if(window.JUICE)JUICE.confetti(90);
+  bzShow('🏆','지난 주 꾸미기 성장 '+rk+'위!','<div class="sum" style="text-align:center"><b style="font-size:20px">'+(rk<=3?['🥇','🥈','🥉'][rk-1]:'🏆')+' '+rk+'위 · 📈 +'+fmt(rows[i].v)+'</b><br><small>지난 주에 가게를 정말 많이 꾸몄어요!</small></div><div class="sum" style="text-align:center"><b>🏅 메달 +'+n+'</b><br><small>메달 상점에서 특별한 외관을 살 수 있어요</small></div>','🎉 좋아요',()=>bzHide())}).catch(()=>{})})}
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  let h='<div class="srow"><span>⭐ 별<b>'+save.stars+'</b></span><span>🏅 등급<b>'+GR[g].e+'</b></span><span>📖 도감<b>'+nd+'/'+R.an.length+'</b></span></div>';
@@ -743,7 +749,7 @@ function syncShop(force){if(!save.name)return;whenNet(N=>{const d=shopPayload(),
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
 function openRank(by){rkBy=by||rkBy;scr='rk';show('rk');renderRank()}
-function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rk2').className=rkBy==='wk'?'on':'';$('rkh').textContent=rkBy==='wk'?'이번 주에 꾸미기 점수가 오른 만큼 · 월요일 0시에 새로 시작':rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
+function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rk2').className=rkBy==='wk'?'on':'';$('rkh').textContent=rkBy==='wk'?'이번 주에 꾸미기 점수가 오른 만큼 · 🏆 상위 30곳은 다음 월요일에 🏅 메달 (1위 30 · 2~3위 20 · 4~10위 10 · 11~30위 5)':rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
  const L=$('rkl');L.innerHTML='<p class="ht">불러오는 중…</p>';
  whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">'+(rkBy==='wk'?'이번 주엔 아직 점수가 오른 가게가 없어요. 가구를 놓으면 1등이 될 수 있어요! 📈':'아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪')+'</p>';return}L.innerHTML='';
   rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='wk'?'📈 +'+fmt(r.gw):rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
@@ -874,7 +880,7 @@ addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
 let rfdT=Date.now()-300e3; /* 11/11 남은 차액은 한 번에 (클라우드 규칙 +1억 허용 · 1억 넘게 남으면 5분 뒤 나머지) */
 function rfdTick(){const r=save.rfd;if(!r||!(r.l>0)||!save.name)return;if(Date.now()-rfdT<300e3)return;rfdT=Date.now();const a=Math.min(95e6,r.l);save.coins+=a;r.l-=a;if(r.l<=0){delete save.rfd;toast('💸 알바 값 차액을 모두 돌려받았어요! 총 '+fmt(r.t)+'🪙')}else toast('💸 알바 값 차액 +'+fmt(a)+'🪙 · 남은 '+fmt(r.l)+' (5분 뒤)');if(window.JUICE)JUICE.confetti(40);store();if(scr==='home')bizBtn()}
 setInterval(()=>{if(document.hidden)return;bizTick(false);rfdTick();lkTick();if(scr==='home'){bizBtn();hmLay();if(EXT)boxBg()}if(++bizN%5===0)store()},1000);
-window.__shop={gradeCard:()=>gradeCard(),mgCard:()=>mgCard(),mgr:()=>mgr(),mgCount:(a,b,c)=>mgCount(a,b,c),freeN:()=>freeN(),openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
+window.__shop={decoWkReward:()=>decoWkReward(),gradeCard:()=>gradeCard(),mgCard:()=>mgCard(),mgr:()=>mgr(),mgCount:(a,b,c)=>mgCount(a,b,c),freeN:()=>freeN(),openDeco:a=>openDeco(a),lockOf:i=>lockOf(i),decoScore:()=>decoScore(),setF2V:v=>setF2V(v),payload:()=>shopPayload(),look:()=>look(null),eqS:(k,i)=>eqS(k,i),eqG:k=>eqG(k),visit:(u,f)=>visit(u,f),goldIdx:()=>goldIdx(),SV:()=>SV,stTap:(x,y)=>stTap(x,y),get stHits(){return stHits},get stList(){return stList},CF,startCafe,finishCafe,BIZ,bctx,bizTick,openLed,openUp,awayCard,IS,animal,fish2,bakeCol,em,tx,rr,cx,B,get save(){return save},set save(v){save=v},get run(){return run},get s(){return s},get scr(){return scr},startDay,tap,drain,finishDay,toHome,goalsFor,grade,charmBonus,SLOTS,GR};
 $('nms').onclick=()=>{au();snd('tap');openMedal('home')};
 /* 🚪 11/10 입구를 3시로 옮긴 뒤 처음: 문·길을 막는 가구는 보관함으로 (★은 그대로 보관) */
 if(!save.d4){save.d4=1;const n=stClr();store();if(n&&save.name)setTimeout(()=>bzShow('🪜','계단이 입구 옆으로 옮겨졌어요!','<p style="text-align:center;margin:0">이제 계단이 <b>입구 바로 옆</b>에 있어서<br>가구 때문에 2층 길이 막히지 않아요.<br><br>새 계단 자리에 있던 가구 <b>'+n+'개</b>는 📦 보관함에 넣어 뒀어요.</p>','🎨 꾸미러 가기',()=>openDeco('home')),2200)}
