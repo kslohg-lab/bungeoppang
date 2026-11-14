@@ -319,9 +319,10 @@ function qLine(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().rev
  for(let j=0;j<P.length-1;j++)C.push(C[j]+Math.hypot(P[j+1].x-P[j].x,P[j+1].y-P[j].y));return{P,C,L:C[C.length-1]}}
 function qAt(q,d){d=Math.max(0,Math.min(q.L,d));for(let j=0;j<q.P.length-1;j++){if(d<=q.C[j+1]||j===q.P.length-2){const L=q.C[j+1]-q.C[j]||1,u=Math.max(0,Math.min(1,(d-q.C[j])/L)),a=q.P[j],b=q.P[j+1];return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}}return q.P[0]}
 /* 손님 수: 가게가 클수록 북적 (4×4 4명 → 10×10 12명) */
-const CAP=()=>N<=4?4:Math.min(12,4+Math.round((N-4)*1.35));
+/* 👥 11/14 인기 가게일수록 손님이 바글바글: POP = 등급·꾸미기 점수로 정한 배수 (0.8~2.4) */
+let POP=1;const CAP=()=>Math.min(22,Math.round((N<=4?4:Math.min(12,4+Math.round((N-4)*1.35)))*POP));
 function say(c,t){c.bub=t;c.bt=2}
-function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())}
+function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())/Math.max(1,POP*.8)}
  /* 빈 자리 중 무작위 (방금 누가 일어난 자리는 덜 골라요) */
  const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);const free=()=>{const L=seats.filter(ch=>!cust.some(c=>c.seat===ch)&&seatOk(items,ch));if(!L.length)return undefined;const now=performance.now(),w=L.map(ch=>{const u=LASTS.get(ch);return u&&now-u<20000?.25:1}),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[L.length-1]};
  const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
@@ -342,7 +343,7 @@ function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP(
 let cust2=[],spawn2=1,UP2=0;
 function step2(dt,items){const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);
  const S=STT(N),blk=blockSet(items,N);spawn2-=dt;
- if(spawn2<=0){spawn2=3+Math.random()*3;const L=seats.filter(ch=>!cust2.some(c=>c.seat===ch));if(L.length&&cust2.length<Math.min(8,seats.length)){const ch=L[Math.floor(Math.random()*L.length)],r=bfs(S.gx,S.gy,N,blk,(x,y)=>x===ch.x&&y===ch.y);
+ if(spawn2<=0){spawn2=(3+Math.random()*3)/Math.max(1,POP*.8);const L=seats.filter(ch=>!cust2.some(c=>c.seat===ch));if(L.length&&cust2.length<Math.min(Math.round(8*Math.max(1,POP)),seats.length)){const ch=L[Math.floor(Math.random()*L.length)],r=bfs(S.gx,S.gy,N,blk,(x,y)=>x===ch.x&&y===ch.y);
   if(r)cust2.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N-1.5,y:.5,st:'go',seat:ch,route:r.slice(1).map(ctr),t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]})}}
  for(const c of cust2){c.t+=dt;if(c.bt>0)c.bt-=dt;
   if(c.seat&&!items.includes(c.seat.it)&&c.st!=='out'){c.st='out';const s=tileOf(c),r=bfs(s.gx,s.gy,N,blk,(x,y)=>x===S.gx&&y===S.gy);c.route=(r||[]).slice(1).map(ctr)}
@@ -606,4 +607,4 @@ function draw(t,look,items,o={}){FL=look.f2v?1:0;ST=look.st?1:0;layout(look.n,o.
 function tick(dt,items,rate){if(FL){step2(dt,items);return}step(dt,items,rate);petStep(dt,items)}
 return{isStair:(x,y,n)=>isSt(x,y,n),STT,wallMotif,isWide,cells,occAt,fitAt,nextRot,fixWide,fixDoor,seatCount,imgReady:k=>WK[k]?(!WIMG.has(k)||!!wImg(k)):!FK[k]||FK[k].noimg||!(FK[k].emo||FIMG[k])||!!fuImg(k),WFUR,WK,CK,wallSlots,wallAt:(x,y,n)=>wallAt(x,y,n),wallItemAt,isWallAt,bounce,get cust(){return cust},qLine:it=>qLine(it),FUR,FK,SETS,SET_BONUS,thumb,ROOM,draw,pan(dx,dy){PAN.x+=dx;PAN.y+=dy},resetPan(){PAN={x:0,y:0}},canPan:()=>CAN,get fit(){return FIT},set fit(v){FIT=!!v;if(!FIT&&ZM<=LFT+.5)ZM=Math.max(FIX,LFT*1.3)},
  /* 핀치 확대·축소: f배. atMin = 더 줄일 수 없음(한눈에 보기) */
- zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,reset,setFloor(f,st,up){FL=f?1:0;ST=st?1:0;UP2=up||0},toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};
+ zoom(f){const cur=CAN?TW:LFT;let z=Math.max(30,Math.min(ZMAX,cur*f));FIT=false;const k=Math.max(z,LFT)/cur;PAN.x*=k;PAN.y*=k;ZM=z;return{atMin:z<=LFT+.5}},tick,setPop(p){POP=Math.max(.6,Math.min(2.6,+p||1))},reset,setFloor(f,st,up){FL=f?1:0;ST=st?1:0;UP2=up||0},toTile,inRoom,isPath,isCounter,canPlace,okPlace,blockedSeats,mainRoute,iso:(a,b)=>iso(a,b),get N(){return N}}};

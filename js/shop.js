@@ -664,6 +664,9 @@ function mgLine(){if(!save.name)return'';const M=mgr(),o=mgOf();if(!o)return'<di
  const st=MGR_[M.lv],m=mgMis(M.lv);if(!m)return'<div class="evl" id="mgl" style="background:#efe6ff">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · 🏪 2호점 준비 중 ›</div>';
  const d=mgDone(),all=d>=m.length;return'<div class="evl" id="mgl" style="background:'+(all?'#ffe08a':'#fff0e0')+'">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · '+(all?'<b>🎉 승급할 수 있어요! ›</b>':'승급 미션 '+d+'/'+m.length+' ›')+'</div>'}
 /* 🐣 가게 화면 왼쪽 '수습생' 버튼: 안 골랐거나 승급할 수 있으면 노랗게 통통 */
+/* 👥 11/14 가게 인기 배수: 등급(노점 0.8 → 전설 2.0) × 꾸미기 점수(최대 +20%) */
+const popOf=(g,sc)=>[.8,.9,1,1.2,1.45,1.7,2][Math.max(0,Math.min(6,g|0))]*(1+Math.min(.2,Math.log10(1+Math.max(0,sc|0)/1e5)*.12));
+let popC={t:0,v:1};const myPop=()=>{if(Date.now()-popC.t>3000)popC={t:Date.now(),v:popOf(grade(),decoScore())};return popC.v};
 function mgBtn(){const b=$('nmg');if(!b)return;if(!save.name||(save.days|0)<1){b.style.display='none';return}const M=mgr(),o=mgOf(),m=o&&mgMis(M.lv),all=m&&mgDone()>=m.length;
  b.textContent=!o?'🐣 수습생 고르기':all?o.e+' 🎉 승급!':o.e+' '+o.n+(m?' '+mgDone()+'/'+m.length:'');b.className=!o||all?'go':'';b.onclick=()=>{snd('tap');mgCard()}}
 function mgPick(){let h='<div class="sum" style="text-align:center"><small>함께 장사하며 키울 수습생을 1명 골라요<br>잘 키우면 언젠가 🏪 <b>2호점 점장</b>이 돼요 · 다음 수습생은 그때 골라요</small></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
@@ -866,8 +869,8 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/10
   if(s.done){drawGame();finishDay();requestAnimationFrame(loop);return}}drawGame()}
  else if(scr==='cafe'){if(!paused)CF.step(dt);CF.draw(t);if(CF.done){finishCafe()}}
  else if(scr==='street'){drawStreet(t,dt)}
- else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd),vf2=Math.max(0,Math.min(11,(vd.eq&&vd.eq.f2)|0)),VF=vF2&&vf2?vfur2:vfur;lk.st=vf2>=5;if(vF2&&vf2){lk.f2v=true;lk.n=vf2;const fw=vd.eq.f2w;if(fw!=null){const w=Math.floor(fw/100)|0,f=(fw%100)|0;if(WALL[w])lk.wall={c:WALL[w].c,id:w};const fs=SLOTS.find(x=>x.k==='floor');if(fs&&fs.L[f])lk.floor=f}}IS.setFloor(vF2&&vf2?1:0,vf2>=5,vf2>=5&&IS.seatCount(vfur2)>0?.35:0);if(vPre!==vd){vPre=vd;IS.draw(t,lk,VF,{top:60,bottom:600});for(let i=0;i<90;i++)IS.tick(.25,VF,1)}IS.tick(dt,VF,1);IS.draw(t,lk,VF,{top:60,bottom:600});if(vF2&&vf2){rr(W/2-46,66,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,81,16,'#5a3a22','center')}}}
- else{const f2=BIZ.f2Of(save)>0,up=f2&&IS.seatCount(save.fur2||[])>0?.35:0;IS.setFloor(F2V?1:0,f2,up);if(!hPre&&!F2V){hPre=1;drawHome(t,scr==='deco');IS.setFloor(0,f2,up);for(let i=0;i<90;i++)IS.tick(.25,save.fur,1)}IS.tick(dt,FUR(),1);drawHome(t,scr==='deco')}
+ else if(scr==='visit'){cx.fillStyle='#4a3426';cx.fillRect(0,0,W,H);if(vd){const lk=lookFrom(vd),vf2=Math.max(0,Math.min(11,(vd.eq&&vd.eq.f2)|0)),VF=vF2&&vf2?vfur2:vfur;lk.st=vf2>=5;if(vF2&&vf2){lk.f2v=true;lk.n=vf2;const fw=vd.eq.f2w;if(fw!=null){const w=Math.floor(fw/100)|0,f=(fw%100)|0;if(WALL[w])lk.wall={c:WALL[w].c,id:w};const fs=SLOTS.find(x=>x.k==='floor');if(fs&&fs.L[f])lk.floor=f}}IS.setFloor(vF2&&vf2?1:0,vf2>=5,vf2>=5&&IS.seatCount(vfur2)>0?.35:0);if(vPre!==vd){vPre=vd;IS.draw(t,lk,VF,{top:60,bottom:600});for(let i=0;i<90;i++)(IS.setPop(popOf(vd.g|0,vd.sc|0)),IS.tick(.25,VF,1))}(IS.setPop(popOf(vd.g|0,vd.sc|0)),IS.tick(dt,VF,1));IS.draw(t,lk,VF,{top:60,bottom:600});if(vF2&&vf2){rr(W/2-46,66,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,81,16,'#5a3a22','center')}}}
+ else{const f2=BIZ.f2Of(save)>0,up=f2&&IS.seatCount(save.fur2||[])>0?.35:0;IS.setFloor(F2V?1:0,f2,up);if(!hPre&&!F2V){hPre=1;drawHome(t,scr==='deco');IS.setFloor(0,f2,up);IS.setPop(myPop());for(let i=0;i<90;i++)IS.tick(.25,save.fur,1)}(IS.setPop(myPop()),IS.tick(dt,FUR(),1));drawHome(t,scr==='deco')}
  zfSync();flbSync();if(scr!==fitScr)fit();requestAnimationFrame(loop)}
 /* 📐 세로가 긴 폰: 가게 첫 화면만 판을 아래로 늘려 (최대 +170) 아래 메뉴 판을 넓게. 다른 화면은 그대로 450×800 */
 let EXT=0,fitScr='';
