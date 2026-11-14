@@ -49,8 +49,8 @@ const store=()=>{if(window.__noStore)return;/* 기록 옮겨 받는 중엔 덮�
 /* 처음 가구: 새 가게(또는 업데이트 전 가게)에 탁자·의자 2개·화분을 놓아 드려요 */
 const starter=()=>{if(Array.isArray(save.fur))return;save.inv=Object.assign({chair:2,table:1,plant:1},save.inv);save.fur=[{k:'table',x:0,y:2,d:0},{k:'chair',x:0,y:3,d:1},{k:'chair',x:1,y:2,d:1},{k:'plant',x:0,y:1,d:0}];store()};starter();
 const gradeOf=n=>{let g=0;for(let i=0;i<GR.length;i++)if(n>=GR[i].at)g=i;return g};
-/* 🏪 11/14 VOC: 등급 점수 = 도와주기로 직접 대접한 손님 + 자동 영업 손님의 절반 (놔둬도 천천히 올라요, 직접 하면 2배 빨라요) */
-const grPts=()=>(save.served|0)+Math.floor((save.bizCust|0)/2);
+/* 🏪 11/14 VOC: 등급 점수 = 도와주기로 직접 대접한 손님 + 자동 영업 손님 4명당 1점 (6.13.10: 절반은 꾸밈 많은 가게가 3단계씩 뛰어서 낮춤) */
+const grPts=()=>(save.served|0)+Math.floor((save.bizCust|0)/4);
 const grade=()=>gradeOf(grPts());
 const eqIt=(k,pv)=>{const sl=SLOTS.find(x=>x.k===k);const id=pv&&pv.k===k?pv.id:eqG(k);return sl.L[id]||sl.L[0]};
 /* 11/8 다양하게 놓기 보너스: 가구 종류 하나마다 꾸미기 점수 +150 · 매력 +1 (같은 걸 여러 개 놓아도 깎이진 않아요) */
@@ -233,7 +233,7 @@ function gradeCard(){const g=grade(),nx=GR[g+1],sv=grPts(),lv=shopLv(),sc=decoSc
  const bar=(a,b,col)=>'<div style="height:14px;border-radius:7px;background:rgba(0,0,0,.12);overflow:hidden;margin:4px 0 2px"><div style="height:100%;width:'+Math.max(3,Math.min(100,a/b*100))+'%;background:'+col+';border-radius:7px"></div></div>';
  let h='<div class="sum"><b>'+GR[g].e+' 가게 등급: '+GR[g].n+'</b>';
  if(nx)h+=bar(sv-GR[g].at,nx.at-GR[g].at,'#ffc94a')+'<small>다음 '+nx.e+' <b>'+nx.n+'</b>까지 <b>'+fmt(nx.at-sv)+'점</b> ('+fmt(sv)+' / '+fmt(nx.at)+')</small>';else h+='<br><small>최고 등급이에요! 👑</small>';
- h+='<br><small>🙋 <b>도와주기</b>로 직접 대접한 손님 1명 = <b>1점</b> ('+fmt(save.served|0)+'명)<br>💼 가게를 놔둬도 오는 손님 2명 = <b>1점</b> ('+fmt(save.bizCust|0)+'명) · 가게 레벨·꾸밈·직원이 좋을수록 많이 와요<br>오르면 새 가구·꾸밈이 열리고 카운터에 메뉴판·조명이 생겨요</small></div>';
+ h+='<br><small>🙋 <b>도와주기</b>로 직접 대접한 손님 1명 = <b>1점</b> ('+fmt(save.served|0)+'명)<br>💼 가게를 놔둬도 오는 손님 4명 = <b>1점</b> ('+fmt(save.bizCust|0)+'명) · 가게 레벨·꾸밈·직원이 좋을수록 많이 와요<br>오르면 새 가구·꾸밈이 열리고 카운터에 메뉴판·조명이 생겨요</small></div>';
  h+='<div class="sum"><b>🏪 가게 레벨: Lv'+lv+'</b>';
  if(lv<40)h+=bar(sc-prev,need-prev,'#7ed88a')+'<small>다음 Lv'+(lv+1)+'까지 꾸미기 점수 <b>'+fmt(need-sc)+'</b> ('+fmt(sc)+' / '+fmt(need)+')</small>';else h+='<br><small>최고 레벨이에요! 🎉</small>';
  h+='<br><small>🪑 가구 놓기 · 📐 넓히기 · 🎨 꾸밈 바꾸기 · 🎁 세트 완성으로 올라요 · 오르면 손님이 더 많이 와요</small><br><small>✨ 놓은 가구를 골라 <b>반짝 강화</b>(★1~3)하면 꾸미기 점수가 더 올라요</small><br><small>🌈 <b>여러 가지 가구</b>를 놓으면 종류마다 +'+KIND_PT+'점 · 매력 +1 (지금 '+kindsN()+'가지 → +'+fmt(kindsN()*KIND_PT)+'점)</small></div>';
@@ -713,7 +713,7 @@ function decoWkReward(){const W=Math.floor((Math.floor((Date.now()+32400000)/864
 /* ---------- 도감 · 별 ---------- */
 function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  let h='<div class="srow"><span>⭐ 별<b>'+save.stars+'</b></span><span>🏅 등급<b>'+GR[g].e+'</b></span><span>📖 도감<b>'+nd+'/'+R.an.length+'</b></span></div>';
- h+='<div class="cur" style="flex-direction:column;align-items:stretch;gap:4px"><div style="display:flex;justify-content:space-between;font-size:15px"><b style="font-weight:400">'+GR[g].e+' '+GR[g].n+'</b><span>'+(nx?nx.e+' '+nx.n+'까지 🐾 '+fmt(nx.at-grPts()):'🎉 최고 등급!')+'</span></div>'+(nx?'<div class="bar" style="margin:2px 0"><i style="width:'+Math.round(100*(grPts()-GR[g].at)/(nx.at-GR[g].at))+'%"></i></div>':'')+'<div class="chips" style="justify-content:flex-start;margin:0"><span class="chip">🐾 '+fmt(save.served)+'명</span><span class="chip">📅 '+save.days+'일</span><span class="chip">💰 최고 '+fmt(save.bestNet)+'</span><span class="chip">🔥 '+save.bestCombo+'</span></div></div>';
+ h+='<div class="cur" style="flex-direction:column;align-items:stretch;gap:4px"><div style="display:flex;justify-content:space-between;font-size:15px"><b style="font-weight:400">'+GR[g].e+' '+GR[g].n+'</b><span>'+(nx?nx.e+' '+nx.n+'까지 '+fmt(nx.at-grPts())+'점':'🎉 최고 등급!')+'</span></div>'+(nx?'<div class="bar" style="margin:2px 0"><i style="width:'+Math.round(100*(grPts()-GR[g].at)/(nx.at-GR[g].at))+'%"></i></div>':'')+'<div class="chips" style="justify-content:flex-start;margin:0"><span class="chip">🏅 '+fmt(grPts())+'점</span><span class="chip">🙋 '+fmt(save.served|0)+'명</span><span class="chip">💼 '+fmt(save.bizCust|0)+'명</span><span class="chip">📅 '+save.days+'일</span><span class="chip">💰 최고 '+fmt(save.bestNet)+'</span><span class="chip">🔥 '+save.bestCombo+'</span></div></div>';
  const rw=starRw();
  h+='<p class="ht" style="margin-top:12px"><b>⭐ 별 보상</b> <small style="opacity:.7">목표·단골로 별을 모아요</small></p><div class="gr3">'+rw.map((x,j)=>{const ok=save.stars>=x.st;return'<div class="uc'+(x.own||ok?'':' lk')+'"><div class="av">'+x.e+'</div><div class="nm">'+x.n+'</div><div class="st">'+x.sl+'</div>'+(x.own?'<button class="ub done">✅ 받음</button>':ok?'<button class="ub srw" data-j="'+j+'">🎁 받기</button>':'<button class="ub no">⭐ '+x.st+'</button>')+'</div>'}).join('')+'</div>';
  h+='<p class="ht" style="margin-top:12px"><b>📖 손님 도감</b> <small style="opacity:.7">10번·30번 오면 단골 ⭐</small></p><div class="dx">'+R.an.map(a=>{const n=save.dex[a];const lv=save.dexS[a]||0;const im=window.ART_IMG&&window.ART_IMG[a];return'<div><b>'+(n!==undefined?(im&&im.src?'<img src="'+im.src+'" alt="" style="height:30px;vertical-align:middle">':a):'❓')+'</b>'+(n!==undefined?(lv?'⭐'.repeat(lv)+' ':'')+n+'번':'?')+'</div>'}).join('')+'</div>';
