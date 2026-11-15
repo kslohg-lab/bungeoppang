@@ -785,7 +785,7 @@ function syncShop(force){if(!save.name)return;whenNet(N=>{const d=shopPayload(),
 const lvOf=sc=>Math.min(40,1+Math.floor(Math.sqrt((sc|0)/20)));
 let rkBy='sc',rkFrom='home';
 function openRank(by){rkBy=by||rkBy;scr='rk';show('rk');renderRank()}
-function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rk2').className=rkBy==='wk'?'on':'';$('rkh').textContent=rkBy==='wk'?'이번 주에 꾸미기 점수가 오른 만큼 · 🏆 상위 30곳은 다음 월요일에 🏅 메달 (1위 30 · 2~3위 20 · 4~10위 10 · 11~30위 5)':rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
+function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=rkBy==='lk'?'on':'';$('rk2').className=rkBy==='wk'?'on':'';$('rkh').textContent=rkBy==='wk'?'이번 주에 꾸미기 점수가 오른 만큼 · 🏆 다음 월요일 🏅 메달 (1위 30 · 2~3위 20 · ~10위 10 · ~30위 5)':rkBy==='sc'?'꾸미기 점수가 높은 가게 · 이름을 누르면 구경해요':'좋아요를 많이 받은 가게 · 이름을 누르면 구경해요';
  const L=$('rkl');L.innerHTML='<p class="ht">불러오는 중…</p>';
  whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">'+(rkBy==='wk'?'이번 주엔 아직 점수가 오른 가게가 없어요. 가구를 놓으면 1등이 될 수 있어요! 📈':'아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪')+'</p>';return}L.innerHTML='';
   rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='wk'?'📈 +'+fmt(r.gw):rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
