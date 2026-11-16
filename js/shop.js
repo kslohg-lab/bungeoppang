@@ -497,7 +497,7 @@ const DPH=324; /* 꾸미기 아래 판 높이 */
 const DG=[{k:'fur',n:'🪑 가구'},{k:'wf',n:'🧱 벽·바닥',sl:['wall','floor','sky']},{k:'dec',n:'🏮 장식',sl:['sign','awn','top','lit','sL','sR','mas','shape']},{k:'skin',n:'🏠 외관',sl:['skin']},{k:'room',n:'📐 넓히기'}];
 let dsub=0,fcat=2;
 /* 🆕 11/14 새로 나온 가구: 나온 날부터 2주 동안 'NEW' + 🆕 칸 (키 앞부분 → 나온 날) */
-const NEWP=[['c_',Date.UTC(2026,10,12)],['d_',Date.UTC(2026,10,13)],['w_mac',Date.UTC(2026,10,13)],['s_',Date.UTC(2026,10,14)],['v_',Date.UTC(2026,10,14)],['w_wheel',Date.UTC(2026,10,14)],['w_stock',Date.UTC(2026,10,14)],['bean_',Date.UTC(2026,10,14)],['mar_',Date.UTC(2026,10,14)],['lea_',Date.UTC(2026,10,14)],['cld_',Date.UTC(2026,10,14)]];
+const NEWP=[['r_',Date.UTC(2026,10,16)],['w_crown',Date.UTC(2026,10,16)],['c_',Date.UTC(2026,10,12)],['d_',Date.UTC(2026,10,13)],['w_mac',Date.UTC(2026,10,13)],['s_',Date.UTC(2026,10,14)],['v_',Date.UTC(2026,10,14)],['w_wheel',Date.UTC(2026,10,14)],['w_stock',Date.UTC(2026,10,14)],['bean_',Date.UTC(2026,10,14)],['mar_',Date.UTC(2026,10,14)],['lea_',Date.UTC(2026,10,14)],['cld_',Date.UTC(2026,10,14)]];
 const isNewF=k=>{const p=NEWP.find(([q])=>k.indexOf(q)===0);return!!p&&Date.now()<p[1]+15*864e5};
 const FCAT=[{k:'own',n:'📦 내 가구'},{k:'new',n:'🆕 새로 나온'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'prem',n:'💎 프리미엄'},{k:'wall',n:'🖼️ 벽 장식'}];
 if(IS.FUR.some(f=>isNewF(f.k)))fcat=1;
