@@ -355,22 +355,25 @@ function drawFish(x,y,z,st){if(st===0){em('🐟',x,y,z);return}if(st===1){cx.sav
 function drawFood(c,t){const b=c.tb,p=iso(b.x,b.y),h=TW*.3,y=p.y-h,st=foodSt(c),z=TW*.24;
  plate(p.x,y+z*.12,z*1.1);if(st<2)drawFish(p.x-z*.08,y-z*.12,z*.8,st);if(CAFE)em('☕',p.x+z*.62,y-z*.25,z*.75)}
 function drawJunk(j,t){const p=iso(j.x,j.y),h=j.on?TW*.3:0,y=p.y-h,z=TW*.23;plate(p.x,y+z*.12,z*1.05);em(j.e2,p.x+z*.55,y-z*.2,z*.7);if(j.on===0){cx.globalAlpha=.5;em('·',p.x-z*.4,y,z*.6);cx.globalAlpha=1}}
-function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP())cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())/Math.max(1,POP*.8)}
+/* 🚶 11/16 줄은 최대 4명까지(더 오면 다음에), 계산 빠르게, 걸음 빠르게, 1층 빈자리 먼저 → 다 차면 2층 */
+const QMAX=4,WSP=2.3;
+function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP()&&cust.filter(c=>c.st==='q').length<QMAX)cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())/Math.max(1,POP*.8)}
  /* 빈 자리 중 무작위 (방금 누가 일어난 자리는 덜 골라요) */
  const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);const free=()=>{const L=seats.filter(ch=>!cust.some(c=>c.seat===ch)&&seatOk(items,ch));if(!L.length)return undefined;const now=performance.now(),dirty=ch=>junk.length&&(()=>{const b=tableFor(items,ch),x=b?b.x:ch.x+.5,y=b?b.y:ch.y+.5;return junk.some(j=>Math.hypot(j.x-x,j.y-y)<.35)})(),w=L.map(ch=>{const u=LASTS.get(ch);return(u&&now-u<20000?.25:1)*(dirty(ch)?.12:1)}),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[L.length-1]};
  const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
- inQ.forEach((c,i)=>{if(c.qd==null)c.qd=QL.L;c.qd=Math.min(c.qd,QL.L);const tg=Math.min(i*.9,QL.L),old=c.qd;if(c.qd>tg)c.qd=Math.max(tg,c.qd-1.6*dt);const p=qAt(QL,c.qd);c.x=p.x;c.y=p.y;c.mv=c.qd!==old?1:0;c.route=[]});
+ inQ.forEach((c,i)=>{if(c.qd==null)c.qd=QL.L;c.qd=Math.min(c.qd,QL.L);const tg=Math.min(i*.9,QL.L),old=c.qd;if(c.qd>tg)c.qd=Math.max(tg,c.qd-WSP*dt);const p=qAt(QL,c.qd);c.x=p.x;c.y=p.y;c.mv=c.qd!==old?1:0;c.route=[]});
  for(const c of cust){c.t+=dt;if(c.bt>0)c.bt-=dt;
   /* 앉으려던 의자가 치워지거나 옮겨지면 → 나가요 */
   if(c.seat&&(!items.includes(c.seat.it)||c.sx!==c.seat.x||c.sy!==c.seat.y)){c.seat=null;if(c.st==='sit'||c.st==='go'){c.st='out';c.route=pathOut(items,c)}}
-  if(c.st==='q'){if(inQ[0]===c&&c.qd<=.02){c.w=(c.w||0)+dt;if(c.w>.3&&!c.asked){c.asked=1;say(c,'🐟 하나 주세요!')}if(c.w>1.8){c.st='buy';c.w=0}}}
-  else if(c.st==='buy'){c.w+=dt;if(c.w>.6&&!c.paid){c.paid=1;say(c,'💖 고마워요!');const p=iso(c.x,c.y);fx.push({e:'🪙',x:p.x,y:p.y-TW*.9,l:1})}
-   if(c.w>1.2&&ST&&UP2>0&&Math.random()<UP2){const s=tileOf(c),r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>isSt(x,y));if(r){c.st='up';c.route=r.slice(1).map(ctr);say(c,'⬆️ 2층 가 볼래요');continue}}
-   if(c.w>1.2){const ch=free(),s=tileOf(c),r=ch&&bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===ch.x&&y===ch.y);
+  if(c.st==='q'){if(inQ[0]===c&&c.qd<=.02){c.w=(c.w||0)+dt;if(c.w>.15&&!c.asked){c.asked=1;say(c,'🐟 하나 주세요!')}if(c.w>.7){c.st='buy';c.w=0}}}
+  else if(c.st==='buy'){c.w+=dt;if(c.w>.3&&!c.paid){c.paid=1;say(c,'💖 고마워요!');const p=iso(c.x,c.y);fx.push({e:'🪙',x:p.x,y:p.y-TW*.9,l:1})}
+   const ch0=c.w>.6?free():undefined;
+   if(c.w>.6&&!ch0&&ST&&UP2>0){const s=tileOf(c),r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>isSt(x,y));if(r){c.st='up';c.route=r.slice(1).map(ctr);say(c,'⬆️ 2층 가 볼래요');continue}}
+   if(c.w>.6){const ch=ch0,s=tileOf(c),r=ch&&bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===ch.x&&y===ch.y);
     if(r){c.seat=ch;c.sx=ch.x;c.sy=ch.y;c.st='go';c.route=r.slice(1).map(ctr)}else{c.st='out';c.route=pathOut(items,c)}}}
   else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;c.sd=12+Math.random()*12;c.tb=c.seat?tableFor(items,c.seat):null;if(c.tb)junk=junk.filter(j=>Math.hypot(j.x-c.tb.x,j.y-c.tb.y)>=.35);say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
   else if(c.st==='sit'){c.w+=dt;if(c.tb&&!tbOk(items,c.tb))c.tb=null;if(c.w>(c.sd||12)){c.st='out';c.route=pathOut(items,c);if(c.seat){LASTS.set(c.seat,performance.now());addJunk(c)}c.seat=null;c.tb=null;say(c,'또 올게요 👋')}}
-  if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=1.6*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else if(c.st!=='q')c.mv=0}
+  if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=WSP*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else if(c.st!=='q')c.mv=0}
  cust=cust.filter(c=>!((c.st==='out'||c.st==='up')&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0);
  junk=junk.filter(j=>items.includes(j.it)&&j.it.x===j.ox&&j.it.y===j.oy);for(const j of junk){j.t+=dt;if(j.nr&&(j.t%6)<dt)j.nr=0}clStep(dt,items)}
 /* 🏢 2층 손님: 계단(0,N-1)에서 올라와 빈 자리에 앉았다가 다시 계단으로 내려가요 (1층에서 '⬆️' 한 손님과 비슷한 빈도) */
