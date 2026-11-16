@@ -324,7 +324,7 @@ function qLine(items){const r=mainRoute(items),P=r?[{x:2,y:1.5},...r.slice().rev
 function qAt(q,d){d=Math.max(0,Math.min(q.L,d));for(let j=0;j<q.P.length-1;j++){if(d<=q.C[j+1]||j===q.P.length-2){const L=q.C[j+1]-q.C[j]||1,u=Math.max(0,Math.min(1,(d-q.C[j])/L)),a=q.P[j],b=q.P[j+1];return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}}return q.P[0]}
 /* 손님 수: 가게가 클수록 북적 (4×4 4명 → 10×10 12명) */
 /* 👥 11/14 인기 가게일수록 손님이 바글바글: POP = 등급·꾸미기 점수로 정한 배수 (0.8~2.4) */
-let POP=1;const CAP=()=>Math.min(22,Math.round((N<=4?4:Math.min(12,4+Math.round((N-4)*1.35)))*POP));
+let POP=1;const CAP=()=>{const b=Math.min(22,Math.round((N<=4?4:Math.min(12,4+Math.round((N-4)*1.35)))*POP));return Math.min(48,Math.max(b,NSEAT+QMAX+6))};
 function say(c,t){c.bub=t;c.bt=2}
 /* 🍽️ 11/14 가게 생활감: 앉으면 옆 탁자에 붕어빵(카페면 ☕도) → 먹으며 줄어듦 → 나가면 빈 접시·휴지 → 수습생이 치워요 (없으면 사장님이 톡) · 보이는 것만, 돈·점수엔 영향 없음 */
 let junk=[],JK=0,MGI=null,CAFE=0;const JMAX=8;
@@ -355,12 +355,12 @@ function drawFish(x,y,z,st){if(st===0){em('🐟',x,y,z);return}if(st===1){cx.sav
 function drawFood(c,t){const b=c.tb,p=iso(b.x,b.y),h=TW*.3,y=p.y-h,st=foodSt(c),z=TW*.24;
  plate(p.x,y+z*.12,z*1.1);if(st<2)drawFish(p.x-z*.08,y-z*.12,z*.8,st);if(CAFE)em('☕',p.x+z*.62,y-z*.25,z*.75)}
 function drawJunk(j,t){const p=iso(j.x,j.y),h=j.on?TW*.3:0,y=p.y-h,z=TW*.23;plate(p.x,y+z*.12,z*1.05);em(j.e2,p.x+z*.55,y-z*.2,z*.7);if(j.on===0){cx.globalAlpha=.5;em('·',p.x-z*.4,y,z*.6);cx.globalAlpha=1}}
-/* 🚶 11/16 줄은 최대 4명까지(더 오면 다음에), 계산 빠르게, 걸음 빠르게, 1층 빈자리 먼저 → 다 차면 2층 */
-const QMAX=4,WSP=2.3;
+/* 🚶 11/16 계산·걸음 빠르게, 1층 빈자리 먼저 → 다 차면 2층. 줄은 8명까지(맛집 느낌), 손님 수 한도는 자리 수 + 줄, 자리가 많으면 오래 앉아요(자리 대부분 차게) */
+const QMAX=8,WSP=2.3;let NSEAT=0;
 function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP()&&cust.filter(c=>c.st==='q').length<QMAX)cust.push({id:nid++,an:AN[Math.floor(Math.random()*AN.length)],x:N+1.6,y:.5,st:'q',route:[],t:0,sh:['#7ec8ff','#ff9ab0','#9ad870','#ffd23a','#b48aff'][nid%5]});spawnT=(2.6+Math.random()*2.6)*Math.min(1,6/CAP())/Math.max(1,POP*.8)}
  /* 빈 자리 중 무작위 (방금 누가 일어난 자리는 덜 골라요) */
  const seats=[];for(const it of items)if(FK[it.k]&&FK[it.k].seat&&inRoom(it.x,it.y))for(const sl of slotsOf(it))if(inRoom(sl.x,sl.y))seats.push(sl);const free=()=>{const L=seats.filter(ch=>!cust.some(c=>c.seat===ch)&&seatOk(items,ch));if(!L.length)return undefined;const now=performance.now(),dirty=ch=>junk.length&&(()=>{const b=tableFor(items,ch),x=b?b.x:ch.x+.5,y=b?b.y:ch.y+.5;return junk.some(j=>Math.hypot(j.x-x,j.y-y)<.35)})(),w=L.map(ch=>{const u=LASTS.get(ch);return(u&&now-u<20000?.25:1)*(dirty(ch)?.12:1)}),tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let i=0;i<L.length;i++){r-=w[i];if(r<=0)return L[i]}return L[L.length-1]};
- const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
+ NSEAT=seats.length;const QL=qLine(items),inQ=cust.filter(c=>c.st==='q');
  inQ.forEach((c,i)=>{if(c.qd==null)c.qd=QL.L;c.qd=Math.min(c.qd,QL.L);const tg=Math.min(i*.9,QL.L),old=c.qd;if(c.qd>tg)c.qd=Math.max(tg,c.qd-WSP*dt);const p=qAt(QL,c.qd);c.x=p.x;c.y=p.y;c.mv=c.qd!==old?1:0;c.route=[]});
  for(const c of cust){c.t+=dt;if(c.bt>0)c.bt-=dt;
   /* 앉으려던 의자가 치워지거나 옮겨지면 → 나가요 */
@@ -371,7 +371,7 @@ function step(dt,items,rate=1){spawnT-=dt*rate;if(spawnT<=0){if(cust.length<CAP(
    if(c.w>.6&&!ch0&&ST&&UP2>0){const s=tileOf(c),r=bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>isSt(x,y));if(r){c.st='up';c.route=r.slice(1).map(ctr);say(c,'⬆️ 2층 가 볼래요');continue}}
    if(c.w>.6){const ch=ch0,s=tileOf(c),r=ch&&bfs(s.gx,s.gy,N,blockSet(items,N),(x,y)=>x===ch.x&&y===ch.y);
     if(r){c.seat=ch;c.sx=ch.x;c.sy=ch.y;c.st='go';c.route=r.slice(1).map(ctr)}else{c.st='out';c.route=pathOut(items,c)}}}
-  else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;c.sd=12+Math.random()*12;c.tb=c.seat?tableFor(items,c.seat):null;if(c.tb)junk=junk.filter(j=>Math.hypot(j.x-c.tb.x,j.y-c.tb.y)>=.35);say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
+  else if(c.st==='go'&&!c.route.length){c.st='sit';c.w=0;c.sd=Math.min(60,Math.max(12,NSEAT*1.5))*(.75+Math.random()*.5);c.tb=c.seat?tableFor(items,c.seat):null;if(c.tb)junk=junk.filter(j=>Math.hypot(j.x-c.tb.x,j.y-c.tb.y)>=.35);say(c,['😋 맛있다!','😊 여기 좋네요','🥰 분위기 최고'][c.id%3])}
   else if(c.st==='sit'){c.w+=dt;if(c.tb&&!tbOk(items,c.tb))c.tb=null;if(c.w>(c.sd||12)){c.st='out';c.route=pathOut(items,c);if(c.seat){LASTS.set(c.seat,performance.now());addJunk(c)}c.seat=null;c.tb=null;say(c,'또 올게요 👋')}}
   if(c.st!=='sit'&&c.route.length){const tg=c.route[0],dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy),sp=WSP*dt;if(L<=sp){c.x=tg.x;c.y=tg.y;c.route.shift()}else{c.x+=dx/L*sp;c.y+=dy/L*sp;c.mv=1}}else if(c.st!=='q')c.mv=0}
  cust=cust.filter(c=>!((c.st==='out'||c.st==='up')&&!c.route.length));for(const f of fx)f.l-=dt;fx=fx.filter(f=>f.l>0);
