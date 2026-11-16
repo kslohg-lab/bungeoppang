@@ -385,7 +385,8 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
  $('rt').textContent='🌙 도와주기 끝! (가게 Lv'+lv+')';syncShop();$('rb').innerHTML=h;adBind();scr='res';s=null;snd('win');setTimeout(()=>snd('coins'),380);show('res')}
 /* ---------- ☕ 음료 도와주기 (js/cafe.js) ---------- */
 let lastHelp='bread';
-const CF=CAFE(cx,A,{snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
+const CF=CAFE(cx,A,{back:(t,g)=>{const k=mgKey(),im=k&&window.ART_IMG&&ART_IMG[k];if(!im||!im.complete||!im.naturalWidth)return;const x=152,h=74*im.naturalHeight/230,w=h*im.naturalWidth/im.naturalHeight,b=Math.abs(Math.sin(t*2.2))*3;cx.drawImage(im,x-w/2,318-h-b,w,h);
+  const L=mgr().lv|0,ph=t%9;if(ph<1.4){const msg=L===0?(ph<.7?'앗, 우유!':'에헤헤'):L===1?'어서 오세요!':L===2?'라떼 나갑니다~':'오늘도 화이팅!';rr(x-50,318-h-32,100,24,12,'rgba(255,255,255,.92)');tx(msg,x,318-h-20,13,'#7a4a2a','center')}},snd:k=>snd(k),toast:t=>toast(t),coins:()=>save.coins,onServe:an=>{if(an&&an!=='🧐')save.dex[an]=(save.dex[an]|0)+1}});
 function startCafe(){au();if(!BIZ.cafeOn(save)){startDay();return}try{if(window.ADS&&ADS.warm)ADS.warm()}catch(e){}/* 11/16 꾸민 가게라 음료값을 더 받아요: ✨ 꾸미기 보너스만큼(최대 +25%, 붕어빵과 같은 상한) */CF.start({save,mul:BIZ.beanMul(save)*(1+Math.min(.25,charmBonus())),dp:d=>BIZ.dPrice(save,d),pm:(R.loc[save.up.loc|0]||R.loc[0]).pm});scr='cafe';paused=false;acc=0;last=0;lastHelp='cafe';show('none')}
 function finishCafe(){if(scr!=='cafe')return;const r=CF.res(),hm=r.net>0?hbUse():hbMul(hbNow().n),tax=Math.round(Math.max(0,r.net)*BIZ.TAX),gain=Math.round((Math.max(0,r.net)-tax)*hm*(1+skBuf().h)*(1+mgB('cafe')));
  save.coins+=gain;save.served+=r.served;mgCount(r.served,0,r.served);save.cafeN=(save.cafeN|0)+1;BIZ.rtHelp(save,Date.now(),r.perf,r.served);const grp=BIZ.evHelp(save,r.served,Date.now());save.cafeBest=Math.max(save.cafeBest|0,r.net);BIZ.ledger(save,Date.now()).help+=gain;store();syncShop();

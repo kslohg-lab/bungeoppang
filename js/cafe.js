@@ -143,6 +143,7 @@ function tutLine(){const c=selCup();if(!g.cups.some(Boolean))return'① 손님 �
 function draw(t){if(!g)return;cx.save();if(g.shake>0)cx.translate(Math.sin(t*80)*4,0);
  const bg=cx.createLinearGradient(0,0,0,330);bg.addColorStop(0,'#f6dcc0');bg.addColorStop(1,'#eac9a2');cx.fillStyle=bg;cx.fillRect(0,0,W,H);
  cx.fillStyle='#d9b48c';for(let x=0;x<W;x+=30)cx.fillRect(x,58,2,236);
+ /* 🐣 11/16 수습생이 카운터 뒤에서 함께 일해요 (손님 사이 빈자리) */if(O.back)O.back(t,g);
  rr(0,292,W,34,0,'#a8714a');rr(0,292,W,7,0,'#c8915f');cx.fillStyle='#6b4a3a';cx.fillRect(0,508,W,H-508);
  /* 손님 */
  const cs=selCup();
