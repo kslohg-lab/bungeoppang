@@ -35,9 +35,10 @@ const LOTS=[];blocks.forEach(b=>{if(b.lm)return;LOTS.push({o:'F',fx:b.y+BY,a0:b.
 /* 내 가게 = 맨 앞줄(앞에 가리는 건물이 없는) 가운데 아래 블록의 왼쪽 자리. 나머지는 내 가게에서 가까운 순서 */
 LOTS.forEach(l=>{const c=l.o==='F'?{x:l.a0+l.L/2,y:l.fx}:{x:l.fx,y:l.a0-l.L/2};l.cx=c.x;l.cy=c.y});
 /* 내 가게 자리 = 내 상권 안에서 그 구역 중심(ZAN)에 가장 가까운 자리. 나머지는 내 가게에서 가까운 순서 */
-let MEZ='';function setMe(zk){zk=ZAN[zk]?zk:'alley';if(zk===MEZ)return;MEZ=zk;const a=ZAN[zk],ax=a[0]*(BX+RB_)+BX/2,ay=a[1]*(BY+RB_)+BY/2;
- let me=null,bd=1e9;for(const l of LOTS)if(l.z===zk){const d=Math.hypot(l.cx-ax,l.cy-ay);if(d<bd){bd=d;me=l}}
- LOTS.forEach(l=>{l.dist=l===me?-1:Math.hypot(l.cx-me.cx,l.cy-me.cy)});LOTS.sort((a,b)=>a.dist-b.dist)}
+/* 11/17 이웃은 아직 상권을 몰라서 모두 처음 자리(🏘️ 골목)에 모아요: 골목 중심에서 가까운 순 → 넘치면 골목 옆 */
+let MEZ='';const near=zk=>{const a=ZAN[zk],ax=a[0]*(BX+RB_)+BX/2,ay=a[1]*(BY+RB_)+BY/2;let me=null,bd=1e9;for(const l of LOTS)if(l.z===zk){const d=Math.hypot(l.cx-ax,l.cy-ay);if(d<bd){bd=d;me=l}}return me};
+function setMe(zk){zk=ZAN[zk]?zk:'alley';if(zk===MEZ)return;MEZ=zk;const me=near(zk),c=near('alley');
+ LOTS.forEach(l=>{l.dist=l===me?-1:Math.hypot(l.cx-c.cx,l.cy-c.cy)});LOTS.sort((a,b)=>a.dist-b.dist)}
 setMe('alley');
 /* ---------- 카메라 ---------- */
 let T=40,OX=0,OY=0,CGX=LOTS[0].cx,CGY=LOTS[0].cy-2;
