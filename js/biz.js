@@ -66,11 +66,11 @@ const PLACE={5:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},6:{n:'작은 점포',e:'
    붐비는 시간(pk)은 한국 시각 기준. 이사할 때 옛 자리 권리금 절반 돌려받고, 이사비 = 1시간 순이익 정도 */
 const ZONES=[
  {k:'alley',n:'골목',e:'🏘️',d:'처음 자리 · 지금 숫자 그대로',A:1,P:1,bp:1,r:0,key:0,pk:null},
- {k:'school',n:'학교 앞',e:'🏫',d:'평일 오후 3~6시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,pk:(w,h)=>w>=1&&w<=5&&h>=15&&h<18},
- {k:'station',n:'역 앞',e:'🚉',d:'평일 아침 7~9시·저녁 6~8시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,pk:(w,h)=>w>=1&&w<=5&&((h>=7&&h<9)||(h>=18&&h<20))},
- {k:'park',n:'공원 옆',e:'🌳',d:'주말 하루 종일 손님 ×1.5 · 값 ×1.25',A:1.5,P:1.25,bp:1.05,r:.04,key:500000,pk:w=>w===0||w===6},
- {k:'mall',n:'상가 거리',e:'🛍️',d:'늘 손님 ×1.25 · 값 ×1.12',A:1.25,P:1.12,bp:1.12,r:.05,key:1000000,pk:()=>true},
- {k:'prime',n:'사거리 1등지',e:'👑',d:'늘 손님 ×1.4 · 값 ×1.25',A:1.4,P:1.25,bp:1.25,r:.08,key:20000000,pk:()=>true}];
+ {k:'school',n:'학교 앞',e:'🏫',d:'평일 오후 3~6시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,kd:.25,pk:(w,h)=>w>=1&&w<=5&&h>=15&&h<18},
+ {k:'station',n:'역 앞',e:'🚉',d:'평일 아침 7~9시·저녁 6~8시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,kd:.25,pk:(w,h)=>w>=1&&w<=5&&((h>=7&&h<9)||(h>=18&&h<20))},
+ {k:'park',n:'공원 옆',e:'🌳',d:'주말 하루 종일 손님 ×1.5 · 값 ×1.25',A:1.5,P:1.25,bp:1.05,r:.04,key:500000,kd:.4,pk:w=>w===0||w===6},
+ {k:'mall',n:'상가 거리',e:'🛍️',d:'늘 손님 ×1.25 · 값 ×1.12',A:1.25,P:1.12,bp:1.12,r:.05,key:1000000,kd:.75,pk:()=>true},
+ {k:'prime',n:'사거리 1등지',e:'👑',d:'늘 손님 ×1.4 · 값 ×1.25',A:1.4,P:1.25,bp:1.25,r:.08,key:20000000,kd:5,pk:()=>true}];
 const ZK={};ZONES.forEach(z=>ZK[z.k]=z);
 const zoneOf=save=>ZK[save.zn&&save.zn.k]||ZONES[0];
 const kst=ms=>{const d=new Date(ms+9*3600e3);return{w:d.getUTCDay(),h:d.getUTCHours()}};
@@ -79,8 +79,14 @@ const zMul=(save,ms)=>{const z=zoneOf(save);return zPeak(z,ms)?{a:z.A,p:z.P,pk:1
 /* 도와주기 결과 배율: 판 시작 시각의 값 배율 × (1 − 임대료) */
 const zHelp=(save,ms)=>{const z=zoneOf(save);if(!z.r)return{m:1,pk:0,z};const pk=zPeak(z,ms);return{m:(pk?z.P:z.bp)*(1-z.r),pk:pk&&z.A!==1&&z.k!=='mall'&&z.k!=='prime'?1:0,z}};
 /* 이사비: 1시간 순이익(최소 5천) + 새 자리 권리금 − 옛 자리 권리금 절반 */
-function zMoveCost(save,k,ctx){const z=ZK[k],cur=zoneOf(save);if(!z||z===cur)return null;const r=rates(save,Object.assign({},ctx,{noZ:1,noEv:1}));const fee=Math.round(Math.max(5000,r.net)/1000)*1000,back=Math.floor(((save.zn&&save.zn.paid)|0)/2);return{fee,key:z.key,back,total:fee+z.key-back}}
-function zMove(save,k,ctx,ms,lot){const c=zMoveCost(save,k,ctx);if(!c||save.coins<c.total)return false;save.coins-=c.total;save.zn={k,paid:ZK[k].key,t:ms||Date.now()};if(lot!=null)save.zn.l=lot;return c}
+/* 💰 11/17 권리금은 가게 규모에 맞춰요: max(기본 권리금, 하루 수입 × kd일). 하루 수입 = 장부의 자동 영업 순이익 + 도와주기, 오늘·어제 중 큰 쪽 */
+const ledNet=x=>x?Math.max(0,(x.rev||0)-(x.mat||0)-(x.tax||0)-(x.rent||0)-(x.wage||0)-(x.zr||0))+(x.help||0):0;
+const dayInc=(save,ms)=>{const dk=dayKey(ms||Date.now()),L=save.led&&save.led.k===dk?save.led:null,Y=save.led&&save.led.k===dk-1?save.led:save.ledY&&save.ledY.k===dk-1?save.ledY:null;return Math.max(ledNet(L),ledNet(Y))};
+const zKey=(save,k,ms)=>{const z=ZK[k];if(!z||!z.key)return 0;return Math.max(z.key,Math.round(dayInc(save,ms)*(z.kd||0)/100000)*100000)};
+/* 이사 비용: 다른 구역 = 이사비(1시간 순이익, 최소 5천) + 새 권리금 − 옛 권리금(실제 낸 돈) 절반. 같은 구역 안에서 칸만 옮기기 = 무료 */
+function zMoveCost(save,k,ctx){const z=ZK[k],cur=zoneOf(save);if(!z)return null;if(z===cur)return{fee:0,key:0,back:0,total:0,same:1};const r=rates(save,Object.assign({},ctx,{noZ:1,noEv:1}));const fee=Math.round(Math.max(5000,r.net)/1000)*1000,back=Math.floor(((save.zn&&save.zn.paid)|0)/2),key=zKey(save,k);return{fee,key,back,total:fee+key-back}}
+/* 실제 이사(서버에서 칸을 잡은 뒤에 불러요): 코인 빼고 save.zn = {k 상권, paid 낸 권리금, l 칸 번호, c 서버에 잡음, t} */
+function zMove(save,k,ctx,ms,lot,c){c=c||zMoveCost(save,k,ctx);if(!c||save.coins<c.total)return false;save.coins-=c.total;const pd=c.same?((save.zn&&save.zn.paid)|0):c.key;save.zn={k,paid:pd,t:ms||Date.now(),l:lot,c:1};return c}
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
 const lvOf=(save,k)=>st(save)[k]|0;
 /* 👥 일하는 레벨: 고용한 레벨보다 낮춰서 쓸 수 있어요(월급도 그만큼). save.su[k] 없으면 고용한 레벨 그대로 */
@@ -175,5 +181,5 @@ function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.zr=(L.zr||0)+g.zr;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
 function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{ZONES,ZK,zoneOf,zHelp,zPeak,zMul,zMoveCost,zMove,rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{ZONES,ZK,zoneOf,zHelp,zKey,dayInc,zPeak,zMul,zMoveCost,zMove,rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;

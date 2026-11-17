@@ -35,19 +35,17 @@ const LOTS=[];blocks.forEach(b=>{if(b.lm)return;const id=k=>b.i*100+b.j*10+k;LOT
 /* 내 가게 = 맨 앞줄(앞에 가리는 건물이 없는) 가운데 아래 블록의 왼쪽 자리. 나머지는 내 가게에서 가까운 순서 */
 LOTS.forEach(l=>{const c=l.o==='F'?{x:l.a0+l.L/2,y:l.fx}:{x:l.fx,y:l.a0-l.L/2};l.cx=c.x;l.cy=c.y});
 /* 내 가게 자리 = 내 상권 안에서 그 구역 중심(ZAN)에 가장 가까운 자리. 나머지는 내 가게에서 가까운 순서 */
-/* 11/17 이웃은 아직 상권을 몰라서 모두 처음 자리(🏘️ 골목)에 모아요: 골목 중심에서 가까운 순 → 넘치면 골목 옆 */
-let MEZ='';const near=zk=>{const a=ZAN[zk],ax=a[0]*(BX+RB_)+BX/2,ay=a[1]*(BY+RB_)+BY/2;let me=null,bd=1e9;for(const l of LOTS)if(l.z===zk){const d=Math.hypot(l.cx-ax,l.cy-ay);if(d<bd){bd=d;me=l}}return me};
-/* 내 가게 자리: 지도에서 고른 칸(lot id)이 있으면 거기, 없으면 구역 중심 */
-function setMe(zk,lid){zk=ZAN[zk]?zk:'alley';const key=zk+'|'+lid;if(key===MEZ)return;MEZ=key;const me=LOTS.find(l=>l.id===lid&&l.z===zk)||near(zk),c=near('alley');
- LOTS.forEach(l=>{l.dist=l===me?-1:Math.hypot(l.cx-c.cx,l.cy-c.cy)});LOTS.sort((a,b)=>a.dist-b.dist)}
-setMe('alley');
+/* 🗺️ 11/17 칸 번호(l.id)로 가게를 놓아요 (서버 lots에서 정한 칸은 모두에게 같아요). LID = 칸 번호 → 칸, ORD[zone] = 그 구역 중심에서 가까운 순서 */
+const LID=new Map(LOTS.map(l=>[l.id,l])),ORD={};for(const zk of Object.keys(ZAN)){const a=ZAN[zk],ax=a[0]*(BX+RB_)+BX/2,ay=a[1]*(BY+RB_)+BY/2;ORD[zk]=LOTS.slice().sort((p,q)=>Math.hypot(p.cx-ax,p.cy-ay)-Math.hypot(q.cx-ax,q.cy-ay)).map(l=>l.id)}
+/* 골목에 모아 둘 칸 순서(골목 칸 먼저, 넘치면 골목 중심에서 가까운 칸) */const ALLEY=ORD.alley;
 /* ---------- 카메라 ---------- */
-let T=40,OX=0,OY=0,CGX=LOTS[0].cx,CGY=LOTS[0].cy-2;
+let T=40,OX=0,OY=0,CGX=LID.get(ALLEY[0]).cx,CGY=LID.get(ALLEY[0]).cy-2;
 const P=(gx,gy,z=0)=>({x:OX+(gx-gy)*T/2,y:OY+(gx+gy)*T/4-z});
 function cam(){OX=225-(CGX-CGY)*T/2;OY=400-(CGX+CGY)*T/4}
 function drag(dx,dy){CGX-=(dx+2*dy)/T;CGY-=(-dx+2*dy)/T;CGX=Math.max(3,Math.min(TX-3,CGX));CGY=Math.max(3,Math.min(TY-3,CGY))}
 function zoom(f){T=Math.max(15,Math.min(72,T*f))}
-function center(i){const l=LOTS[i|0];CGX=l.cx-2.5;CGY=l.cy-4}
+function center(lid){const l=LID.get(lid)||LID.get(ALLEY[0]);CGX=l.cx-2.5;CGY=l.cy-4}
+function centerZone(zk){const a=ZAN[zk]||ZAN.alley;CGX=a[0]*(BX+RB_)+BX/2;CGY=a[1]*(BY+RB_)+BY/2}
 /* ---------- 그리기 도구 ---------- */
 const poly=(pts,f,s,lw=2)=>{cx.beginPath();pts.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y));cx.closePath();if(f){cx.fillStyle=f;cx.fill()}if(s){cx.strokeStyle=s;cx.lineWidth=lw;cx.stroke()}};
 function face(o,len,sl,fn){cx.save();cx.translate(o.x,o.y);cx.transform(1,sl,0,1,0,0);fn(len);cx.restore()}
@@ -168,20 +166,20 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
  /* 가게: 자리·크기로 미리 칸을 재서, 내 가게를 가리는 앞 건물은 반투명(엑스레이) */
  const est=(Q,d)=>{const S=size(RM(d)),st=d.fimg?{img:1}:SK[d.skin|0]||SK[0],s=T/40,h=RM(d)<=4?T*1.3+24*s:T*1.32+T*.92*(S.fl-1),top=st.img?T*2.6:RM(d)<=4?h:st.roof==='castle'?h*1.32+T*.7:st.roof==='flat'?h+6*s:h+T*1.15,Wd=RM(d)<=4?1.9:S.w,Dd=S.d;
   const pts=[Q(-.3,-.4),Q(Wd+.3,-.4),Q(Wd,Dd,top),Q(0,Dd,top),Q(0,0,top),Q(Wd,0,top)];return{x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))}};
- const all=LOTS.map((l,i)=>list[i]||null);
+ const byL=new Map();list.forEach((it,k)=>{if(it&&it.lid!=null&&!byL.has(it.lid))byL.set(it.lid,k)});const IX=LOTS.map(l=>byL.has(l.id)?byL.get(l.id):-1),all=IX.map(k=>k>=0?list[k]:null);
  /* 🟫 빈 땅: 살짝만 보이는 점선 칸 · 누르면 여기로 이사 (o.pick = 고른 칸 id는 노랗게) */
  if(T>=22)LOTS.forEach((l,i)=>{if(all[i])return;const gx=l.o==='F'?l.a0+l.L/2:l.fx-1.6,gy=l.o==='F'?l.fx-1.6:l.a0-l.L/2;if(!vis(gx,gy))return;
   const pts=l.o==='F'?[P(l.a0+.3,l.fx-3.1),P(l.a0+l.L-.3,l.fx-3.1),P(l.a0+l.L-.3,l.fx-.25),P(l.a0+.3,l.fx-.25)]:[P(l.fx-3.1,l.a0-l.L+.3),P(l.fx-.25,l.a0-l.L+.3),P(l.fx-.25,l.a0-.3),P(l.fx-3.1,l.a0-.3)],pk=o.pick===l.id;
   cx.save();cx.setLineDash([5,4]);poly(pts,pk?'rgba(255,214,90,.55)':'rgba(255,255,255,.16)',pk?'#e8a020':'rgba(255,255,255,.6)',pk?2.5:1.4);cx.restore();
-  hits.push({lot:l.id,zone:l.z,empty:1,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))})});
+  hits.push({lot:l.id,zone:l.z,empty:1,z:l.cx+l.cy,poly:pts,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))})});
  const PL=all.map((it,i)=>{const l=LOTS[i];if(!l||!it)return null;{const c=P(l.cx,l.cy);if(c.x<-300||c.x>W+300||c.y<-260||c.y>1060)return{l,Q:null,bb:{x0:-9e9,x1:-9e9,y0:-9e9,y1:-9e9}}}const S=size(RM(it.d)),w=RM(it.d)<=4?1.9:S.w,pad=(l.L-w)/2,ox=l.o==='F'?l.a0+pad:l.fx,oy=l.o==='F'?l.fx-.15:l.a0-pad,Q=l.o==='F'?mk('F',ox,oy):mk('R',ox-.15,oy);return{l,Q,bb:est(Q,it.d)}});
- const mi=list.findIndex(it=>it.me),mb=mi>=0&&PL[mi]?PL[mi].bb:null,mz=mb?PL[mi].l.cx+PL[mi].l.cy:0;
+ const mi=all.findIndex(it=>it&&it.me),mb=mi>=0&&PL[mi]?PL[mi].bb:null,mz=mb?PL[mi].l.cx+PL[mi].l.cy:0;
  all.forEach((it,i)=>{const pl=PL[i];if(!pl)return;const {l,Q}=pl;
   const ctr=P(l.cx,l.cy);if(ctr.x<-260||ctr.x>W+260||ctr.y<-200||ctr.y>1000)return;
   const xr=mb&&!it.me&&l.cx+l.cy>mz&&pl.bb.x0<mb.x1&&pl.bb.x1>mb.x0&&pl.bb.y0<mb.y1&&pl.bb.y1>mb.y0;
-  D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=bldg(Q,l.o,it.d,t);cx.globalAlpha=1;const pts=[Q(-.3,-.4),Q(r.Wd+.3,-.4),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h),Q(0,0,r.h),Q(r.Wd,0,r.h)];hits.push({i,xr,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y))-10,y1:Math.max(...pts.map(p=>p.y))+22});
+  D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=bldg(Q,l.o,it.d,t);cx.globalAlpha=1;const pts=[Q(-.3,-.4),Q(r.Wd+.3,-.4),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h),Q(0,0,r.h),Q(r.Wd,0,r.h)];hits.push({i:IX[i],xr,z:l.cx+l.cy,poly:hull([Q(-.2,-.3),Q(r.Wd+.2,-.3),Q(r.Wd+.2,r.D),Q(-.2,r.D),Q(0,0,r.h),Q(r.Wd,0,r.h),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h)]),x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y))-10,y1:Math.max(...pts.map(p=>p.y))+22});
    {const k=T/40,top={x:(Math.min(...pts.map(p=>p.x))+Math.max(...pts.map(p=>p.x)))/2,y:Math.min(...pts.map(p=>p.y))+4*k};if(it.mk&&!it.me){const yb=top.y-14*k-Math.abs(Math.sin(t*2.4+i))*4*k;rr(top.x-15*k,yb-15*k,30*k,30*k,15*k,'rgba(255,255,255,.95)');em(it.mk,top.x,yb,20*k)}
-    if(o.gold===i){const yb=top.y-(it.mk?52:26)*k-Math.sin(t*2)*5*k;cx.save();cx.shadowColor='#ffd23a';cx.shadowBlur=18;A.fish2(top.x,yb,.02*T,'#ffcf3a',{glow:'rgba(255,220,80,.9)'});cx.restore();if(m2(t*.7,1)<.5){cx.globalAlpha=.8;em('✨',top.x+16*k,yb-14*k,12*k);cx.globalAlpha=1}hits.push({i,gold:1,x0:top.x-30*k,x1:top.x+30*k,y0:yb-26*k,y1:yb+20*k})}}
+    if(o.gold===IX[i]){const yb=top.y-(it.mk?52:26)*k-Math.sin(t*2)*5*k;cx.save();cx.shadowColor='#ffd23a';cx.shadowBlur=18;A.fish2(top.x,yb,.02*T,'#ffcf3a',{glow:'rgba(255,220,80,.9)'});cx.restore();if(m2(t*.7,1)<.5){cx.globalAlpha=.8;em('✨',top.x+16*k,yb-14*k,12*k);cx.globalAlpha=1}hits.push({i:IX[i],gold:1,x0:top.x-30*k,x1:top.x+30*k,y0:yb-26*k,y1:yb+20*k})}}
    /* 이름표: 가게 이름 한 줄만 작게. 앞 건물에 걸리는 뒤 가게 이름표는 숨겨요(건물을 누르면 이름이 나와요). 내 가게 이름표는 항상 보여요 */
    if(T>=28||it.me)lab.push(()=>{const q=l.o==='F'?P(l.cx,l.fx+.55):P(l.fx+.55,l.cy);const nm=(it.me?'⭐ ':'')+(it.d.n||'붕어빵'),k=Math.max(.75,Math.min(1.1,T/40)),f1=12*k,bh=22*k;
     cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+14*k,bx=q.x-bw/2;
@@ -195,7 +193,7 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
   if(!vis(gx,gy,T*9))return;const wd=T*({tower:6.2,park:10.5,school:9.4,station:10.2}[k]);
   D.push({z:k==='tower'?gx+gy-1:b.x+b.y+BX+BY-2,f:()=>{const im=skImg('img/town/'+k+'.webp'),q=P(gx,gy);if(!im)return;const h=wd*im.naturalHeight/im.naturalWidth,top=q.y-h*.74;cx.drawImage(im,q.x-wd/2,top,wd,h);LMR.push({z:k==='tower'?gx+gy-1:b.x+b.y+BX+BY-2,x0:q.x-wd/2,x1:q.x+wd/2,mx:wd*.12,y0:top+h*.08,y1:top+h*.85});
    lab.push(()=>{const nm=ZN[b.z],k2=Math.max(.8,Math.min(1.15,T/40)),f1=14*k2,bh=26*k2;cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+20*k2,y=top-bh*.2;rr(q.x-bw/2,y,bw,bh,bh/2,'rgba(255,248,230,.95)');cx.strokeStyle='#c8a070';cx.lineWidth=2;cx.beginPath();cx.roundRect(q.x-bw/2,y,bw,bh,bh/2);cx.stroke();tx(nm,q.x,y+bh/2,f1,'#5a3a22','center','#fff8e6');hits.push({zone:b.z,x0:q.x-bw/2,x1:q.x+bw/2,y0:y,y1:y+bh})});
-   hits.push({zone:b.z,x0:q.x-wd*.4,x1:q.x+wd*.4,y0:top+h*.1,y1:q.y+h*.2})}})});
+   hits.push({zone:b.z,z:b.x+b.y+BX+BY-2,x0:q.x-wd*.4,x1:q.x+wd*.4,y0:top+h*.1,y1:q.y+h*.2})}})});
  /* 멀리서 볼 때 구역 이름 (상가 거리·골목) */if(T<34)for(const zk of['mall','alley']){const a=ZAN[zk],gx=a[0]*(BX+RB_)+BX/2,gy=a[1]*(BY+RB_)+BY/2;if(!vis(gx,gy))continue;lab.push(()=>{const q=P(gx,gy),nm=ZN[zk],f1=15,bh=28;cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+22;rr(q.x-bw/2,q.y-bh,bw,bh,bh/2,'rgba(255,248,230,.92)');tx(nm,q.x,q.y-bh/2,f1,'#5a3a22','center','#fff8e6');hits.push({zone:zk,x0:q.x-bw/2,x1:q.x+bw/2,y0:q.y-bh,y1:q.y})})}
  /* 🚗 차 */for(const c of cars){c.p+=c.v*(o.dt||0);const mx=c.hz?TX:TY;if(c.p<-4)c.p=mx+3;if(c.p>mx+4)c.p=-3;const gx=c.hz?c.p:c.line,gy=c.hz?c.line:c.p;if(!vis(gx,gy,40))continue;
   D.push({z:gx+gy+.2,f:()=>{const q=P(gx,gy),sz=T*.85;cx.fillStyle='rgba(0,0,0,.15)';cx.beginPath();cx.ellipse(q.x,q.y+sz*.05,sz*.42,sz*.14,0,0,7);cx.fill();const right=c.hz?c.v>0:c.v<0;cx.save();if(right){cx.translate(q.x*2,0);cx.scale(-1,1)}em(c.e,q.x,q.y-sz*.32,sz);cx.restore()}})}
@@ -211,6 +209,10 @@ function preview(t,d,top,bottom){const g=cx.createLinearGradient(0,top,0,bottom)
  OX=225-((S.w/2)+(S.d/2))*T/2;OY=bottom-70-(S.w/2)*T/4;
  const G=(y0,y1,c)=>poly([P(-3,y0),P(S.w+3,y0),P(S.w+3,y1),P(-3,y1)],c);G(-S.d-2,0,'#cfe6b4');G(0,1.1,'#e4d8c2');G(1.1,4,'#8f8a85');
  bldg(mk('F',0,0),'F',d,t);T=sv.T;OX=sv.OX;OY=sv.OY}
-function hit(hits,x,y){for(const q of hits)if(q.gold&&x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1)return q;let best=null,see=null;for(const q of hits)if(x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1){best=q;if(!q.xr)see=q}return see||best}
-return{SK,size,LOTS,ZN,setMe,scene,preview,center,drag,zoom,hit,get T(){return T}}};
+/* 누른 곳: 황금 붕어빵 먼저 → 그다음 그 점을 덮는 것 중 가장 앞(z 큰 것, 이름표는 맨 앞). 빈 땅은 칸 모양 안쪽만 */
+const hull=P0=>{const p=P0.slice().sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),L=[],U=[];for(const q of p){while(L.length>1&&cr(L[L.length-2],L[L.length-1],q)<=0)L.pop();L.push(q)}for(const q of p.reverse()){while(U.length>1&&cr(U[U.length-2],U[U.length-1],q)<=0)U.pop();U.push(q)}return L.slice(0,-1).concat(U.slice(0,-1))};
+const inPoly=(p,x,y)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){if((p[i].y>y)!==(p[j].y>y)&&x<(p[j].x-p[i].x)*(y-p[i].y)/(p[j].y-p[i].y)+p[i].x)c=!c}return c};
+function hit(hits,x,y){for(const q of hits)if(q.gold&&x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1)return q;let best=null,bz=-1e9,xr=null;
+ for(const q of hits){if(!(x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1))continue;if(q.poly&&!inPoly(q.poly,x,y))continue;if(q.xr){xr=xr||q;continue}const z=q.z==null?1e9:q.z;if(z>=bz){bz=z;best=q}}return best||xr}
+return{SK,size,LOTS,LID,ORD,ALLEY,ZN,centerZone,scene,preview,center,drag,zoom,hit,get T(){return T}}};
 if(typeof module!=='undefined')module.exports=STREET;

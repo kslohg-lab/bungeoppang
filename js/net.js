@@ -60,6 +60,11 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     async newNotes(since){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'shops',me,'notes'),orderBy('t','desc'),limit(20)));N.noteFrom=q.docs.map(x=>{const t=x.data().t;return{u:x.id,t:t&&t.toMillis?Math.floor(t.toMillis()):0}});return q.docs.filter(x=>{const t=x.data().t;return t&&t.toMillis&&Math.floor(t.toMillis())>since}).length},
     /* 🚩 신고 (가게 구경): r 0 이름 · 1 점수 · 2 기타. 한 사람이 한 대상에 한 번 */
     async report(u,r){const me=await login();N.uid=me;if(me===u)return false;await setDoc(doc(db,'reports',me+'_'+u),{u,r:r|0,k:'s',t:serverTimestamp()});return true},
+    /* 🗺️ 11/17 동네 지도 칸 (규칙 lots·lotOf): 전체 칸 읽기(최대 약 140) · 칸 잡기(예전 칸 지우기 + 새 칸 + 내 칸 표시를 한 묶음) · 내 칸 모습·시간 새로 */
+    async lots(){const s=await getDocs(collection(db,'lots')).catch(full);return s.docs.map(x=>{const v=x.data();return{l:+x.id,u:v.u,n:v.n,nk:v.nk,g:v.g|0,room:v.room|0,sk:v.sk|0,aw:v.aw|0,sg:v.sg|0,r5:v.r5|0,t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
+    async lotMove(nl,ol,look){const me=await login();N.uid=me;const b=writeBatch(db);/* 폰 기록과 상관없이 서버에 적힌 내 예전 칸(lotOf)도 확인해서 지워요 (한 사람 한 칸 규칙) */const p=await getDoc(doc(db,'lotOf',me)),olds=new Set([ol,p.exists()?p.data().l:null].filter(x=>x!=null).map(String));olds.delete(String(nl));for(const k of olds){const o=await getDoc(doc(db,'lots',k));if(o.exists()&&o.data().u===me)b.delete(doc(db,'lots',k))}
+     b.set(doc(db,'lots',String(nl)),Object.assign({},look,{u:me,t:serverTimestamp()}));b.set(doc(db,'lotOf',me),{l:String(nl),t:serverTimestamp()});await b.commit();return true},
+    async lotSync(l,look){const me=await login();N.uid=me;await setDoc(doc(db,'lots',String(l)),Object.assign({},look,{u:me,t:serverTimestamp()}));return true},
     bust(){cache.clear()}};
    presence(db,login,F,'s');
    window.NET=N;login().then(u=>{N.uid=u;window.dispatchEvent(new Event('net-ready'))}).catch(e=>console.warn('NET login',e&&e.code||e));

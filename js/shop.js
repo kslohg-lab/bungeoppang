@@ -361,12 +361,11 @@ const run0=()=>({seed:(save.seed^Math.imul(save.days+1,2654435761))>>>0,day:shop
 function zWeek(k){const o=save.zn,cx_=bctx(),t0=Date.now();save.zn={k};let a=0;for(let h=0;h<168;h++)a+=BIZ.rates(save,Object.assign({},cx_,{noEv:1,ms:t0+h*3600e3})).net;save.zn=o;return a/168}
 function zoneUI(r,card,act,inf){const z=BIZ.zoneOf(save),now=Date.now(),pk=BIZ.zPeak(z,now)&&z.A!==1&&z.k!=='mall'&&z.k!=='prime',base=zWeek('alley');
  let h='<div class="tip" style="margin-top:16px;font-size:16px">'+inf('📍','가게 자리 (상권)','동네 어디에 가게를 두느냐에 따라 손님 수와 <b>한 명이 쓰는 돈</b>이 달라져요.<br>• 🏫·🚉·🌳 은 <b>붐비는 시간</b>에 크게 벌어요 (자리 비운 동안 장사도 시간대별로 계산)<br>• 🛍️·👑 은 늘 조금씩 더 벌어요<br>• 📍 자리값 = 순이익의 몇 %. 손해 보는 시간엔 안 떼요<br>• 이사할 때 <b>권리금</b>을 내고, 옛 자리 권리금은 절반 돌려받아요<br>• 🙋 도와주기 수입에도 적용돼요 (판 시작 시각 기준)<br>가게가 클수록(알바가 바쁠수록) 손님 수보다 <b>값</b>이 중요해요.')+'<span style="margin-left:22px">📍 <b>가게 자리</b> · 🗺️ 동네 지도에서 빈 땅을 눌러도 돼요 · 지금 '+z.e+' '+z.n+(pk?' <span class="chip ok" style="font-size:13px">🔥 붐비는 시간!</span>':'')+'</span></div><div class="gr2">';
- BIZ.ZONES.forEach(q=>{const cur=q===z,c=cur?null:BIZ.zMoveCost(save,q.k,bctx()),w=zWeek(q.k),d=Math.round(w-base),pct=base>0?Math.round((w/base-1)*100):0;
+ BIZ.ZONES.forEach(q=>{const cur=q===z,w=zWeek(q.k),d=Math.round(w-base),pct=base>0?Math.round((w/base-1)*100):0;
   const st='<small style="display:block;line-height:1.35">'+q.d+'</small>'+(q.r?'📍 자리값 '+Math.round(q.r*100)+'%<br>':'')+'<b>'+(q.k==='alley'?'기준':(d>=0?'▲':'▼')+fmt(Math.abs(d))+'/시간'+(base>0?' ('+(pct>=0?'+':'')+pct+'%)':''))+'</b><small style="display:block">일주일 평균</small>';
-  h+=card({e:q.e,n:q.n,st,hot:cur,btn:cur?'✅ 여기예요':'🚚 '+fmt(c.total),can:cur||save.coins>=c.total,done:cur,
-   info:[q.e,q.n,q.d+'<br>평소: 값 ×'+q.bp+'<br>📍 자리값: 순이익의 '+Math.round(q.r*100)+'%<br>🔑 권리금: '+fmt(q.key)+'<br><br>지금 가게로 일주일 평균 <b>'+fmt(Math.round(w))+'/시간</b> (골목 '+fmt(Math.round(base))+')'],
-   fn:()=>{if(cur)return;if(save.coins<c.total){toast('코인이 부족해요!');snd('no');return}
-    JUICE.ask(q.e+' '+q.n+'(으)로 이사할까요?','🚚 이사비 '+fmt(c.fee)+' · 🔑 권리금 '+fmt(c.key)+(c.back?' · ↩️ 옛 권리금 절반 −'+fmt(c.back):'')+' → 합계 🪙 '+fmt(c.total),'🚚 이사하기',()=>{const ok=BIZ.zMove(save,q.k,bctx(),Date.now());if(!ok){toast('코인이 부족해요!');snd('no');return}store();syncShop();snd('fanfare');if(window.JUICE)JUICE.confetti(70);toast(q.e+' '+q.n+'(으)로 이사했어요!');renderUp();bizBtn()},'그만두기',()=>{})}})});
+  h+=card({e:q.e,n:q.n,st:st+(q.key&&!cur?'<small style="display:block">🔑 권리금 '+fmt(BIZ.zKey(save,q.k))+'</small>':''),hot:cur,btn:cur?'✅ 여기예요':'🗺️ 지도에서 고르기',can:1,done:cur,
+   info:[q.e,q.n,q.d+'<br>평소: 값 ×'+q.bp+'<br>📍 자리값: 순이익의 '+Math.round(q.r*100)+'%<br>🔑 권리금: '+fmt(BIZ.zKey(save,q.k))+(q.kd?' (기본 '+fmt(q.key)+' 또는 하루 수입의 '+q.kd+'일치 중 큰 쪽)':'')+'<br><br>지금 가게로 일주일 평균 <b>'+fmt(Math.round(w))+'/시간</b> (골목 '+fmt(Math.round(base))+')<br>🗺️ 동네 지도에서 이 구역의 빈 땅을 눌러 이사해요'],
+   fn:()=>{if(cur)return;snd('tap');openStreet(q.k)}})});
  return h+'</div>'}
 let helpT=0;
 function startDay(){au();helpT=Date.now();try{if(window.ADS&&ADS.warm)ADS.warm()}catch(e){}if(!goals.length)goals=goalsFor(dayKey(),shopLv());run=run0();s=B.newDay(run);{const w=todayWx();s.wea=w.wea;s.ev=w.ev}ui=A.newUi();A.use(s,run,ui);scr='game';paused=false;acc=0;last=0;show('none')}
@@ -891,26 +890,52 @@ function lkTick(){const v=window.NET&&NET.myLk;if(v==null)return;const d=dayKey(
 function lkRecv(){const L=save.lkD;return L&&L.d===dayKey()?Math.max(0,(L.c|0)-(L.b|0)):0}function lkBuf(){return Math.min(.05,lkRecv()*.005)}
 const lsJ=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-function stBuild(){SV.setMe(BIZ.zoneOf(save).k,save.zn&&save.zn.l);const rows=(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
+/* 🗺️ 11/17 동네 지도는 모두에게 같아요: 서버 lots에 잡힌 칸은 그 주인 가게가 그 칸에, 칸을 안 잡은 이웃은 🏘️ 골목 빈 칸에 모여요 */
+let stLots=null;const LOT_K='bpLots1',LOT_TTL=14*864e5;
+const lotLook=()=>{const d=myD(null);return{n:String(d.n||'붕어빵').slice(0,12),nk:String(d.nk||'').slice(0,12),g:d.g|0,room:Math.max(4,Math.min(11,d.room|0)),sk:d.skin|0,aw:d.awn|0,sg:d.sign|0,r5:1}};
+const lotLive=()=>(stLots||[]).filter(x=>x.t>Date.now()-LOT_TTL&&SV.LID.has(x.l)&&!(window.HIDE&&HIDE.has(x.u)));
+const meUid=()=>window.NET&&NET.uid;
+const myLot=()=>save.zn&&save.zn.c&&save.zn.l!=null?save.zn.l:null;
+function stBuild(){const live=lotLive(),me=meUid(),others=live.filter(x=>x.u!==me),taken=new Set(others.map(x=>x.l)),cu=new Set(others.map(x=>x.u));
+ let meL=myLot();if(meL==null||taken.has(meL))meL=SV.ALLEY.find(l=>!taken.has(l));
+ const free=SV.ALLEY.filter(l=>!taken.has(l)&&l!==meL);
+ const rows=(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))&&!cu.has(r.u)),my=Math.min(3000000,decoScore()),used=new Set(),take=(arr,n)=>{const o=[];for(const r of arr){if(o.length>=n)break;if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
  const near=take(shuf(rows.slice().sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my)).slice(0,24)),12).sort((a,b)=>Math.abs(a.sc-my)-Math.abs(b.sc-my));
  const big=take(shuf(rows.filter(r=>r.sc>my*1.5&&!r.top)),5).sort((a,b)=>a.sc-b.sc);
  const top=take(shuf(rows.filter(r=>r.top)),3).sort((a,b)=>a.sc-b.sc);
- const rest=take(shuf(rows.slice()),SV.LOTS.length-1-near.length-big.length-top.length);
- stList=[{d:myD(null),me:true,u:'me'},...[...near,...rest,...big,...top].map(r=>({d:dD(r),u:r.u}))].slice(0,SV.LOTS.length);SV.center(0)}
+ const rest=take(shuf(rows.slice()),free.length);
+ stList=[{d:myD(null),me:true,u:'me',lid:meL},...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g},u:x.u,lid:x.l})),...[...near,...rest,...big,...top].slice(0,free.length).map((r,i)=>({d:dD(r),u:r.u,lid:free[i]}))];SV.center(meL)}
+/* 서버 칸 목록 읽기: 하루 한 번(폰에 저장), force면 바로 다시 */
+function lotsLoad(force){const c=lsJ(LOT_K);if(!force&&c&&c.d===dayKey()&&Array.isArray(c.rows)){stLots=c.rows;return Promise.resolve(stLots)}
+ return new Promise(res=>whenNet(N=>{if(!N.lots){res(stLots);return}N.lots().then(rows=>{stLots=rows;lsJ(LOT_K,{d:dayKey(),rows});lotFix();res(rows)}).catch(e=>{console.warn('lots',e&&e.code||e);stLots=stLots||(c&&c.rows)||[];res(stLots)})},()=>{stLots=stLots||(c&&c.rows)||[];res(stLots)}))}
+const lotPut=(l,ol)=>{const me=meUid(),rows=(stLots||[]).filter(x=>x.u!==me&&x.l!==l);rows.push(Object.assign({l,u:me,t:Date.now()},lotLook()));stLots=rows;lsJ(LOT_K,{d:dayKey(),rows})};
+/* 칸 지키기: 내 칸을 다른 사람이 가져갔으면(14일 안 와서) 골목으로 · 6.16.0~2에 폰에서만 이사한 상권은 서버 칸을 잡아 주고, 자리가 없으면 권리금을 다 돌려줘요 · 하루 한 번 내 칸 모습·시간 새로 */
+let lotBusy=false;
+function lotFix(){if(lotBusy||!stLots||!window.NET||NET.off||!NET.lotMove||!save.name)return;const me=meUid();if(!me)return;const live=lotLive(),z=BIZ.zoneOf(save),zn=save.zn;
+ const ml=myLot();if(ml!=null){const o=(stLots||[]).find(x=>x.l===ml);if(o&&o.u!==me){save.zn={k:'alley'};store();toast('🏘️ 오래 비운 사이 '+z.e+' '+z.n+' 자리를 다른 가게가 가져갔어요 · 골목으로 돌아왔어요');bizBtn();return}
+  if(!o||Date.now()-(zn.st||0)>20*3600e3||zn.h!==JSON.stringify(lotLook())){lotBusy=true;NET.lotSync(ml,lotLook()).then(()=>{zn.st=Date.now();zn.h=JSON.stringify(lotLook());lotPut(ml);store()}).catch(e=>console.warn('lotSync',e&&e.code||e)).finally(()=>lotBusy=false)}return}
+ if(!zn||z.k==='alley')return;
+ const taken=new Set(live.filter(x=>x.u!==me).map(x=>x.l)),want=zn.l!=null&&SV.LID.has(zn.l)&&SV.LID.get(zn.l).z===z.k&&!taken.has(zn.l)?zn.l:SV.ORD[z.k].find(l=>SV.LID.get(l).z===z.k&&!taken.has(l));
+ if(want==null){const back=zn.paid|0;save.coins+=back;save.zn={k:'alley'};store();toast('🏘️ '+z.e+' '+z.n+'에 빈 자리가 없어서 골목으로 · 권리금 🪙'+fmt(back)+' 돌려받았어요');bizBtn();return}
+ lotBusy=true;NET.lotMove(want,null,lotLook()).then(()=>{save.zn=Object.assign({},zn,{l:want,c:1,st:Date.now(),h:JSON.stringify(lotLook())});lotPut(want);store();if(scr==='street')stBuild()}).catch(e=>console.warn('lotFix',e&&e.code||e)).finally(()=>lotBusy=false)}
+addEventListener('net-ready',()=>{lotsLoad(false).then(()=>lotFix())});
 function stUI(){const tw=twNow(),lr=lkRecv();$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('🐾 이웃 구경 <b>'+Math.min(3,tw.v.length)+'/3</b>'+(tw.st?' ✅':'')+' · 🐟 황금 붕어빵 '+(tw.g?'찾음 ✅':'<b>어딘가 숨어 있어요!</b>')+'<br><small>💌 = 방명록 남긴 이웃 · ❤️ 오늘 받은 좋아요 '+lr+(lr?' (손님 +'+(Math.round(lkBuf()*1000)/10)+'%)':'')+'</small>');const b=$('str');b.textContent='🔄 다른 동네';b.className=stLoad?'dis':''}
 function loadStreet(){const c=lsJ(ST_KEY);if(c&&c.d===dayKey()&&Array.isArray(c.rows)&&c.rows.length){stRows=c.rows;stMsg='';stBuild();stUI();return}
  const tries=lsJ(ST_KEY+'T')||{};if(tries.d===dayKey()&&(tries.n|0)>=3){stRows=stRows||(c&&c.rows)||[];stMsg=stRows.length?'':'아직 이웃 가게가 없어요';stBuild();stUI();return}
  stLoad=true;stUI();lsJ(ST_KEY+'T',{d:dayKey(),n:(tries.d===dayKey()?tries.n|0:0)+1});const sc=Math.min(3000000,decoScore());
  whenNet(N=>{if(!N.pool){stLoad=false;stMsg='지금은 이웃을 불러올 수 없어요';stUI();return}N.pool(sc,nm().trim()+'|'+chNick().trim()).then(rows=>{stLoad=false;stRows=rows;stMsg=rows.length?'':'아직 이웃 가게가 없어요';lsJ(ST_KEY,{d:dayKey(),rows});if(scr==='street'){stBuild();stUI()}})
   .catch(e=>{console.warn('town',e&&e.code||e);stLoad=false;stMsg=busyMsg()||'이웃을 불러오지 못했어요';stRows=stRows||(c&&c.rows)||[];stBuild();stUI()})},()=>{stLoad=false;stRows=stRows||(c&&c.rows)||[];stMsg='인터넷에 연결되면 이웃이 보여요';stBuild();stUI()})}
-function openStreet(){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet();stUI()}
+function openStreet(zk){scr='street';show('stv');if(!stRows)stRows=[];stBuild();loadStreet();lotsLoad(false).then(()=>{lotFix();if(scr==='street'){stBuild();if(zk)SV.centerZone(zk)}});if(zk)SV.centerZone(zk);stUI()}
 function drawStreet(t,dt){const m=stList.find(x=>x.me);if(m)m.d=myD(null);const nf=(window.NET&&NET.noteFrom)||[],vs=save.vst||{};stList.forEach(it=>{if(it.me)return;const n=nf.find(q=>q.u===it.u);it.mk=n&&n.t>(vs[it.u]||0)?'💌':null});const r=SV.scene(t,stList,{dt,an:R.an,night:skyNt(save.eq.sky),gold:goldIdx(),pick:stPick});stHits=r.hits}
 /* 🗺️ 11/17 지도에서 빈 땅을 눌러 이사: 다른 구역이면 이사비+권리금, 같은 구역 안에서는 무료로 자리만 옮겨요 */
 let stPick=null;
-function stMove(h){snd('tap');const z=BIZ.ZK[h.zone],mz=BIZ.zoneOf(save);stPick=h.lot;const done=()=>{stPick=null};
- if(z===mz){JUICE.ask(z.e+' 여기로 옮길까요?','같은 '+z.n+' 안이라 무료예요','🚚 옮기기',()=>{done();save.zn=Object.assign({k:z.k,paid:0},save.zn||{},{l:h.lot});store();snd('buy');stBuild();toast('🚚 가게를 옮겼어요!')},'그만두기',done);return}
- const c=BIZ.zMoveCost(save,z.k,bctx());if(!c){done();return}
- JUICE.ask(z.e+' '+z.n+'(으)로 이사할까요?',z.d+' · 📍 자리값 '+Math.round(z.r*100)+'% — 🚚 이사비 '+fmt(c.fee)+' · 🔑 권리금 '+fmt(c.key)+(c.back?' · ↩️ 옛 권리금 절반 −'+fmt(c.back):'')+' → 합계 🪙 '+fmt(c.total),'🚚 이사하기',()=>{done();if(save.coins<c.total){toast('코인이 부족해요! (🪙 '+fmt(c.total)+')');snd('no');return}const ok=BIZ.zMove(save,z.k,bctx(),Date.now(),h.lot);if(!ok){toast('코인이 부족해요!');snd('no');return}store();syncShop();snd('fanfare');if(window.JUICE)JUICE.confetti(70);toast(z.e+' '+z.n+'(으)로 이사했어요!');stBuild();bizBtn()},'그만두기',done)}
+function stMove(h){snd('tap');if(!window.NET||NET.off||!NET.lotMove){toast('📶 인터넷이 연결되면 이사할 수 있어요');return}if(!save.name){toast('🏪 가게 이름부터 정해 주세요');return}
+ const z=BIZ.ZK[h.zone],c=BIZ.zMoveCost(save,z.k,bctx());if(!c)return;stPick=h.lot;const done=()=>{stPick=null};
+ const go=()=>{done();if(save.coins<c.total){toast('코인이 부족해요! (🪙 '+fmt(c.total)+')');snd('no');return}toast('🚚 자리 잡는 중…');
+  NET.lotMove(h.lot,myLot(),lotLook()).then(()=>{const ok=BIZ.zMove(save,z.k,bctx(),Date.now(),h.lot,c);if(!ok){toast('코인이 부족해요!');return}save.zn.st=Date.now();save.zn.h=JSON.stringify(lotLook());lotPut(h.lot);store();syncShop();snd(c.same?'buy':'fanfare');if(!c.same&&window.JUICE)JUICE.confetti(70);toast(c.same?'🚚 가게를 옮겼어요!':z.e+' '+z.n+'(으)로 이사했어요!');stBuild();bizBtn()})
+   .catch(e=>{console.warn('lotMove',e&&e.code||e);snd('no');toast('앗, 방금 다른 가게가 들어왔어요 · 지도를 새로 불러요');lotsLoad(true).then(()=>{if(scr==='street')stBuild()})})};
+ if(c.same){JUICE.ask(z.e+' 여기로 옮길까요?','같은 '+z.n+' 안이라 무료예요','🚚 옮기기',go,'그만두기',done);return}
+ JUICE.ask(z.e+' '+z.n+'(으)로 이사할까요?',z.d+' · 📍 자리값 '+Math.round(z.r*100)+'% — 🚚 이사비 '+fmt(c.fee)+' · 🔑 권리금 '+fmt(c.key)+(c.back?' · ↩️ 옛 권리금 절반 −'+fmt(c.back):'')+' → 합계 🪙 '+fmt(c.total),'🚚 이사하기',go,'그만두기',done)}
 function stTap(x,y){const h=SV.hit(stHits,x,y);if(!h)return;if(h.gold){goldGet();return}
  if(h.lot!=null){stMove(h);return}
  if(h.zone){snd('tap');const z=BIZ.ZK[h.zone],mz=BIZ.zoneOf(save);bzShow(z.e,z.n,'<p class="ht" style="text-align:center;margin-top:0">'+z.d+'</p><div class="chips"><span class="chip">📍 자리값 '+Math.round(z.r*100)+'%</span><span class="chip">🔑 권리금 '+fmt(z.key)+'</span></div>'+((mz===z?'<p class="ht" style="text-align:center">✅ 내 가게가 여기 있어요</p>':'')+'<p class="ht" style="text-align:center">🟫 이 구역의 빈 땅(점선 칸)을 누르면 이사할 수 있어요</p>'),mz===z?'좋아요':'📍 가게 자리 보기',mz===z?null:()=>{openUp('home',1);const L=$('shl');L.scrollTop=L.scrollHeight},mz===z?null:'닫기',null);return}const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}

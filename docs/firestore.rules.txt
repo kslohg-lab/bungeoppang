@@ -132,6 +132,48 @@ service cloud.firestore {
       }
     }
 
+    // 🗺️ 동네 지도 칸 (11/17): 칸 하나에 가게 하나. 칸 번호 = 블록 i·100 + j·10 + 칸(0~2)
+    //  lots/{칸} = {u 주인, n·nk·g·room·sk·aw·sg·r5 가게 모습, t}. lotOf/{uid} = {l 내 칸 번호(문자), t}
+    //  한 사람 한 칸: 새 칸을 잡을 때 내 lotOf가 그 칸을 가리키고, 예전 칸은 같은 묶음에서 지워져야 해요
+    //  14일 동안 안 들어온 주인의 칸은 빈 칸으로 보고 다른 사람이 잡을 수 있어요
+    function okLot(d) {
+      return d.keys().hasOnly(['u', 'n', 'nk', 'g', 'room', 'sk', 'aw', 'sg', 'r5', 't'])
+        && d.u == request.auth.uid
+        && d.n is string && d.n.size() >= 1 && d.n.size() <= 12 && clean(d.n)
+        && d.nk is string && d.nk.size() <= 12 && clean(d.nk)
+        && d.g is int && d.g >= 0 && d.g <= 6
+        && d.room is int && d.room >= 4 && d.room <= 11
+        && d.sk is int && d.aw is int && d.sg is int && d.r5 is int
+        && d.t == request.time;
+    }
+    function myPtr() {
+      return /databases/$(database)/documents/lotOf/$(request.auth.uid);
+    }
+    function lotPtr(lid) {
+      return getAfter(myPtr()).data.l == lid
+        && (!exists(myPtr())
+            || get(myPtr()).data.l == lid
+            || !existsAfter(/databases/$(database)/documents/lots/$(get(myPtr()).data.l))
+            || getAfter(/databases/$(database)/documents/lots/$(get(myPtr()).data.l)).data.u != request.auth.uid);
+    }
+    match /lots/{lid} {
+      allow read: if true;
+      allow create: if request.auth != null && lid.matches('[0-9]{1,3}') && okLot(request.resource.data) && lotPtr(lid);
+      allow update: if request.auth != null && okLot(request.resource.data)
+        && (resource.data.u == request.auth.uid
+            || (resource.data.t < request.time - duration.value(14, 'd') && lotPtr(lid)));
+      allow delete: if request.auth != null && resource.data.u == request.auth.uid;
+    }
+    match /lotOf/{uid} {
+      allow read: if true;
+      allow create, update: if mine(uid)
+        && request.resource.data.keys().hasOnly(['l', 't'])
+        && request.resource.data.l is string && request.resource.data.l.matches('[0-9]{1,3}')
+        && request.resource.data.t == request.time
+        && getAfter(/databases/$(database)/documents/lots/$(request.resource.data.l)).data.u == uid;
+      allow delete: if mine(uid);
+    }
+
     // 🚩 신고: 문서 이름 = {신고한 사람}_{대상} → 한 대상에 한 번. 내용은 대상 uid·이유 번호뿐 (운영자 검사 도구에서 읽어요)
     match /reports/{id} {
       allow read: if true;
