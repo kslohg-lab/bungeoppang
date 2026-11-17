@@ -62,6 +62,25 @@ const OLD_SCOST=[2000,6000,15000,36000,80000,170000,350000,700000,700000,1100000
 while(OLD_SCOST.length<SMAX){const c=OLD_SCOST[OLD_SCOST.length-1]*1.1,m=c>=1e8?1e6:1e5;OLD_SCOST.push(Math.round(c/m)*m)}
 /* 가게 크기 = 꾸미기의 넓히기와 같은 칸 수. 사면 그 크기 월세가 0원 (11/8부터 5×5 노점 ~ 11×11 본점) */
 const PLACE={5:{n:'노점',e:'🛒',rent:0,buy:0,mul:1},6:{n:'작은 점포',e:'🏚️',rent:250,buy:30000,mul:1.15},7:{n:'아담한 가게',e:'🏠',rent:800,buy:100000,mul:1.3},8:{n:'넓은 가게',e:'🏬',rent:2000,buy:250000,mul:1.45},9:{n:'큰 매장',e:'🏢',rent:5000,buy:600000,mul:1.6},10:{n:'대형 매장',e:'🏬',rent:8000,buy:1600000,mul:1.7},11:{n:'붕어빵 본점',e:'🏰',rent:12000,buy:4000000,mul:1.8}};
+/* 📍 11/17 상권(가게 자리): 동네 어디에 가게를 두느냐. A = 손님 배율, P = 객단가(붕어빵·음료 값) 배율, bp = 붐비지 않을 때 객단가, r = 임대료(순이익의 %, 코인 0 밑으로 안 감), key = 권리금
+   붐비는 시간(pk)은 한국 시각 기준. 이사할 때 옛 자리 권리금 절반 돌려받고, 이사비 = 1시간 순이익 정도 */
+const ZONES=[
+ {k:'alley',n:'골목',e:'🏘️',d:'처음 자리 · 지금 숫자 그대로',A:1,P:1,bp:1,r:0,key:0,pk:null},
+ {k:'school',n:'학교 앞',e:'🏫',d:'평일 오후 3~6시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,pk:(w,h)=>w>=1&&w<=5&&h>=15&&h<18},
+ {k:'station',n:'역 앞',e:'🚉',d:'평일 아침 7~9시·저녁 6~8시 손님 ×2 · 값 ×1.25',A:2,P:1.25,bp:1.05,r:.03,key:300000,pk:(w,h)=>w>=1&&w<=5&&((h>=7&&h<9)||(h>=18&&h<20))},
+ {k:'park',n:'공원 옆',e:'🌳',d:'주말 하루 종일 손님 ×1.5 · 값 ×1.25',A:1.5,P:1.25,bp:1.05,r:.04,key:500000,pk:w=>w===0||w===6},
+ {k:'mall',n:'상가 거리',e:'🛍️',d:'늘 손님 ×1.25 · 값 ×1.12',A:1.25,P:1.12,bp:1.12,r:.05,key:1000000,pk:()=>true},
+ {k:'prime',n:'사거리 1등지',e:'👑',d:'늘 손님 ×1.4 · 값 ×1.25',A:1.4,P:1.25,bp:1.25,r:.08,key:20000000,pk:()=>true}];
+const ZK={};ZONES.forEach(z=>ZK[z.k]=z);
+const zoneOf=save=>ZK[save.zn&&save.zn.k]||ZONES[0];
+const kst=ms=>{const d=new Date(ms+9*3600e3);return{w:d.getUTCDay(),h:d.getUTCHours()}};
+const zPeak=(z,ms)=>!!(z.pk&&(()=>{const t=kst(ms);return z.pk(t.w,t.h)})());
+const zMul=(save,ms)=>{const z=zoneOf(save);return zPeak(z,ms)?{a:z.A,p:z.P,pk:1}:{a:1,p:z.bp,pk:0}};
+/* 도와주기 결과 배율: 판 시작 시각의 값 배율 × (1 − 임대료) */
+const zHelp=(save,ms)=>{const z=zoneOf(save);if(!z.r)return{m:1,pk:0,z};const pk=zPeak(z,ms);return{m:(pk?z.P:z.bp)*(1-z.r),pk:pk&&z.A!==1&&z.k!=='mall'&&z.k!=='prime'?1:0,z}};
+/* 이사비: 1시간 순이익(최소 5천) + 새 자리 권리금 − 옛 자리 권리금 절반 */
+function zMoveCost(save,k,ctx){const z=ZK[k],cur=zoneOf(save);if(!z||z===cur)return null;const r=rates(save,Object.assign({},ctx,{noZ:1,noEv:1}));const fee=Math.round(Math.max(5000,r.net)/1000)*1000,back=Math.floor(((save.zn&&save.zn.paid)|0)/2);return{fee,key:z.key,back,total:fee+z.key-back}}
+function zMove(save,k,ctx,ms){const c=zMoveCost(save,k,ctx);if(!c||save.coins<c.total)return false;save.coins-=c.total;save.zn={k,paid:ZK[k].key,t:ms||Date.now()};return c}
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
 const lvOf=(save,k)=>st(save)[k]|0;
 /* 👥 일하는 레벨: 고용한 레벨보다 낮춰서 쓸 수 있어요(월급도 그만큼). save.su[k] 없으면 고용한 레벨 그대로 */
@@ -78,19 +97,20 @@ const owned=save=>Array.isArray(save.bought)&&save.bought.includes(save.room|0);
 const rentOf=save=>owned(save)?0:place(save).rent;
 function rates(save,ctx){ctx=ctx||{};const s=useSt(save),lv=ctx.lv||1,debt=save.debt>0?.5:1;
  const loc=R.loc[(save.up&&save.up.loc)|0]||R.loc[0];
- const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),arrive=5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(F2MUL[f2Of(save)]||0))*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
+ const co=cafeOn(save),pb=prB(save),pd=prD(save),em=evMul(save,ctx.ms||Date.now(),ctx.noEv),zm=ctx.noZ?{a:1,p:1,pk:0}:zMul(save,ctx.ms||Date.now()),arrive=zm.a*5*(1+.05*(lv-1))*(1+.15*(s.promo|0))*loc.sp*place(save).mul*(1+(F2MUL[f2Of(save)]||0))*(1+(ctx.charm||0))*(co?1.1:1)*pb.a*(ctx.noRt?1:rtMul(save))*em.a;
  const bake=4+2.5*((s.bake|0)+(s.bake2|0))*debt,serve=4+2.5*((s.serve|0)+(s.serve2|0))*debt;
  const cust=Math.min(arrive,bake,serve);
  const nu=Math.max(1,Math.min(save.nfUse||1,save.nf||1));let p=0,c=0;for(let f=0;f<nu;f++){p+=B.price(save,f);c+=R.menu[f].c}p/=nu;c/=nu;
  const seatB=Math.min(.3,(ctx.seats|0)*.03);
- const perCust=BPC*p*loc.pm*(1+seatB)*pb.p*em.p;
+ const perCust=BPC*p*loc.pm*(1+seatB)*pb.p*em.p*zm.p;
  /* 카페: 손님 중 일부가 음료도 사요 (음료 종류가 많을수록 많이). 바리스타가 만들 수 있는 만큼만 */
  const md=myDrinks(save);let drk=0,dPer=0,dMat=0,dWant=0,dCap=0;
- if(md.length){const dr=Math.min(.6,Math.min(.5,.25+.04*md.length)+(cafe(save).set?.1:0))*Math.min(1.2,pd.a);dWant=cust*dr;dCap=(2+3*(s.barista|0)*debt);drk=Math.min(dWant,dCap);dPer=md.reduce((a,d)=>a+dPrice(save,d),0)/md.length*beanMul(save)*loc.pm*pd.p;dMat=md.reduce((a,d)=>a+d.c,0)/md.length}
+ if(md.length){const dr=Math.min(.6,Math.min(.5,.25+.04*md.length)+(cafe(save).set?.1:0))*Math.min(1.2,pd.a);dWant=cust*dr;dCap=(2+3*(s.barista|0)*debt);drk=Math.min(dWant,dCap);dPer=md.reduce((a,d)=>a+dPrice(save,d),0)/md.length*beanMul(save)*loc.pm*pd.p*zm.p;dMat=md.reduce((a,d)=>a+d.c,0)/md.length}
  const rev=cust*perCust+drk*dPer,mat=cust*BPC*c+drk*dMat,tax=Math.max(0,(rev-mat)*TAX);
  const rent=rentOf(save),wage=STAFF.reduce((a,x)=>a+wageOf(s[x.k]),0)*debt; /* 밀린 돈이 있으면 알바가 절반만 일하고 월급도 절반 */
  const neck=cust>=arrive-1e-9?'arrive':Math.abs(bake-serve)<1e-9?'both':bake<serve?'bake':'serve';
- return{arrive,bake,serve,cust,perCust,rev,mat,tax,rent,wage,net:rev-mat-tax-rent-wage,neck,seatB,debt:debt<1,drk,dPer,dWant,dCap,dNeck:md.length>0&&dWant>dCap+1e-9}}
+ const n0=rev-mat-tax-rent-wage,zr=ctx.noZ?0:Math.max(0,n0)*zoneOf(save).r;
+ return{arrive,bake,serve,cust,perCust,rev,mat,tax,rent,wage,zr,zpk:zm.pk,net:n0-zr,neck,seatB,debt:debt<1,drk,dPer,dWant,dCap,dNeck:md.length>0&&dWant>dCap+1e-9}}
 /* ---------- ⭐ 가게 평점 (1.0~5.0, 처음 3.5) ----------
    하루에 한 번(날짜가 바뀔 때) 목표 점수 쪽으로 35%씩 다가가요. 목표 = 3.5 + 기다림 + 값 + 꾸미기 + 메뉴 + 도와주기 솜씨.
    손님 수: 3.5보다 높으면 +10%/점(5.0 = +15%), 낮으면 −4%/점(1.0 = −10%). 가게 순위에는 안 들어가요. */
@@ -143,12 +163,17 @@ function ledger(save,ms){const dk=dayKey(ms);if(!save.led||save.led.k!==dk){if(s
 /* 지난 시간만큼 정산. 돌아온 결과(자리 비운 동안 화면용)를 줘요 */
 function settle(save,ms,ctx){if(!(save.lt>0)){save.lt=ms;return null}
  let dt=(ms-save.lt)/3600e3;save.lt=ms;if(!(dt>0))return null;const capped=dt>CAP_H;dt=Math.min(dt,CAP_H);
- const r=rates(save,ctx),g={h:dt,capped,cust:r.cust*dt,drk:r.drk*dt,rev:r.rev*dt,mat:r.mat*dt,tax:r.tax*dt,rent:r.rent*dt,wage:r.wage*dt};g.net=g.rev-g.mat-g.tax-g.rent-g.wage;
+ const g={h:dt,capped,cust:0,drk:0,rev:0,mat:0,tax:0,rent:0,wage:0,zr:0};
+ /* 📍 붐비는 시간이 있는 자리는 지나간 시간을 한 시간 단위로 나눠 그 시각의 손님·값으로 계산 */
+ const z=zoneOf(save),seg=z.pk&&z.A!==1&&z.k!=='mall'&&z.k!=='prime';let t1=ms-dt*3600e3;
+ while(t1<ms-1){const t2=seg?Math.min(ms,(Math.floor((t1+9*3600e3)/3600e3)+1)*3600e3-9*3600e3):ms,h=(t2-t1)/3600e3,r=rates(save,Object.assign({},ctx,{ms:(t1+t2)/2}));
+  g.cust+=r.cust*h;g.drk+=r.drk*h;g.rev+=r.rev*h;g.mat+=r.mat*h;g.tax+=r.tax*h;g.rent+=r.rent*h;g.wage+=r.wage*h;g.zr+=r.zr*h;t1=t2}
+ g.net=g.rev-g.mat-g.tax-g.rent-g.wage-g.zr;
  save.acc=(save.acc||0)+g.net;const whole=Math.trunc(save.acc);save.acc-=whole;
  let c=save.coins+whole;if(c<0){save.debt=(save.debt||0)-c;c=0}else if(save.debt>0){const p=Math.min(c,save.debt);save.debt-=p;c-=p;g.paid=p}save.coins=c;
  save.custAcc=(save.custAcc||0)+g.cust;const wc=Math.floor(save.custAcc);save.custAcc-=wc;save.bizCust=(save.bizCust||0)+wc;
- const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
+ const L=ledger(save,ms);L.cust+=g.cust;L.drk=(L.drk||0)+g.drk;L.rev+=g.rev;L.mat+=g.mat;L.tax+=g.tax;L.rent+=g.rent;L.wage+=g.wage;L.zr=(L.zr||0)+g.zr;L.h+=dt;g.whole=whole;g.custWhole=wc;return g}
 function hire(save,k){const c=hireCost(save,k);if(c==null||!canHire(save,k)||lvOf(save,k)>=capOf(save,k)||save.coins<c)return false;save.coins-=c;st(save)[k]=lvOf(save,k)+1;if(save.su)delete save.su[k];return true}
 function buyPlace(save){const p=place(save);if(!p.buy||owned(save)||save.coins<p.buy)return false;save.coins-=p.buy;if(!Array.isArray(save.bought))save.bought=[];save.bought.push(save.room|0);return true}
-return{rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
+return{ZONES,ZK,zoneOf,zHelp,zPeak,zMul,zMoveCost,zMove,rt,rtMul,rtAdd,rtHelp,rtDaily,EVS,evNew,evMul,evCost,evChoose,evHelp,evCheck,GRP_NEED,PRICE,prB,prD,setPrice,ING,ING_MUL,ingLv,ingCost,buyIng,dPrice,SET_COST,buySet,DRINKS,DK,MACHINE,BEAN,cafe,cafeOn,myDrinks,beanMul,beanCost,buyMachine,buyDrink,buyBean,canHire,CAP_H,TAX,STAFF,SMAX,SCOST,WAGE,STCAP,CHCAP,capOf,charmCap,ec2,F2ROOM,F2CH,F2MUL,f2Of,f2Next,buyF2,PLACE,st,lvOf,useOf,setUse,useSt,hireCost,wageOf,place,owned,rentOf,rates,settle,ledger,hire,buyPlace,dayKey}})();
 if(typeof module!=='undefined')module.exports=BIZ;
