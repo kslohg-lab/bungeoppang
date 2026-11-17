@@ -9,7 +9,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
   const V='10.8.0',base='https://www.gstatic.com/firebasejs/'+V+'/';
   try{
    const [{initializeApp},{getAuth,signInAnonymously,onAuthStateChanged},F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
-   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where,Timestamp}=F;
+   const {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,writeBatch,serverTimestamp,increment,where,Timestamp,getCountFromServer}=F;
    /* 한국 시간 날짜 번호 (규칙과 같은 계산) */const day=()=>Math.floor((Date.now()+32400000)/86400000);
    const app=initializeApp(CFG),auth=getAuth(app),db=getFirestore(app);
    let authP=null;/* 구글로 로그인해 둔 사람이면 그 계정 그대로 (익명으로 새로 들어가면 안 돼요) */
@@ -61,7 +61,9 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     /* 🚩 신고 (가게 구경): r 0 이름 · 1 점수 · 2 기타. 한 사람이 한 대상에 한 번 */
     async report(u,r){const me=await login();N.uid=me;if(me===u)return false;await setDoc(doc(db,'reports',me+'_'+u),{u,r:r|0,k:'s',t:serverTimestamp()});return true},
     /* 🗺️ 11/17 동네 지도 칸 (규칙 lots·lotOf): 전체 칸 읽기(최대 약 140) · 칸 잡기(예전 칸 지우기 + 새 칸 + 내 칸 표시를 한 묶음) · 내 칸 모습·시간 새로 */
-    async lots(){const s=await getDocs(collection(db,'lots')).catch(full);return s.docs.map(x=>{const v=x.data();return{l:+x.id,u:v.u,n:v.n,nk:v.nk,g:v.g|0,room:v.room|0,sk:v.sk|0,aw:v.aw|0,sg:v.sg|0,r5:v.r5|0,t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
+    /* 🏘️ 11/18 마을: 칸 번호 = 마을×1000 + 칸, tw = 마을 번호, z = 상권. lots(t) = 그 마을 칸만(최대 약 234) · lotCount(t) = 그 마을 골목에 잡힌 칸 수(읽기 1) */
+    async lotCount(t){const s=await getCountFromServer(query(collection(db,'lots'),where('tw','==',t|0),where('z','==','alley'))).catch(full);return s.data().count|0},
+    async lots(t){const s=await getDocs(query(collection(db,'lots'),where('tw','==',t|0))).catch(full);return s.docs.map(x=>{const v=x.data();return{l:+x.id,tw:v.tw|0,z:v.z,u:v.u,n:v.n,nk:v.nk,g:v.g|0,room:v.room|0,sk:v.sk|0,aw:v.aw|0,sg:v.sg|0,r5:v.r5|0,t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
     async lotMove(nl,ol,look){const me=await login();N.uid=me;const b=writeBatch(db);/* 폰 기록과 상관없이 서버에 적힌 내 예전 칸(lotOf)도 확인해서 지워요 (한 사람 한 칸 규칙) */const p=await getDoc(doc(db,'lotOf',me)),olds=new Set([ol,p.exists()?p.data().l:null].filter(x=>x!=null).map(String));olds.delete(String(nl));for(const k of olds){const o=await getDoc(doc(db,'lots',k));if(o.exists()&&o.data().u===me)b.delete(doc(db,'lots',k))}
      b.set(doc(db,'lots',String(nl)),Object.assign({},look,{u:me,t:serverTimestamp()}));b.set(doc(db,'lotOf',me),{l:String(nl),t:serverTimestamp()});await b.commit();return true},
     async lotSync(l,look){const me=await login();N.uid=me;await setDoc(doc(db,'lots',String(l)),Object.assign({},look,{u:me,t:serverTimestamp()}));return true},
