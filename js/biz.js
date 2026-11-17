@@ -80,7 +80,7 @@ const zMul=(save,ms)=>{const z=zoneOf(save);return zPeak(z,ms)?{a:z.A,p:z.P,pk:1
 const zHelp=(save,ms)=>{const z=zoneOf(save);if(!z.r)return{m:1,pk:0,z};const pk=zPeak(z,ms);return{m:(pk?z.P:z.bp)*(1-z.r),pk:pk&&z.A!==1&&z.k!=='mall'&&z.k!=='prime'?1:0,z}};
 /* 이사비: 1시간 순이익(최소 5천) + 새 자리 권리금 − 옛 자리 권리금 절반 */
 function zMoveCost(save,k,ctx){const z=ZK[k],cur=zoneOf(save);if(!z||z===cur)return null;const r=rates(save,Object.assign({},ctx,{noZ:1,noEv:1}));const fee=Math.round(Math.max(5000,r.net)/1000)*1000,back=Math.floor(((save.zn&&save.zn.paid)|0)/2);return{fee,key:z.key,back,total:fee+z.key-back}}
-function zMove(save,k,ctx,ms){const c=zMoveCost(save,k,ctx);if(!c||save.coins<c.total)return false;save.coins-=c.total;save.zn={k,paid:ZK[k].key,t:ms||Date.now()};return c}
+function zMove(save,k,ctx,ms,lot){const c=zMoveCost(save,k,ctx);if(!c||save.coins<c.total)return false;save.coins-=c.total;save.zn={k,paid:ZK[k].key,t:ms||Date.now()};if(lot!=null)save.zn.l=lot;return c}
 const st=save=>{if(!save.st||typeof save.st!=='object')save.st={bake:0,serve:0,promo:0};return save.st};
 const lvOf=(save,k)=>st(save)[k]|0;
 /* 👥 일하는 레벨: 고용한 레벨보다 낮춰서 쓸 수 있어요(월급도 그만큼). save.su[k] 없으면 고용한 레벨 그대로 */

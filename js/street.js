@@ -31,13 +31,14 @@ const LMK={'1,1':'school','5,1':'station','1,5':'park'},ZAN={school:[1,1],statio
 const ZN={school:'🏫 학교 앞',station:'🚉 역 앞',park:'🌳 공원 옆',alley:'🏘️ 골목',mall:'🛍️ 상가 거리',prime:'👑 사거리 1등지'};
 const blocks=[];for(let j=0;j<NB;j++)for(let i=0;i<NB;i++)blocks.push({x:i*(BX+RB_),y:j*(BY+RB_),i,j,z:ZG(i,j),lm:LMK[i+','+j]||null});
 /* 자리: F = 블록 아래쪽(앞선 gy=블록 아래), R = 블록 오른쪽 위(앞선 gx=블록 오른쪽). a0 = 자리 시작, L = 자리 길이 */
-const LOTS=[];blocks.forEach(b=>{if(b.lm)return;LOTS.push({o:'F',fx:b.y+BY,a0:b.x+.7,L:5,bx:b,z:b.z});LOTS.push({o:'F',fx:b.y+BY,a0:b.x+6.2,L:5,bx:b,z:b.z});LOTS.push({o:'R',fx:b.x+BX,a0:b.y+5.6,L:5,bx:b,z:b.z})});
+const LOTS=[];blocks.forEach(b=>{if(b.lm)return;const id=k=>b.i*100+b.j*10+k;LOTS.push({o:'F',fx:b.y+BY,a0:b.x+.7,L:5,bx:b,z:b.z,id:id(0)});LOTS.push({o:'F',fx:b.y+BY,a0:b.x+6.2,L:5,bx:b,z:b.z,id:id(1)});LOTS.push({o:'R',fx:b.x+BX,a0:b.y+5.6,L:5,bx:b,z:b.z,id:id(2)})});
 /* 내 가게 = 맨 앞줄(앞에 가리는 건물이 없는) 가운데 아래 블록의 왼쪽 자리. 나머지는 내 가게에서 가까운 순서 */
 LOTS.forEach(l=>{const c=l.o==='F'?{x:l.a0+l.L/2,y:l.fx}:{x:l.fx,y:l.a0-l.L/2};l.cx=c.x;l.cy=c.y});
 /* 내 가게 자리 = 내 상권 안에서 그 구역 중심(ZAN)에 가장 가까운 자리. 나머지는 내 가게에서 가까운 순서 */
 /* 11/17 이웃은 아직 상권을 몰라서 모두 처음 자리(🏘️ 골목)에 모아요: 골목 중심에서 가까운 순 → 넘치면 골목 옆 */
 let MEZ='';const near=zk=>{const a=ZAN[zk],ax=a[0]*(BX+RB_)+BX/2,ay=a[1]*(BY+RB_)+BY/2;let me=null,bd=1e9;for(const l of LOTS)if(l.z===zk){const d=Math.hypot(l.cx-ax,l.cy-ay);if(d<bd){bd=d;me=l}}return me};
-function setMe(zk){zk=ZAN[zk]?zk:'alley';if(zk===MEZ)return;MEZ=zk;const me=near(zk),c=near('alley');
+/* 내 가게 자리: 지도에서 고른 칸(lot id)이 있으면 거기, 없으면 구역 중심 */
+function setMe(zk,lid){zk=ZAN[zk]?zk:'alley';const key=zk+'|'+lid;if(key===MEZ)return;MEZ=key;const me=LOTS.find(l=>l.id===lid&&l.z===zk)||near(zk),c=near('alley');
  LOTS.forEach(l=>{l.dist=l===me?-1:Math.hypot(l.cx-c.cx,l.cy-c.cy)});LOTS.sort((a,b)=>a.dist-b.dist)}
 setMe('alley');
 /* ---------- 카메라 ---------- */
@@ -156,13 +157,9 @@ const PARK=[];blocks.forEach((b,k)=>{if(b.lm==='park'){[[1.2,1.2,1.2,'🌳'],[10
 /* 동네 바깥 (위·왼쪽 빈 들판): 나무·꽃 */
 for(let k=0;k<80;k++){const side=k%2,u=((k*37)%100)/100;const x=side?-3-((k*7)%5):u*TX,y=side?u*TY:-3-((k*11)%5);PARK.push({e:['🌳','🌲','🌳','🌸','🌼'][k%5],x,y,s:k%5>2?.6:1.1})}
 /* 걷는 손님: 인도를 따라 */
-const walkers=[];for(let i=0;i<44;i++){const hz=i%2===0,k=(i>>1)%NB;walkers.push({hz,line:hz?k*(BY+RB_)+BY+.45:k*(BX+RB_)+BX+.45,p:Math.random()*(hz?TX:TY),v:(Math.random()<.5?-1:1)*(.4+Math.random()*.3),an:null,ph:i*1.7})}
+const walkers=[];for(let i=0;i<30;i++){const hz=i%2===0,k=(i>>1)%NB;walkers.push({hz,line:hz?k*(BY+RB_)+BY+.45:k*(BX+RB_)+BX+.45,p:Math.random()*(hz?TX:TY),v:(Math.random()<.5?-1:1)*(.4+Math.random()*.3),an:null,ph:i*1.7})}
 /* 🚗 찻길 따라 달리는 차 */
-const cars=[];for(let i=0;i<22;i++){const hz=i%2===0,k=(i>>1)%NB,dir=Math.random()<.5?-1:1;cars.push({hz,dir,line:(hz?k*(BY+RB_)+BY:k*(BX+RB_)+BX)+RB_/2+(dir>0?.6:-.6),p:Math.random()*(hz?TX:TY),v:dir*(1.6+Math.random()*1.2),e:['🚗','🚕','🚙','🚌','🚚','🛵','🚗'][i%7]})}
-/* 🏪 빈 자리를 채우는 동네 가게 (그림 img/town/*.webp) */
-const FILL={conv:'편의점',flower:'꽃집',cafe:'카페',book:'서점',ice:'아이스크림',snack:'분식집',rent:'임대 문의',mall:'쇼핑몰'};
-const FK_=['conv','flower','cafe','book','ice','snack','rent','cafe','flower','rent','snack','conv'];
-const fillOf=(l,i)=>{const h=(Math.imul(Math.round(l.cx*7+l.cy*13),2654435761)>>>0);return l.z==='mall'||l.z==='prime'?(h%3===0?'mall':FK_[h%FK_.length]):FK_[h%FK_.length]};
+const cars=[];for(let i=0;i<12;i++){const hz=i%2===0,k=(i>>1)%NB,dir=Math.random()<.5?-1:1;cars.push({hz,dir,line:(hz?k*(BY+RB_)+BY:k*(BX+RB_)+BX)+RB_/2+(dir>0?.6:-.6),p:Math.random()*(hz?TX:TY),v:dir*(1.6+Math.random()*1.2),e:['🚗','🚕','🚙','🚌','🚚','🛵','🚗'][i%7]})}
 const LMI={school:'school',station:'station',park:'park'};
 /* ---------- 장면 ---------- */
 function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.addColorStop(0,o.night?'#1a2450':'#9fd8ff');g.addColorStop(1,o.night?'#4a4a7a':'#fff1d6');cx.fillStyle=g;cx.fillRect(0,0,W,800);
@@ -171,14 +168,17 @@ function scene(t,list,o={}){cam();const g=cx.createLinearGradient(0,0,0,800);g.a
  /* 가게: 자리·크기로 미리 칸을 재서, 내 가게를 가리는 앞 건물은 반투명(엑스레이) */
  const est=(Q,d)=>{const S=size(RM(d)),st=d.fimg?{img:1}:SK[d.skin|0]||SK[0],s=T/40,h=RM(d)<=4?T*1.3+24*s:T*1.32+T*.92*(S.fl-1),top=st.img?T*2.6:RM(d)<=4?h:st.roof==='castle'?h*1.32+T*.7:st.roof==='flat'?h+6*s:h+T*1.15,Wd=RM(d)<=4?1.9:S.w,Dd=S.d;
   const pts=[Q(-.3,-.4),Q(Wd+.3,-.4),Q(Wd,Dd,top),Q(0,Dd,top),Q(0,0,top),Q(Wd,0,top)];return{x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))}};
- const all=LOTS.map((l,i)=>list[i]||{fill:fillOf(l,i),d:{room:fillOf(l,i)==='mall'?9:7,fimg:1}});
- const PL=all.map((it,i)=>{const l=LOTS[i];if(!l)return null;{const c=P(l.cx,l.cy);if(c.x<-300||c.x>W+300||c.y<-260||c.y>1060)return{l,Q:null,bb:{x0:-9e9,x1:-9e9,y0:-9e9,y1:-9e9}}}const S=size(RM(it.d)),w=RM(it.d)<=4?1.9:S.w,pad=(l.L-w)/2,ox=l.o==='F'?l.a0+pad:l.fx,oy=l.o==='F'?l.fx-.15:l.a0-pad,Q=l.o==='F'?mk('F',ox,oy):mk('R',ox-.15,oy);return{l,Q,bb:est(Q,it.d)}});
+ const all=LOTS.map((l,i)=>list[i]||null);
+ /* 🟫 빈 땅: 살짝만 보이는 점선 칸 · 누르면 여기로 이사 (o.pick = 고른 칸 id는 노랗게) */
+ if(T>=22)LOTS.forEach((l,i)=>{if(all[i])return;const gx=l.o==='F'?l.a0+l.L/2:l.fx-1.6,gy=l.o==='F'?l.fx-1.6:l.a0-l.L/2;if(!vis(gx,gy))return;
+  const pts=l.o==='F'?[P(l.a0+.3,l.fx-3.1),P(l.a0+l.L-.3,l.fx-3.1),P(l.a0+l.L-.3,l.fx-.25),P(l.a0+.3,l.fx-.25)]:[P(l.fx-3.1,l.a0-l.L+.3),P(l.fx-.25,l.a0-l.L+.3),P(l.fx-.25,l.a0-.3),P(l.fx-3.1,l.a0-.3)],pk=o.pick===l.id;
+  cx.save();cx.setLineDash([5,4]);poly(pts,pk?'rgba(255,214,90,.55)':'rgba(255,255,255,.16)',pk?'#e8a020':'rgba(255,255,255,.6)',pk?2.5:1.4);cx.restore();
+  hits.push({lot:l.id,zone:l.z,empty:1,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y)),y1:Math.max(...pts.map(p=>p.y))})});
+ const PL=all.map((it,i)=>{const l=LOTS[i];if(!l||!it)return null;{const c=P(l.cx,l.cy);if(c.x<-300||c.x>W+300||c.y<-260||c.y>1060)return{l,Q:null,bb:{x0:-9e9,x1:-9e9,y0:-9e9,y1:-9e9}}}const S=size(RM(it.d)),w=RM(it.d)<=4?1.9:S.w,pad=(l.L-w)/2,ox=l.o==='F'?l.a0+pad:l.fx,oy=l.o==='F'?l.fx-.15:l.a0-pad,Q=l.o==='F'?mk('F',ox,oy):mk('R',ox-.15,oy);return{l,Q,bb:est(Q,it.d)}});
  const mi=list.findIndex(it=>it.me),mb=mi>=0&&PL[mi]?PL[mi].bb:null,mz=mb?PL[mi].l.cx+PL[mi].l.cy:0;
  all.forEach((it,i)=>{const pl=PL[i];if(!pl)return;const {l,Q}=pl;
   const ctr=P(l.cx,l.cy);if(ctr.x<-260||ctr.x>W+260||ctr.y<-200||ctr.y>1000)return;
   const xr=mb&&!it.me&&l.cx+l.cy>mz&&pl.bb.x0<mb.x1&&pl.bb.x1>mb.x0&&pl.bb.y0<mb.y1&&pl.bb.y1>mb.y0;
-  if(it.fill){D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=imgBld(Q,l.o,it.d,t,{img:'img/town/'+it.fill+'.webp'});cx.globalAlpha=1;const pts=[Q(0,0),Q(r.Wd,0),Q(r.Wd,r.D),Q(0,r.D)];const x0=Math.min(...pts.map(p=>p.x)),x1=Math.max(...pts.map(p=>p.x)),yb=Math.max(...pts.map(p=>p.y));hits.push({i,fill:it.fill,xr,x0,x1,y0:yb-r.h,y1:yb+10});
-    if(T>=44&&!xr)lab.push(()=>{const q=l.o==='F'?P(l.cx,l.fx+.55):P(l.fx+.55,l.cy),nm=FILL[it.fill],f1=11*Math.min(1.1,T/40),bh=19*Math.min(1.1,T/40);cx.font='bold '+f1+'px "Jua","Noto Sans KR",sans-serif';const bw=cx.measureText(nm).width+12;rr(q.x-bw/2,q.y,bw,bh,7,it.fill==='rent'?'rgba(255,236,200,.92)':'rgba(235,235,235,.85)');tx(nm,q.x,q.y+bh/2,f1,'#7a6a5a','center','#eee')})}});return}
   D.push({z:l.cx+l.cy-1,f:()=>{if(xr)cx.globalAlpha=.38;const r=bldg(Q,l.o,it.d,t);cx.globalAlpha=1;const pts=[Q(-.3,-.4),Q(r.Wd+.3,-.4),Q(r.Wd,r.D,r.h),Q(0,r.D,r.h),Q(0,0,r.h),Q(r.Wd,0,r.h)];hits.push({i,xr,x0:Math.min(...pts.map(p=>p.x)),x1:Math.max(...pts.map(p=>p.x)),y0:Math.min(...pts.map(p=>p.y))-10,y1:Math.max(...pts.map(p=>p.y))+22});
    {const k=T/40,top={x:(Math.min(...pts.map(p=>p.x))+Math.max(...pts.map(p=>p.x)))/2,y:Math.min(...pts.map(p=>p.y))+4*k};if(it.mk&&!it.me){const yb=top.y-14*k-Math.abs(Math.sin(t*2.4+i))*4*k;rr(top.x-15*k,yb-15*k,30*k,30*k,15*k,'rgba(255,255,255,.95)');em(it.mk,top.x,yb,20*k)}
     if(o.gold===i){const yb=top.y-(it.mk?52:26)*k-Math.sin(t*2)*5*k;cx.save();cx.shadowColor='#ffd23a';cx.shadowBlur=18;A.fish2(top.x,yb,.02*T,'#ffcf3a',{glow:'rgba(255,220,80,.9)'});cx.restore();if(m2(t*.7,1)<.5){cx.globalAlpha=.8;em('✨',top.x+16*k,yb-14*k,12*k);cx.globalAlpha=1}hits.push({i,gold:1,x0:top.x-30*k,x1:top.x+30*k,y0:yb-26*k,y1:yb+20*k})}}
@@ -212,5 +212,5 @@ function preview(t,d,top,bottom){const g=cx.createLinearGradient(0,top,0,bottom)
  const G=(y0,y1,c)=>poly([P(-3,y0),P(S.w+3,y0),P(S.w+3,y1),P(-3,y1)],c);G(-S.d-2,0,'#cfe6b4');G(0,1.1,'#e4d8c2');G(1.1,4,'#8f8a85');
  bldg(mk('F',0,0),'F',d,t);T=sv.T;OX=sv.OX;OY=sv.OY}
 function hit(hits,x,y){for(const q of hits)if(q.gold&&x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1)return q;let best=null,see=null;for(const q of hits)if(x>=q.x0&&x<=q.x1&&y>=q.y0&&y<=q.y1){best=q;if(!q.xr)see=q}return see||best}
-return{SK,size,LOTS,ZN,FILL,setMe,scene,preview,center,drag,zoom,hit,get T(){return T}}};
+return{SK,size,LOTS,ZN,setMe,scene,preview,center,drag,zoom,hit,get T(){return T}}};
 if(typeof module!=='undefined')module.exports=STREET;
