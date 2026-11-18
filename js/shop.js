@@ -907,8 +907,10 @@ function stBuild(){if(!stTown)stTown=myTown();const live=lotLive(),me=meUid(),ot
  const free=SV.ALLEY.filter(l=>SV.LID.get(l).z==='alley'&&!taken.has(l)&&l!==meL);
  const rows=home?(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))&&!cu.has(r.u)):[],used=new Set(),take=arr=>{const o=[];for(const r of arr){if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
  /* 아직 칸이 없는 이웃(옛 앱)은 내 마을 골목 빈 칸에, 가게 번호로 정한 자리부터 */
- const pick=take(rows.slice().sort((a,b)=>uh(a.u)-uh(b.u))).slice(0,free.length);let pi=0;const place=()=>free[pi++];
- stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g},u:x.u,lid:x.l%1000})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)}))];
+ /* 11/18 칸 없는 이웃은 가게 번호(uid)로 정한 골목 칸에 (아래쪽 골목 48칸 안). 다른 사람이 칸을 잡거나 비워도 안 밀려요 */
+ const pick=take(rows.slice().sort((a,b)=>uh(a.u)-uh(b.u))).slice(0,free.length),fs=new Set(free),AL=SV.ALLEY.filter(l=>SV.LID.get(l).z==='alley'),SL=AL.slice(0,48),used2=new Set();
+ const place=r=>{for(const L of [SL,AL]){const n=L.length;let k=uh(r.u)%n;for(let j=0;j<n;j++){const l=L[(k+j)%n];if(fs.has(l)&&!used2.has(l)){used2.add(l);return l}}}return null};
+ stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g},u:x.u,lid:x.l%1000})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)})).filter(x=>x.lid!=null)];
  if(meL!=null)SV.center(meL);else SV.centerZone('prime');stTitle()}
 function stTitle(){const e=$('stnm');if(!e)return;const h=stTown===myTown();e.innerHTML='<button id="stp" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">◀</button>🐟 마을 '+stTown+(h?' 🏠':'')+'<button id="stn" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">▶</button>';
  $('stp').onclick=e=>{e.stopPropagation();if(stTown<=1){snd('no');return}snd('tap');stGo(stTown-1)};
