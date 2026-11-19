@@ -36,7 +36,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
      const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc';
      const H=await hid();const snap=await getDocs(query(collection(db,'shops'),orderBy(f,'desc'),limit(by==='wk'?80:40))).catch(full);
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
-     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&d.gw>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
+     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&d.gw>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,rt:d.rt|0,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
     /* 🏆 11/14 지난 주 꾸미기 성장 상위 30: 아직 이번 주에 저장 안 한 가게(w·gw) + 저장한 가게(wp·gwp) → 읽기 최대 160, 한 주에 한 번 */
     async lastWk(){const wk=Math.floor((day()+3)/7),W=wk-1,H=await hid(),col=collection(db,'shops');
      const [a,b]=await Promise.all([getDocs(query(col,orderBy('gw','desc'),limit(80))),getDocs(query(col,orderBy('gwp','desc'),limit(80)))]).catch(full);
@@ -47,7 +47,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     async pool(sc,me){const uid=await login().catch(()=>null),col=collection(db,'shops'),big=Math.max(sc*3,sc+5000),H=await hid();
      const [a,b,c,d]=await Promise.all([getDocs(query(col,where('sc','>',sc),orderBy('sc','asc'),limit(20))),getDocs(query(col,where('sc','<=',sc),orderBy('sc','desc'),limit(20))),
       getDocs(query(col,where('sc','>=',big),orderBy('sc','asc'),limit(10))),getDocs(query(col,orderBy('sc','desc'),limit(10)))]).catch(full);
-     const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(H(x.id))continue;if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},top:top?1:0})}};
+     const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(H(x.id))continue;if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},rt:v.rt|0,top:top?1:0})}};
      add(d.docs,1);add(a.docs);add(b.docs);add(c.docs);return o},
     async get(uid){const s=await getDoc(doc(db,'shops',uid)).catch(full);return s.exists()?s.data():null},
     async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()&&s.data().d===day()},
@@ -66,7 +66,7 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     /* 🗺️ 11/17 동네 지도 칸 (규칙 lots·lotOf): 전체 칸 읽기(최대 약 140) · 칸 잡기(예전 칸 지우기 + 새 칸 + 내 칸 표시를 한 묶음) · 내 칸 모습·시간 새로 */
     /* 🏘️ 11/18 마을: 칸 번호 = 마을×1000 + 칸, tw = 마을 번호, z = 상권. lots(t) = 그 마을 칸만(최대 약 234) · lotCount(t) = 그 마을 골목에 잡힌 칸 수(읽기 1) */
     async lotCount(t){const s=await getCountFromServer(query(collection(db,'lots'),where('tw','==',t|0),where('z','==','alley'))).catch(full);return s.data().count|0},
-    async lots(t){const s=await getDocs(query(collection(db,'lots'),where('tw','==',t|0))).catch(full);return s.docs.map(x=>{const v=x.data();return{l:+x.id,tw:v.tw|0,z:v.z,u:v.u,n:v.n,nk:v.nk,g:v.g|0,room:v.room|0,sk:v.sk|0,aw:v.aw|0,sg:v.sg|0,r5:v.r5|0,t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
+    async lots(t){const s=await getDocs(query(collection(db,'lots'),where('tw','==',t|0))).catch(full);return s.docs.map(x=>{const v=x.data();return{l:+x.id,tw:v.tw|0,z:v.z,u:v.u,n:v.n,nk:v.nk,g:v.g|0,room:v.room|0,sk:v.sk|0,aw:v.aw|0,sg:v.sg|0,r5:v.r5|0,rt:v.rt|0,t:v.t&&v.t.toMillis?v.t.toMillis():0}})},
     async lotMove(nl,ol,look){const me=await login();N.uid=me;const b=writeBatch(db);/* 폰 기록과 상관없이 서버에 적힌 내 예전 칸(lotOf)도 확인해서 지워요 (한 사람 한 칸 규칙) */const p=await getDoc(doc(db,'lotOf',me)),olds=new Set([ol,p.exists()?p.data().l:null].filter(x=>x!=null).map(String));olds.delete(String(nl));for(const k of olds){const o=await getDoc(doc(db,'lots',k));if(o.exists()&&o.data().u===me)b.delete(doc(db,'lots',k))}
      b.set(doc(db,'lots',String(nl)),Object.assign({},look,{u:me,t:serverTimestamp()}));b.set(doc(db,'lotOf',me),{l:String(nl),t:serverTimestamp()});await b.commit();return true},
     async lotSync(l,look){const me=await login();N.uid=me;await setDoc(doc(db,'lots',String(l)),Object.assign({},look,{u:me,t:serverTimestamp()}));return true},

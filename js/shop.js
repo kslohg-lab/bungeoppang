@@ -261,7 +261,7 @@ function drawHome(t,deco){
  if(deco){const lk=look(prev);lk.staff={};IS.draw(t,lk,FUR(),{top:56,bottom:H-DPH,edit:dtabK()==='fur',sel:dsel,ghost:dghost,noCust:true,wedit:dtabK()==='fur'&&(FCAT[fcat].k==='wall'||!!(dpick&&IS.WK[dpick])||!!(dsel&&IS.WK[dsel.k]))});
   if(F2V){rr(W/2-46,62,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,77,16,'#5a3a22','center')}
   if(dtabK()==='shape'){const sid=id_('shape',prev);rr(W-150,64,138,108,18,'rgba(255,248,236,.95)');bread(W-81,110,.9,'#e8a840',{shp:sid});tx(MSH[sid].n,W-81,154,14,'#5a3a22','center','#fff')}}
- else{IS.draw(t,look(null),FUR(),{top:64,bottom:518,junk:!F2V});if(F2V){rr(W/2-46,176,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,191,16,'#5a3a22','center')}const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
+ else{IS.draw(t,look(null),FUR(),{top:64,bottom:518,junk:!F2V,stTag:true});if(F2V){rr(W/2-46,176,92,30,15,'rgba(255,241,196,.95)');tx('🏢 2층',W/2,191,16,'#5a3a22','center')}const g=cx.createLinearGradient(0,470,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(30,18,10,.55)');cx.fillStyle=g;cx.fillRect(0,470,W,330);hud();
   if(scr==='home'){if(bizPop>0&&t-bizT>2.5){bizFl.push({v:bizPop,t});bizPop=0;bizT=t}bizFl=bizFl.filter(f=>t-f.t<1.8);bizFl.forEach(f=>{const u=(t-f.t)/1.8;cx.globalAlpha=1-u*u;tx('+'+fmt(f.v)+' 🪙',16,(INSTALL.standalone()?132:180)-u*12,18,'#fff6c0','left','#5a3a22');cx.globalAlpha=1})}else bizPop=0}}
 function gradeFloorBase(){return['#b8b4ac','#d2a46a','#c89a64','#6fbf5a','#8a867c','#9a968e','#9a80d8','#e8b8c8','#b88350','#9cc8e8','#c89a64','#b898d8','#d8b058','#f2dc8a','#a8dcc0','#c8b4e8','#d8c6a8','#9cc8f0','#e8b4c4','#5a3420','#d8c8a8'][save.eq.floor]||'#b8b4ac'}
 
@@ -513,7 +513,12 @@ let dsub=0,fcat=2;
 /* 🆕 11/14 새로 나온 가구: 나온 날부터 2주 동안 'NEW' + 🆕 칸 (키 앞부분 → 나온 날) */
 const NEWP=[['r_',Date.UTC(2026,10,16)],['w_crown',Date.UTC(2026,10,16)],['c_',Date.UTC(2026,10,12)],['d_',Date.UTC(2026,10,13)],['w_mac',Date.UTC(2026,10,13)],['s_',Date.UTC(2026,10,14)],['v_',Date.UTC(2026,10,14)],['w_wheel',Date.UTC(2026,10,14)],['w_stock',Date.UTC(2026,10,14)],['bean_',Date.UTC(2026,10,14)],['mar_',Date.UTC(2026,10,14)],['lea_',Date.UTC(2026,10,14)],['cld_',Date.UTC(2026,10,14)]];
 const isNewF=k=>{const p=NEWP.find(([q])=>k.indexOf(q)===0);return!!p&&Date.now()<p[1]+15*864e5};
-const FCAT=[{k:'own',n:'📦 내 가구'},{k:'new',n:'🆕 새로 나온'},{k:'sit',n:'🪑 의자·탁자'},{k:'plant',n:'🪴 식물'},{k:'lit',n:'💡 조명'},{k:'deco',n:'🧸 장식'},{k:'set',n:'🎁 세트'},{k:'sp',n:'✨ 특별'},{k:'prem',n:'💎 프리미엄'},{k:'wall',n:'🖼️ 벽 장식'}];
+/* 11/19 VOC '가구엔 가구만': 🪑 가구(앉는 것·탁자·수납/진열) / 🎀 소품(식물·조명·장식·특별·프리미엄) 두 묶음, 그 안에 작은 칸 */
+const FX=new Set(['shelf','books','cake','coffee','bcart','bbag','cboard','piano']);
+const FSUB={fur:[{k:'seat',n:'의자·소파',f:f=>!!f.seat},{k:'tbl',n:'탁자',f:f=>f.c==='sit'&&!f.seat},{k:'disp',n:'수납·진열',f:f=>FX.has(f.k)}],
+ prop:[{k:'plant',n:'🪴 식물',f:f=>f.c==='plant'},{k:'lit',n:'💡 조명',f:f=>f.c==='lit'},{k:'deco',n:'🧸 장식',f:f=>f.c==='deco'&&!FX.has(f.k)},{k:'sp',n:'✨ 특별',f:f=>f.c==='sp'&&!FX.has(f.k)},{k:'prem',n:'💎 프리미엄',f:f=>f.c==='prem'&&!f.seat}]};
+let fsub={fur:0,prop:0};
+const FCAT=[{k:'own',n:'📦 내 가구'},{k:'new',n:'🆕 새로 나온'},{k:'fur',n:'🪑 가구'},{k:'prop',n:'🎀 소품'},{k:'set',n:'🎁 세트'},{k:'wall',n:'🖼️ 벽 장식'}];
 if(IS.FUR.some(f=>isNewF(f.k)))fcat=1;
 /* 가구 카드 그림: 작은 캔버스에 실제 가구를 그려서 */
 const TCV=document.createElement('canvas');TCV.width=TCV.height=240;const TCX=TCV.getContext('2d'),TI=ISO(TCX,ART(TCX,{shape:()=>save.eq.shape|0})),THC={};
@@ -551,7 +556,9 @@ function dbtn(id,label,cls,fn){const b=$(id);b.textContent=label;b.className=cls
 function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=dtabK();
  {const pd=pendList();$('dcw').textContent='🪙 '+fmt(save.coins)+(pd.n?' · 🛒'+pd.n+' −'+fmt(pd.sum):'')+(window.MEDAL&&!pd.n&&MEDAL.get().n?' · 🏅'+MEDAL.get().n:'')}$('dci').textContent=dMed?'🔥 챌린지에서 모아요':'✨ 매력 +'+Math.round(charmBonus()*100)+'%';if(dMed&&window.MEDAL)$('dcw').textContent='🏅 메달 '+MEDAL.get().n+'개';
  const T=$('dtabs');T.innerHTML='';const tight=!dMed&&tk==='fur'&&canGrow()&&freeN()<=4;tabs.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x.n+(tight&&x.k==='room'?' ❗':'');if(i===dtab)b.className='on';b.onclick=()=>{dtab=i;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;$('dl').scrollLeft=0;renderDeco()};T.appendChild(b)});
- {const S=$('dsub'),g=DT()[dtab];S.innerHTML='';S.style.display=!dMed&&(g.sl||g.k==='fur')?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)});if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
+ {const S=$('dsub'),g=DT()[dtab];S.innerHTML='';S.style.display=!dMed&&(g.sl||g.k==='fur')?'flex':'none';if(g.k==='fur')FCAT.forEach((c,j)=>{const b=document.createElement('button');b.textContent=c.n;if(j===fcat)b.className='on';b.onclick=()=>{fcat=j;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b);
+   /* 고른 묶음 바로 뒤에 작은 칸 */if(j===fcat&&FSUB[c.k])FSUB[c.k].forEach((q,m)=>{const e=document.createElement('button');e.textContent=q.n;e.className='sub'+(m===fsub[c.k]?' on':'');e.onclick=()=>{fsub[c.k]=m;dpick=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(e)})});
+   /* 고른 묶음과 작은 칸이 보이게 줄을 밀어 둬요 */if(g.k==='fur'&&FSUB[FCAT[fcat].k]){const on=S.children[fcat];if(on)S.scrollLeft=Math.max(0,on.offsetLeft-8)}if(g.sl)g.sl.forEach((k,j)=>{const sl=SLOTS.find(x=>x.k===k),b=document.createElement('button');b.textContent=sl.n;if(j===dsub)b.className='on';b.onclick=()=>{dsub=j;prev=null;$('dl').scrollLeft=0;renderDeco()};S.appendChild(b)})}
  const L=$('dl'),sl0=L.scrollLeft;L.innerHTML='';
  const card=(e,n,sub,cls,fn)=>{const b=document.createElement('button');b.className='cd '+(cls||'');b.innerHTML='<b>'+e+'</b>'+n+'<small>'+sub+'</small>';b.onclick=fn;L.appendChild(b)};
  let msg='';
@@ -563,6 +570,7 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
   else if(fc==='own'){/* 11/19 VOC: 보관함에 남은 게 없는(다 놓았거나 팔아서 0개) 가구는 안 보여요 — 놓은 가구는 가게에서 눌러 골라요 */const my=IS.FUR.concat(IS.WFUR).filter(f=>spare(f.k)>0).sort((a,b)=>b.p-a.p);if(my.length)my.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>보관함이 비었어요</b><small>산 가구를 📦 보관하면 여기 모여요 · 놓은 가구는 가게에서 눌러 골라요</small>';L.appendChild(h)}}
   else if(fc==='new'){const nl=IS.FUR.concat(IS.WFUR).filter(f=>isNewF(f.k)).sort((a,b)=>a.p-b.p);if(nl.length)nl.forEach(fcard);else{const h=document.createElement('div');h.className='cdh';h.innerHTML='<b>지금은 새 가구가 없어요</b><small>새 가구가 나오면 2주 동안 여기 모여요</small>';L.appendChild(h)}}
   else if(fc==='wall')IS.WFUR.forEach(fcard);
+  else if(FSUB[fc]){const q=FSUB[fc][fsub[fc]]||FSUB[fc][0];IS.FUR.filter(f=>f.c!=='stair'&&q.f(f)).sort((a,b)=>a.p-b.p).forEach(fcard)}
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.CK(dsel.k),wsel=dsel&&IS.WK[dsel.k],wpk=dpick&&IS.WK[dpick];
   $('da3').style.display='';const sellK=!dsel&&dpick&&spare(dpick)>0&&f0(dpick).p>0?dpick:null;
@@ -648,7 +656,8 @@ cv.addEventListener('pointerdown',e=>{if(!panScr())return;e.preventDefault();con
 cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const p=cvPt(e);pts.set(e.pointerId,p);
  if(pin&&pts.size>=2){const [a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>10&&pin.d>10)zoomBy(d/pin.d);pin.d=d;return}
  if(!drg||e.pointerId!==drg.id)return;if(!drg.mv&&Math.hypot(p.x-drg.x,p.y-drg.y)>9)drg.mv=true;if(drg.mv){if(drg.fur){const t=IS.toTile(p.x,p.y),f=drg.fur,gx=t.gx-drg.ox,gy=t.gy-drg.oy;dsel=f;dghost={x:gx,y:gy,k:f.k,d:f.d,ok:IS.okPlace(FUR(),gx,gy,f.k,f,RMN())}}else if(scr==='street')SV.drag(p.x-drg.lx,p.y-drg.ly);else if(IS.canPan())IS.pan(p.x-drg.lx,p.y-drg.ly)}drg.lx=p.x;drg.ly=p.y});
-const endDrg=(e,ok)=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(d.fur&&d.mv){const g=dghost;dghost=null;if(ok&&g&&(g.x!==d.fur.x||g.y!==d.fur.y)){if(g.ok){const bs0=IS.blockedSeats(FUR(),RMN());d.fur.x=g.x;d.fur.y=g.y;store();snd('place');IS.bounce(d.fur);if(IS.blockedSeats(FUR(),RMN())>bs0)setTimeout(()=>toast('⚠️ 손님이 갈 수 없는 의자가 생겼어요'),350)}else{toast(IS.fitAt(FUR(),d.fur.k,g.x,g.y,d.fur.d,d.fur,RMN())?'🚧 여기 놓으면 손님 길이 막혀요':'🚧 여기엔 놓을 수 없어요');snd('no')}}renderDeco();return}if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&d.y<64&&(d.x<300||!save.hudT)){snd('tap');gradeCard();return}if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&tipHit(d.x,d.y))return;if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&!F2V&&IS.junkHit(d.x,d.y)){snd('tap');return}if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
+const endDrg=(e,ok)=>{pts.delete(e.pointerId);if(pts.size<2)pin=null;if(!drg||e.pointerId!==drg.id)return;const d=drg;drg=null;if(d.fur&&d.mv){const g=dghost;dghost=null;if(ok&&g&&(g.x!==d.fur.x||g.y!==d.fur.y)){if(g.ok){const bs0=IS.blockedSeats(FUR(),RMN());d.fur.x=g.x;d.fur.y=g.y;store();snd('place');IS.bounce(d.fur);if(IS.blockedSeats(FUR(),RMN())>bs0)setTimeout(()=>toast('⚠️ 손님이 갈 수 없는 의자가 생겼어요'),350)}else{toast(IS.fitAt(FUR(),d.fur.k,g.x,g.y,d.fur.d,d.fur,RMN())?'🚧 여기 놓으면 손님 길이 막혀요':'🚧 여기엔 놓을 수 없어요');snd('no')}}renderDeco();return}if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&d.y<64&&(d.x<300||!save.hudT)){snd('tap');gradeCard();return}if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&tipHit(d.x,d.y))return;/* 🪜 11/19 VOC: 계단(1층)·구멍(2층)을 누르면 층 바꾸기 */if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&BIZ.f2Of(save)&&IS.stairHit(d.x,d.y)){$('flb').onclick();return}
+  if(ok&&!d.mv&&scr==='home'&&$('hm').style.display==='block'&&!F2V&&IS.junkHit(d.x,d.y)){snd('tap');return}if(ok&&!d.mv&&scr==='deco')decoTap(d.x,d.y);if(ok&&!d.mv&&scr==='street')stTap(d.x,d.y)};
 cv.addEventListener('pointerup',e=>endDrg(e,true));cv.addEventListener('pointercancel',e=>endDrg(e,false));
 /* 아이폰 사파리: 화면 전체가 확대되지 않게 */try{document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false})}catch(_){}
 /* 컴퓨터: 마우스 휠로 확대·축소 */
@@ -791,7 +800,7 @@ function drawGame(){A.use(s,run,ui);A.drawPlay({street:true,title:'🙋 도와�
 /* ---------- 가게 순위 · 친구 가게 구경 (js/net.js) ---------- */
 function whenNet(fn,fail,n=0){const N=window.NET;if(N&&N.get)return fn(N);if(N&&N.pending&&n<40)return setTimeout(()=>whenNet(fn,fail,n+1),300);if(fail)fail()}
 const chNick=()=>{try{return String((JSON.parse(localStorage.getItem('bungeoppang2Pub1'))||{}).nick||'').slice(0,12)}catch(e){return''}};
-function shopPayload(){return{n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1},BIZ.f2Of(save)?Object.assign({f2:BIZ.f2Of(save)},save.eq2?{f2w:((save.eq2.wall!=null?save.eq2.wall:save.eq.wall)|0)*100+((save.eq2.floor!=null?save.eq2.floor:save.eq.floor)|0)}:{}):{}),fur:(()=>{const enc=(f,p)=>p+f.k+','+f.x+','+f.y+','+(f.d|0)+(f.s?','+Math.min(3,f.s|0):'');return(save.fur||[]).filter(f=>!f.pend).map(f=>enc(f,'')).concat((save.fur2||[]).filter(f=>!f.pend).map(f=>enc(f,'2|'))).slice(0,120)})()}} /* 🏢 2층 가구는 '2|' 붙여서 (옛 앱은 모르는 가구라 그냥 건너뛰어요) */
+function shopPayload(){return{rt:Math.max(0,Math.min(50,Math.round(BIZ.rt(save).v*10))),n:nm().slice(0,12),nk:chNick(),g:grade(),sc:Math.min(3000000,decoScore()),room:save.room,eq:Object.assign({},save.eq,{cook:save.cook|0,r5:1},BIZ.f2Of(save)?Object.assign({f2:BIZ.f2Of(save)},save.eq2?{f2w:((save.eq2.wall!=null?save.eq2.wall:save.eq.wall)|0)*100+((save.eq2.floor!=null?save.eq2.floor:save.eq.floor)|0)}:{}):{}),fur:(()=>{const enc=(f,p)=>p+f.k+','+f.x+','+f.y+','+(f.d|0)+(f.s?','+Math.min(3,f.s|0):'');return(save.fur||[]).filter(f=>!f.pend).map(f=>enc(f,'')).concat((save.fur2||[]).filter(f=>!f.pend).map(f=>enc(f,'2|'))).slice(0,120)})()}} /* 🏢 2층 가구는 '2|' 붙여서 (옛 앱은 모르는 가구라 그냥 건너뛰어요) */
 /* ⏳ 무료 한도에 걸렸을 때 안내 (1시간 안에 resource-exhausted가 났으면) */
 const busyMsg=()=>window.NET&&NET.full&&Date.now()-NET.full<3600e3?'⏳ 지금 사람이 많아서 잠깐 못 불러와요 · 가게는 그대로 할 수 있어요':'';
 /* 11/8 5.6.6: 꾸미기 완료(force)는 늘 올리고 결과를 보여 줘요 · 실패하면 이유(에러 이름)를 화면에 */
@@ -803,7 +812,7 @@ function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=
  const L=$('rkl');L.innerHTML='<p class="ht">불러오는 중…</p>';
  whenNet(N=>{N.top(rkBy).then(rows=>{if(scr!=='rk')return;if(!rows.length){L.innerHTML='<p class="ht">'+(rkBy==='wk'?'이번 주엔 아직 점수가 오른 가게가 없어요. 가구를 놓으면 1등이 될 수 있어요! 📈':'아직 올라온 가게가 없어요. 꾸미기를 마치면 내 가게가 올라가요! 🏪')+'</p>';return}L.innerHTML='';
   rows.forEach((r,i)=>{const d=document.createElement('div');d.className='rr'+(r.u===N.uid?' me':'');d.innerHTML='<b>'+(i<3?['🥇','🥈','🥉'][i]:(i+1))+'</b><span class="nm"><span></span><small></small></span><span class="vl">'+(rkBy==='wk'?'📈 +'+fmt(r.gw):rkBy==='sc'?'✨ '+fmt(r.sc):'❤️ '+fmt(r.lk))+'</span>';
-   d.querySelector('.nm span').textContent='🏪 '+r.n;d.querySelector('.nm small').textContent=(GR[r.g]?GR[r.g].e+' '+GR[r.g].n:'')+' · Lv'+lvOf(r.sc)+(r.nk?' · 🙂 '+r.nk:'');d.onclick=()=>visit(r.u,'rk');L.appendChild(d)});
+   d.querySelector('.nm span').textContent='🏪 '+r.n;d.querySelector('.nm small').textContent=(GR[r.g]?GR[r.g].e+' '+GR[r.g].n:'')+' · Lv'+lvOf(r.sc)+((r.rt|0)>=10?' · ⭐'+((r.rt|0)/10).toFixed(1):'')+(r.nk?' · 🙂 '+r.nk:'');d.onclick=()=>visit(r.u,'rk');L.appendChild(d)});
   const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
 $('nb').onclick=()=>{au();syncShop();openRank('wk')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rk2').onclick=()=>openRank('wk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
 /* 구경 */
@@ -819,7 +828,7 @@ function visit(uid,from){vFrom=from||'home';vd=null;vuid=uid;vfur=[];IS.reset();
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
   $('vrp').style.display=uid===N.uid?'none':'block';if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast(busyMsg()||'불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
-function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
+function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+((vd.rt|0)>=10?' · ⭐'+((vd.rt|0)/10).toFixed(1):'')+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
 function leaveVisit(){vd=null;hPre=0;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='street'){openStreet()}else if(vFrom==='rk'){openRank()}else if(vFrom==='gb'){openNotes()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
 $('vmk1').onclick=()=>{vFrom='home';leaveVisit()};
@@ -877,8 +886,8 @@ $('tsk').onclick=()=>endTour();
    하루 한 번 가게 40곳쯤(비슷한 가게·큰 가게·상위권)을 불러와 저장(bpTown) → '🔄 다른 동네'는 그 안에서 새로 섞어요(서버 안 읽음, 제한 없음).
    한 동네 = 내 가게 + 11곳: 가까운 자리엔 비슷한 가게 6, 그다음 큰 가게 3, 끝에 상위권 2 */
 const SV=STREET(cx,A);
-const myD=pv=>({r5:1,room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade()});
-const dD=r=>{const e=r.eq||{};return{r5:e.r5|0,room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0}};
+const myD=pv=>({r5:1,room:save.room,skin:id_('skin',pv)|0,awn:id_('awn',pv)|0,sign:id_('sign',pv)|0,n:nm(),nk:chNick(),g:grade(),rt:Math.round(BIZ.rt(save).v*10)});
+const dD=r=>{const e=r.eq||{};return{r5:e.r5|0,room:r.room|0,skin:e.skin|0,awn:e.awn|0,sign:e.sign|0,n:r.n,nk:r.nk,g:r.g|0,rt:r.rt|0}};
 let stRows=null,stHits=[],stList=[],stLoad=false,stMsg='';const ST_KEY='bpTown2';
 /* 🏙️ 동네에 올 이유 (11/10): 🐟 숨은 황금 붕어빵(하루 한 번) · 🐾 이웃 3곳 구경 도장 · ❤️ 좋아요 누르면 작은 코인(하루 10번) · 💌 방명록 남긴 이웃 답방 표시 */
 const twNow=()=>{const d=dayKey();if(!save.tw||save.tw.d!==d)save.tw={d,g:0,v:[],st:0,lg:0};return save.tw};
@@ -896,7 +905,7 @@ const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i
 /* 🗺️ 11/17~18 동네 지도는 모두에게 같아요 (서버 lots). 🏘️ 마을: 칸 번호 = 마을×1000 + 칸(블록 i·100 + j·10 + 0~2).
    처음 들어오면 골목(바깥 한 줄) 빈 칸을 무료로 잡아요. 그 마을 골목이 다 차면(ALLEY_CAP) 다음 마을로. 다른 마을 빈 땅도 눌러서 이사할 수 있어요 */
 let stLots=null,stTown=0;const LOT_K='bpLots2',LOT_TTL=14*864e5;
-const lotLook=()=>{const d=myD(null);return{n:String(d.n||'붕어빵').slice(0,12),nk:String(d.nk||'').slice(0,12),g:d.g|0,room:Math.max(4,Math.min(11,d.room|0)),sk:d.skin|0,aw:d.awn|0,sg:d.sign|0,r5:1}};
+const lotLook=()=>{const d=myD(null);return{n:String(d.n||'붕어빵').slice(0,12),nk:String(d.nk||'').slice(0,12),g:d.g|0,room:Math.max(4,Math.min(11,d.room|0)),sk:d.skin|0,aw:d.awn|0,sg:d.sign|0,r5:1,rt:Math.max(0,Math.min(50,Math.round(BIZ.rt(save).v*10)))}};
 const lotDoc=f=>Object.assign(lotLook(),{tw:Math.floor(f/1000),z:SV.LID.get(f%1000).z});
 const lotLive=()=>(stLots||[]).filter(x=>x.t>Date.now()-LOT_TTL&&x.tw===stTown&&SV.LID.has(x.l%1000)&&!(window.HIDE&&HIDE.has(x.u)));
 const meUid=()=>window.NET&&NET.uid;
@@ -912,7 +921,7 @@ function stBuild(){if(!stTown)stTown=myTown();const live=lotLive(),me=meUid(),ot
  /* 11/18 칸 없는 이웃은 가게 번호(uid)로 정한 골목 칸에 (아래쪽 골목 48칸 안). 다른 사람이 칸을 잡거나 비워도 안 밀려요 */
  const pick=take(rows.slice().sort((a,b)=>uh(a.u)-uh(b.u))).slice(0,free.length),fs=new Set(free),AL=SV.ALLEY.filter(l=>SV.LID.get(l).z==='alley'),SL=AL.slice(0,48),used2=new Set();
  const place=r=>{for(const L of [SL,AL]){const n=L.length;let k=uh(r.u)%n;for(let j=0;j<n;j++){const l=L[(k+j)%n];if(fs.has(l)&&!used2.has(l)){used2.add(l);return l}}}return null};
- stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g},u:x.u,lid:x.l%1000})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)})).filter(x=>x.lid!=null)];
+ stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g,rt:x.rt|0},u:x.u,lid:x.l%1000})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)})).filter(x=>x.lid!=null)];
  if(meL!=null)SV.center(meL);else SV.centerZone('prime');stTitle()}
 function stTitle(){const e=$('stnm');if(!e)return;const h=stTown===myTown();e.innerHTML='<button id="stp" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">◀</button>🐟 마을 '+stTown+(h?' 🏠':'')+'<button id="stn" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">▶</button>';
  $('stp').onclick=e=>{e.stopPropagation();if(stTown<=1){snd('no');return}snd('tap');stGo(stTown-1)};

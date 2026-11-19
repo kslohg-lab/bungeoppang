@@ -54,7 +54,9 @@ service cloud.firestore {
 
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
     function okShop(d) {
-      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp', 'hi'])
+      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp', 'hi', 'rt'])
+        // ⭐ 가게 평점(11/19): rt = 평점×10 (10~50)
+        && (!('rt' in d) || (d.rt is int && d.rt >= 0 && d.rt <= 50))
         // 🏔️ 최고 점수(11/14): hi = 지금까지 가장 높았던 꾸미기 점수 (있으면 정수, sc 이상)
         && (!('hi' in d) || (d.hi is int && d.hi >= d.sc))
         // 🏆 지난 주 성장(11/14): wp = 지난 기록 주 번호, gwp = 그 주 성장 (있으면 둘 다 정수)
@@ -145,7 +147,8 @@ service cloud.firestore {
     //  한 사람 한 칸: 새 칸을 잡을 때 내 lotOf가 그 칸을 가리키고, 예전 칸은 같은 묶음에서 지워져야 해요
     //  14일 동안 안 들어온 주인의 칸은 빈 칸으로 보고 다른 사람이 잡을 수 있어요
     function okLot(d) {
-      return d.keys().hasOnly(['u', 'tw', 'z', 'n', 'nk', 'g', 'room', 'sk', 'aw', 'sg', 'r5', 't'])
+      return d.keys().hasOnly(['u', 'tw', 'z', 'n', 'nk', 'g', 'room', 'sk', 'aw', 'sg', 'r5', 'rt', 't'])
+        && (!('rt' in d) || (d.rt is int && d.rt >= 0 && d.rt <= 50))
         && d.u == request.auth.uid
         && d.tw is int && d.tw >= 1 && d.tw <= 999
         && d.z in ['alley', 'school', 'station', 'park', 'night', 'mall', 'prime']
