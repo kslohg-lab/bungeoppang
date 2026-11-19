@@ -4,7 +4,7 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
 const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bpShopPubV1';
 /* ---------- 꾸미기 목록 (p=가격, g=필요한 가게 등급, st=필요한 ⭐, 가격 0이고 st가 있으면 ⭐ 보상) ---------- */
 const SIGN=[{n:'나무 간판',e:'🪵',p:0,g:0},{n:'리본 간판',e:'🎀',p:900,g:0},{n:'칠판 간판',e:'📝',p:2800,g:1},{n:'네온 간판',e:'💜',p:9000,g:2},{n:'금박 간판',e:'🥇',p:32000,g:3},{n:'무지개 간판',e:'🌈',p:95000,g:4},{n:'황금 왕관 간판',e:'👑',p:300000,g:5},{n:'별빛 간판',e:'✨',p:0,g:0,st:60}];
-const AWN=[{n:'빨강 줄무늬',e:'🟥',p:0,g:0},{n:'파랑 줄무늬',e:'🟦',p:700,g:0},{n:'초록 줄무늬',e:'🟩',p:700,g:0},{n:'분홍 물방울',e:'🩷',p:2200,g:1},{n:'노랑 줄무늬',e:'🟨',p:2200,g:1},{n:'무지개 차양',e:'🌈',p:11000,g:2},{n:'별빛 차양',e:'⭐',p:45000,g:3},{n:'벚꽃 차양',e:'🌸',p:140000,g:4},{n:'황금 장막',e:'🏅',p:380000,g:5}];
+const AWN=[{n:'빨강 줄무늬',e:'🟥',p:0,g:0},{n:'파랑 줄무늬',e:'🟦',p:700,g:0},{n:'초록 줄무늬',e:'🟩',p:700,g:0},{n:'분홍 물방울',e:'🩷',p:2200,g:1},{n:'노랑 줄무늬',e:'🟨',p:2200,g:1},{n:'무지개 차양',e:'🌈',p:11000,g:2},{n:'별빛 차양',e:'⭐',p:45000,g:3},{n:'벚꽃 차양',e:'🌸',p:140000,g:4},{n:'황금 장막',e:'🏅',p:380000,g:5},/* ⭐ 11/19 별 150개 */{n:'은하 차양',e:'🌠',p:0,g:0,st:150}];
 const WALL=[{n:'크림 벽',e:'⬜',p:0,g:0,c:'#fff3dc'},{n:'하늘색 벽',e:'🟦',p:600,g:0,c:'#d8ecff'},{n:'민트 벽',e:'🟩',p:600,g:0,c:'#d8f5e4'},{n:'분홍 벽',e:'🩷',p:1500,g:0,c:'#ffdce8'},{n:'벽돌 벽',e:'🧱',p:3800,g:1,c:'#c8664a'},{n:'나무판자 벽',e:'🪵',p:9500,g:2,c:'#c89a64'},{n:'타일 벽',e:'🔲',p:28000,g:3,c:'#f2f2ee'},{n:'대리석 벽',e:'🏛️',p:90000,g:4,c:'#ece8e4'},{n:'황금빛 벽',e:'🌟',p:260000,g:5,c:'#f6dc7a'},
  /* 🎀 11/8 추가 (번호는 저장값이라 뒤에만 붙여요, 목록은 가격순으로 보여요) */
  {n:'딸기우유 줄무늬',e:'🍓',p:2500,g:0,c:'#ffe6ee'},{n:'물방울 벽지',e:'⚪',p:6000,g:1,c:'#fff4d6'},{n:'벚꽃 벽지',e:'🌸',p:15000,g:2,c:'#fdebf1'},{n:'하트 벽지',e:'💗',p:40000,g:3,c:'#ffe3ea'},{n:'밤하늘 별 벽지',e:'🌙',p:120000,g:4,c:'#2f3a6e'},{n:'붕어빵 무늬 벽지',e:'🐟',p:0,g:0,m:15,c:'#fff0cf'},
@@ -15,7 +15,7 @@ const FLOOR=[{n:'시멘트 바닥',e:'⬜',p:0,g:0},{n:'체크무늬 바닥',e:'
  {n:'파스텔 체크 타일',e:'🧁',p:3000,g:0},{n:'쪽모이 원목 마루',e:'🪵',p:15000,g:2},{n:'하늘 타일',e:'🩵',p:25000,g:3},{n:'곰돌이 러그',e:'🧸',p:60000,g:3},{n:'무지개 모자이크',e:'🌈',p:150000,g:4},{n:'붕어빵 타일',e:'🐟',p:0,g:0,m:15},
  /* 🎨 11/13 추가 */
  {n:'레몬 체크',e:'🍋',p:2500,g:0},{n:'민트 체크',e:'🌿',p:2500,g:0},{n:'라벤더 체크',e:'💜',p:8000,g:1},{n:'화이트 원목',e:'🤍',p:25000,g:2},
- {n:'구름 카펫',e:'☁️',p:60000,g:3},{n:'딸기우유 대리석',e:'🍓',p:150000,g:4},{n:'초콜릿 타일',e:'🍫',p:400000,g:5},{n:'황금 결 대리석',e:'✨',p:1500000,g:6}];
+ {n:'구름 카펫',e:'☁️',p:60000,g:3},{n:'딸기우유 대리석',e:'🍓',p:150000,g:4},{n:'초콜릿 타일',e:'🍫',p:400000,g:5},{n:'황금 결 대리석',e:'✨',p:1500000,g:6},/* ⭐ 11/19 별 200개 */{n:'은하수 바닥',e:'🌌',p:0,g:0,st:200}];
 const SIDE=[{n:'없음',e:'➖',p:0,g:0},{n:'화분',e:'🪴',p:700,g:0,sz:56},{n:'벤치',e:'🪑',p:2600,g:1,sz:60},{n:'등불',e:'🏮',p:5200,g:1,sz:66},{n:'나무',e:'🌳',p:9800,g:2,sz:96},{n:'자전거',e:'🚲',p:14000,g:2,sz:64},{n:'분수',e:'⛲',p:42000,g:3,sz:96},{n:'회전목마',e:'🎠',p:150000,g:4,sz:104},{n:'작은 타워',e:'🗼',p:320000,g:5,sz:124},{n:'대관람차',e:'🎡',p:600000,g:6,sz:134}];
 const MAS=[{n:'없음',e:'➖',p:0,g:0},{n:'강아지',e:'🐶',p:2400,g:0},{n:'고양이',e:'🐱',p:2400,g:0},{n:'토끼',e:'🐰',p:5200,g:1},{n:'판다',e:'🐼',p:16000,g:2},{n:'여우',e:'🦊',p:26000,g:2},{n:'사자',e:'🦁',p:52000,g:3},{n:'용',e:'🐉',p:210000,g:4},{n:'유니콘',e:'🦄',p:420000,g:5},{n:'황금 붕어',e:'🌟',p:0,g:0,st:100}];
 const LIT=[{n:'없음',e:'➖',p:0,g:0},{n:'전구줄',e:'💡',p:3200,g:1},{n:'별 조명',e:'⭐',p:12000,g:2},{n:'네온 불빛',e:'🌃',p:41000,g:3},{n:'샹들리에',e:'🔮',p:150000,g:4},{n:'오로라 조명',e:'🌌',p:520000,g:6}];
@@ -38,7 +38,8 @@ const SKIN=[{n:'기본 가게',e:'🏪',p:0,g:0},{n:'벽돌집',e:'🧱',p:60000
  {n:'귤 가게',e:'🏅',p:0,g:0,m:30,img:'img/sk/m31.webp',a:2,h:0,from:MS3},{n:'북극곰 가게',e:'🏅',p:0,g:0,m:30,img:'img/sk/m32.webp',a:0,h:3,from:MS3},
  {n:'코코아 머그 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m34.webp',a:3,h:0,from:MS3},{n:'이글루 가게',e:'🏅',p:0,g:0,m:50,img:'img/sk/m30.webp',a:0,h:4,from:MS3},
  {n:'복주머니 가게',e:'🏅',p:0,g:0,m:80,img:'img/sk/m36.webp',a:4,h:0,from:MS3},{n:'군고구마 가게',e:'🏅',p:0,g:0,m:80,img:'img/sk/m35.webp',a:0,h:6,from:MS3},
- {n:'얼음 성',e:'🏅',p:0,g:0,m:120,img:'img/sk/m33.webp',a:0,h:8,from:MS3},{n:'설날 한옥 떡집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m29.webp',a:6,h:5,from:MS3}];
+ {n:'얼음 성',e:'🏅',p:0,g:0,m:120,img:'img/sk/m33.webp',a:0,h:8,from:MS3},{n:'설날 한옥 떡집',e:'🏅',p:0,g:0,m:150,img:'img/sk/m29.webp',a:6,h:5,from:MS3},
+ /* ⭐ 11/19 별 300개 */{n:'별 왕관 가게',e:'👑',p:0,g:0,st:300,img:'img/sk/s1.webp'}];
 const SLOTS=[{k:'skin',n:'외관',L:SKIN},{k:'sign',n:'간판',L:SIGN},{k:'shape',n:'틀 모양',L:MSH},{k:'top',n:'지붕 장식',L:TOP},{k:'awn',n:'차양',L:AWN},{k:'wall',n:'벽',L:WALL},{k:'floor',n:'바닥',L:FLOOR},{k:'sL',n:'왼쪽 장식',L:SIDE},{k:'sR',n:'오른쪽 장식',L:SIDE},{k:'mas',n:'마스코트',L:MAS},{k:'lit',n:'조명',L:LIT},{k:'sky',n:'하늘',L:SKY}];
 const GR=[{n:'노점',e:'🛒',at:0},{n:'골목 가게',e:'🏠',at:60},{n:'동네 맛집',e:'🍴',at:250},{n:'줄 서는 가게',e:'🚶',at:700},{n:'소문난 명가',e:'🏮',at:1500},{n:'전국구 맛집',e:'🌏',at:3000},{n:'전설의 가게',e:'👑',at:6000}];
 const charmOf=it=>{const v=it.p>0?it.p:(it.st?it.st*1500:0);return v>0?Math.floor(Math.log2(v/200+1)):0};
@@ -131,6 +132,10 @@ $('bzx').onclick=()=>{snd('tap');bzHide()};/* 11/14 VOC '눌러도 안 열려요
 function awayCard(g){bzShow('🌙','자리 비운 동안 '+hm(g.h),'<p class="ht" style="text-align:center;margin-top:0">직원들이 가게를 지켰어요!</p>'+lgBlock(g,'')+(g.capped?'<p class="ht" style="text-align:center">⏰ 8시간까지만 쌓여요. 자주 들러 주세요!</p>':'')+(g.paid?'<p class="ht">💸 밀린 돈 '+fmt(g.paid)+'원을 갚았어요</p>':'')+debtTxt(),'🪙 좋아요!',null,'📒 장부 보기',()=>openLed())}
 function bizIntro(){save.biz=1;store();bzShow('💼','이제 가게가 혼자서도 장사해요!','• 개업 선물: 🍞 굽기 알바 · 🧾 계산 알바 Lv1<br>• 자리를 비워도 <b>최대 8시간</b>까지 장사해요<br>• 매출에서 재료비 · 월세 · 월급 · 세금(10%)을 빼고 남은 돈이 들어와요<br>• 넓은 가게는 월세가 있어요. <b>가게를 사면 월세 0원!</b><br>• 심심할 때 <b>🙋 도와주기</b>로 직접 구워 더 벌어요','👥 직원 보러 가기',()=>openUp('home',0),'좋아요',null)}
 /* ⭐ 받을 수 있는 별 보상 (같은 이름은 한 번만) */
+/* ⭐ 별 상점 품목 (11/19 사용자 승인) */
+function starShop(){const coin=Math.max(10000,Math.round(Math.max(0,BIZ.rates(save,bctx()).net)*2/1000)*1000),fu=k=>{const f=IS.CK(k);return{e:f.e,n:f.n,c:f.stp,d:'꾸미기 › 내 가구로',buy:()=>{save.inv[k]=(save.inv[k]|0)+1;toast(f.e+' '+f.n+' 보관함에 넣었어요 · 꾸미기 › 📦 내 가구');if(window.JUICE)JUICE.confetti(40)}}};
+ return[{e:'🪙',n:'코인 주머니',c:5,d:'🪙 '+fmt(coin)+' (자동 영업 2시간치)',buy:()=>{save.coins+=coin;toast('🪙 +'+fmt(coin)+' 받았어요!');bizBtn()}},
+  {e:'🎫',n:'강화권 1장',c:15,d:'가구 ★ 강화에 써요',buy:()=>{save.tix=(save.tix|0)+1;toast('🎫 강화권 +1 (지금 '+save.tix+'장)')}},fu('st_rug'),fu('st_lamp'),fu('st_sofa')]}
 function starRw(){const rw=[];SLOTS.forEach(sl=>sl.L.forEach((it,i)=>{if(!it.p&&it.st&&!rw.some(x=>x.n===it.n))rw.push({n:it.n,e:it.e,st:it.st,sl:sl.n,k:sl.k,i,own:save.own[sl.k].includes(i)})}));return rw.sort((a,b)=>a.st-b.st)}
 function starDot(){const b=$('h4');if(!b)return;const n=starRw().filter(x=>!x.own&&save.stars>=x.st).length;b.style.position='relative';b.innerHTML='📖 도감·⭐'+(n?'<i style="position:absolute;top:-6px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:#ff4a3a;color:#fff;font-size:14px;line-height:22px;font-style:normal;box-shadow:0 2px 0 #c02a1a">'+n+'</i>':'')}
 function bizBtn(){starDot();const b=$('biz');if(!b)return;if(save.debt>0){b.className='debt';b.textContent='💸 밀린 돈 '+fmt(Math.ceil(save.debt))}else{const r=BIZ.rates(save,bctx());b.className='';b.textContent='💼 영업 중 '+(r.net>=0?'+':'−')+fmt(Math.abs(Math.round(r.net)))+'/시간'}}
@@ -516,7 +521,7 @@ const isNewF=k=>{const p=NEWP.find(([q])=>k.indexOf(q)===0);return!!p&&Date.now(
 /* 11/19 VOC '가구엔 가구만': 🪑 가구(앉는 것·탁자·수납/진열) / 🎀 소품(식물·조명·장식·특별·프리미엄) 두 묶음, 그 안에 작은 칸 */
 const FX=new Set(['shelf','books','cake','coffee','bcart','bbag','cboard','piano']);
 const FSUB={fur:[{k:'seat',n:'의자·소파',f:f=>!!f.seat},{k:'tbl',n:'탁자',f:f=>f.c==='sit'&&!f.seat},{k:'disp',n:'수납·진열',f:f=>FX.has(f.k)}],
- prop:[{k:'plant',n:'🪴 식물',f:f=>f.c==='plant'},{k:'lit',n:'💡 조명',f:f=>f.c==='lit'},{k:'deco',n:'🧸 장식',f:f=>f.c==='deco'&&!FX.has(f.k)},{k:'sp',n:'✨ 특별',f:f=>f.c==='sp'&&!FX.has(f.k)},{k:'prem',n:'💎 프리미엄',f:f=>f.c==='prem'&&!f.seat}]};
+ prop:[{k:'plant',n:'🪴 식물',f:f=>f.c==='plant'},{k:'star',n:'⭐ 별',f:f=>f.c==='star'},{k:'lit',n:'💡 조명',f:f=>f.c==='lit'},{k:'deco',n:'🧸 장식',f:f=>f.c==='deco'&&!FX.has(f.k)},{k:'sp',n:'✨ 특별',f:f=>f.c==='sp'&&!FX.has(f.k)},{k:'prem',n:'💎 프리미엄',f:f=>f.c==='prem'&&!f.seat}]};
 let fsub={fur:0,prop:0};
 const FCAT=[{k:'own',n:'📦 내 가구'},{k:'new',n:'🆕 새로 나온'},{k:'fur',n:'🪑 가구'},{k:'prop',n:'🎀 소품'},{k:'set',n:'🎁 세트'},{k:'wall',n:'🖼️ 벽 장식'}];
 if(IS.FUR.some(f=>isNewF(f.k)))fcat=1;
@@ -535,7 +540,7 @@ const dtabK=()=>{const g=DT()[dtab]||DT()[0];return g.sl?g.sl[Math.min(dsub,g.sl
 let dFit0=null;
 function openMedal(from){dMed=true;openDeco(from||'home');dtab=0;dsub=0;const L=SKIN.map((it,i)=>i).filter(i=>SKIN[i].m);prev={k:'skin',id:L.find(i=>!save.own.skin.includes(i))??L[0]};renderDeco()}
 let dSc0=0;function openDeco(from,room){dSc0=decoScore();if(!dMed)dMed=false;if(dFit0==null){dFit0=IS.fit;IS.fit=true;IS.resetPan();zfK=''}save.dHint=(save.dHint|0)+1;dback=from;dtab=room?DG.length-1:0;dsub=0;prev=null;dsel=null;dpick=null;dghost=null;scr='deco';renderDeco();show('dc')}
-function lockOf(it){if(it.xm&&!(window.XMAS&&XMAS()))return'🔒 12월 한정';if(it.f2&&!BIZ.f2Of(save))return'🔒 🏢 2층을 올리면';if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3600e3);return'🔒 '+(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 공개'}if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
+function lockOf(it){if(it.stp)return'🔒 ⭐ 별 상점에서 '+it.stp+'⭐';if(it.xm&&!(window.XMAS&&XMAS()))return'🔒 12월 한정';if(it.f2&&!BIZ.f2Of(save))return'🔒 🏢 2층을 올리면';if(it.from&&Date.now()<it.from){const d=new Date(it.from+9*3600e3);return'🔒 '+(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 공개'}if(it.g>grade())return'🔒 '+GR[it.g].e+' '+GR[it.g].n+' 등급';if(it.st&&save.stars<it.st)return'🔒 ⭐ '+it.st;return null}
 const f0=k=>IS.CK(k)||{n:'',p:0};const placed=k=>allFur().filter(it=>it.k===k).length,spare=k=>(save.inv[k]||0)-placed(k);
 const pendList=()=>{const L=allFur().filter(f=>f.pend);return{L,n:L.length,sum:L.reduce((a,f)=>a+((IS.CK(f.k)||{}).p||0),0)}};
 /* 🏢 2층 올리기·넓히기 (계단 자리 = 입구 옆 칸의 가구는 1·2층 모두 보관함으로) */
@@ -573,7 +578,7 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
   else if(FSUB[fc]){const q=FSUB[fc][fsub[fc]]||FSUB[fc][0];IS.FUR.filter(f=>f.c!=='stair'&&q.f(f)).sort((a,b)=>a.p-b.p).forEach(fcard)}
   else IS.FUR.filter(f=>f.c===fc).sort((a,b)=>a.p-b.p).forEach(fcard);
   const f=dsel&&IS.CK(dsel.k),wsel=dsel&&IS.WK[dsel.k],wpk=dpick&&IS.WK[dpick];
-  $('da3').style.display='';const sellK=!dsel&&dpick&&spare(dpick)>0&&f0(dpick).p>0?dpick:null;
+  $('da3').style.display='';const sellK=!dsel&&dpick&&spare(dpick)>0&&f0(dpick).p>0&&!f0(dpick).stp?dpick:null;
   if(sellK){const F=f0(sellK),v=Math.floor(F.p/2);dbtn('da3','💰 팔기 🪙'+fmtS(v),'go',()=>{if(spare(sellK)<=0)return;/* 🔢 11/14 VOC: 수량 골라 팔기 (★ 강화한 건 맨 나중에 팔려요) */const mx=spare(sellK),nst=(save.stS&&save.stS[sellK]||[]).length;JUICE.ask('💰 '+F.n+' 팔기','보관함에 있는 걸 1개당 산 값의 절반 🪙'+fmt(v)+'에 팔아요 (보관 '+mx+'개)'+(nst?' · ★ 강화한 '+nst+'개는 맨 나중에 팔려요':''),'💰 1개 팔기 🪙'+fmt(v),n=>{n=Math.max(1,Math.min(n|0||1,spare(sellK)));if(spare(sellK)<=0)return;save.inv[sellK]=(save.inv[sellK]|0)-n;if(save.inv[sellK]<=0)delete save.inv[sellK];save.coins+=v*n;
    const Ls=save.stS&&save.stS[sellK];if(Ls&&Ls.length>Math.max(0,spare(sellK))){Ls.sort((a,b)=>a-b);while(Ls.length>Math.max(0,spare(sellK)))Ls.shift();if(!Ls.length)delete save.stS[sellK]}
    if(spare(sellK)<=0)dpick=null;store();snd('coins');toast('💰 '+F.n+' '+n+'개 팔았어요 +🪙'+fmt(v*n));renderDeco();bizBtn()},'그만두기',()=>{},null,null,{max:mx,lab:n=>'💰 '+n+'개 팔기 🪙'+fmt(v*n)})})}
@@ -585,7 +590,7 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
    else JUICE.ask('✨ '+F.n+' ★'+(sv+1)+' 강화','🪙'+fmt(c)+' · '+msg,'✨ 강화하기',()=>up(0),'그만두기',()=>{})})}
   dbtn('da1','↻ 돌리기',f&&f.rot?'go':'dis',()=>{if(dsel&&IS.FK[dsel.k].rot){const nd=IS.nextRot(FUR(),dsel,RMN());if(nd==null){toast('🚧 돌릴 자리가 없어요 (2칸 가구)');snd('no');return}dsel.d=nd;store();snd('tap')}});
   dbtn('da2','📦 보관',dsel?'':'dis',()=>{if(!dsel)return;const it=dsel,F0=f0(it.k),keep=()=>{if(!FUR().includes(it))return;keepS(it);setFUR(FUR().filter(q=>q!==it));if(dsel===it)dsel=null;store();snd('tap');renderDeco()};
-   /* 💰 11/14 VOC: 되팔기를 찾기 쉽게 — 📦을 누르면 보관/팔기 고르기 (값은 산 값의 절반, ★ 강화는 못 돌려받아요) */const v=F0&&F0.p>0&&!it.pend?Math.floor(F0.p/2):0;if(!v){keep();return}
+   /* 💰 11/14 VOC: 되팔기를 찾기 쉽게 — 📦을 누르면 보관/팔기 고르기 (값은 산 값의 절반, ★ 강화는 못 돌려받아요) */const v=F0&&F0.p>0&&!it.pend&&!F0.stp?Math.floor(F0.p/2):0;if(!v){keep();return}
    JUICE.ask('📦 '+F0.n+(it.s?' ★'+it.s:''),'보관하면 언제든 다시 놓을 수 있어요 · 팔면 산 값의 절반 🪙'+fmt(v)+(it.s?' · ⚠️ ★ 강화는 돌려받지 못해요':''),'📦 보관하기',keep,'그만두기',()=>{},'💰 팔기 🪙'+fmt(v),()=>{if(!FUR().includes(it))return;const I=save.inv[it.k]|0,P=placed(it.k);setFUR(FUR().filter(q=>q!==it));if(dsel===it)dsel=null;/* 보관함 개수는 그대로 (산 개수에서 1개 빼기) */if(I>=P){save.inv[it.k]=I-1;if(save.inv[it.k]<=0)delete save.inv[it.k]}save.coins+=v;store();snd('coins');toast('💰 '+F0.n+' 팔았어요 +🪙'+fmt(v));renderDeco()})});
   msg=wsel?f.n+' 골랐어요 · 다른 빈 벽 칸 톡 = 옮기기 · 📦 = 떼기':wpk?(spare(dpick)>0?f0(dpick).n+' 걸 벽 칸(초록)을 톡! (보관함 '+spare(dpick)+'개)':f0(dpick).n+' 걸 벽 칸(초록)을 톡! 걸면 🪙'+fmt(f0(dpick).p)):fc==='wall'&&!dsel?'벽 장식을 고르고 초록 벽 칸을 톡! · 가게를 넓히면 벽 칸도 늘어요':dsel?f.n+(dsel.s?' ★'+dsel.s:'')+' 골랐어요 · 한 번 더 톡 = 돌리기 · 끌거나 빈 칸 톡 = 옮기기':dpick?(spare(dpick)>0?IS.FK[dpick].n+' 놓을 칸을 톡! (보관함 '+spare(dpick)+'개)':IS.FK[dpick].n+' 놓을 칸을 톡! 놓으면 🪙'+fmt(IS.FK[dpick].p)):((save.dHint|0)<3?'가구를 고르고 바닥을 톡! · 놓인 가구 톡 = 고르기 · 🚪🧾 칸만 비워요':'');
   if(tight&&!dsel&&!wsel&&fc!=='wall'){const fn_=freeN();msg=(fn_?'🧱 빈 칸 '+fn_+'개 남았어요':'🧱 빈 칸이 없어요')+' → 📐 넓히기로 가게를 넓혀요'}}
@@ -748,8 +753,13 @@ function renderCol(){const g=grade(),nx=GR[g+1],nd=Object.keys(save.dex).length;
  h+='<div class="cur" style="flex-direction:column;align-items:stretch;gap:4px"><div style="display:flex;justify-content:space-between;font-size:15px"><b style="font-weight:400">'+GR[g].e+' '+GR[g].n+'</b><span>'+(nx?nx.e+' '+nx.n+'까지 '+fmt(nx.at-grPts())+'점':'🎉 최고 등급!')+'</span></div>'+(nx?'<div class="bar" style="margin:2px 0"><i style="width:'+Math.round(100*(grPts()-GR[g].at)/(nx.at-GR[g].at))+'%"></i></div>':'')+'<div class="chips" style="justify-content:flex-start;margin:0"><span class="chip">🏅 '+fmt(grPts())+'점</span><span class="chip">🙋 '+fmt(save.served|0)+'명</span><span class="chip">💼 '+fmt(save.bizCust|0)+'명</span><span class="chip">📅 '+save.days+'일</span><span class="chip">💰 최고 '+fmt(save.bestNet)+'</span><span class="chip">🔥 '+save.bestCombo+'</span></div></div>';
  const rw=starRw();
  h+='<p class="ht" style="margin-top:12px"><b>⭐ 별 보상</b> <small style="opacity:.7">목표·단골로 별을 모아요</small></p><div class="gr3">'+rw.map((x,j)=>{const ok=save.stars>=x.st;return'<div class="uc'+(x.own||ok?'':' lk')+'"><div class="av">'+x.e+'</div><div class="nm">'+x.n+'</div><div class="st">'+x.sl+'</div>'+(x.own?'<button class="ub done">✅ 받음</button>':ok?'<button class="ub srw" data-j="'+j+'">🎁 받기</button>':'<button class="ub no">⭐ '+x.st+'</button>')+'</div>'}).join('')+'</div>';
+ /* ⭐ 11/19 별 상점: 모은 별(save.stars)은 그대로, 쓴 별은 save.starU에 따로 → 위 단계 보상은 다시 잠기지 않아요 */
+ const sav=Math.max(0,(save.stars|0)-(save.starU|0)),SSH=starShop();
+ h+='<p class="ht" style="margin-top:12px"><b>⭐ 별 상점</b> <small style="opacity:.7">쓸 수 있는 별 <b>'+sav+'</b> (모은 별 '+(save.stars|0)+')</small></p><div class="gr3">'+SSH.map((x,j)=>'<div class="uc'+(sav>=x.c?'':' lk')+'"><div class="av">'+x.e+'</div><div class="nm">'+x.n+'</div><div class="st">'+x.d+'</div><button class="ub '+(sav>=x.c?'ssb':'no')+'" data-j="'+j+'">⭐ '+x.c+'</button></div>').join('')+'</div>';
  h+='<p class="ht" style="margin-top:12px"><b>📖 손님 도감</b> <small style="opacity:.7">10번·30번 오면 단골 ⭐</small></p><div class="dx">'+R.an.map(a=>{const n=save.dex[a];const lv=save.dexS[a]||0;const im=window.ART_IMG&&window.ART_IMG[a];return'<div><b>'+(n!==undefined?(im&&im.src?'<img src="'+im.src+'" alt="" style="height:30px;vertical-align:middle">':a):'❓')+'</b>'+(n!==undefined?(lv?'⭐'.repeat(lv)+' ':'')+n+'번':'?')+'</div>'}).join('')+'</div>';
  $('cb').innerHTML=h;
+ $('cb').querySelectorAll('.ssb').forEach(bt=>bt.onclick=()=>{const x=SSH[+bt.dataset.j],a=Math.max(0,(save.stars|0)-(save.starU|0));if(!x||a<x.c){snd('no');return}
+  JUICE.ask('⭐ '+x.n,x.d+' · 별 '+x.c+'개를 써요 (남는 별 '+(a-x.c)+')','⭐ 사기',()=>{const a2=Math.max(0,(save.stars|0)-(save.starU|0));if(a2<x.c)return;save.starU=(save.starU|0)+x.c;x.buy();store();snd('buy');const sc=$('cb').scrollTop;renderCol();$('cb').scrollTop=sc},'그만두기',()=>{})});
  $('cb').querySelectorAll('.srw').forEach(bt=>bt.onclick=()=>{const x=rw[+bt.dataset.j];if(!x||x.own||save.stars<x.st)return;if(!save.own[x.k].includes(x.i))save.own[x.k].push(x.i);save.eq[x.k]=x.i;store();snd('win');syncShop();toast(x.e+' '+x.n+' 받았어요! 가게에 바로 달았어요 ✨');const sc=$('cb').scrollTop;renderCol();$('cb').scrollTop=sc;starDot()})}
 $('cx').onclick=()=>show('hm');
 /* ---------- 이름 · 설정 ---------- */

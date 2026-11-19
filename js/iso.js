@@ -89,7 +89,9 @@ const FUR=[
  {k:'bcart',n:'붕어빵 수레',e:'🛒',p:8000,g:1,as:'cart',set:'bungeo',c:'deco'},
  {k:'bbag',n:'봉투 진열대',e:'🛍️',p:3500,g:1,emo:1,b:'#d8b890',z:.46,set:'bungeo',c:'deco'},
  {k:'bflag',n:'붕어 깃발',e:'🎏',p:4500,g:1,as:'fflag',set:'bungeo',c:'deco'},
- {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'}];
+ {k:'bstatue',n:'황금 붕어 동상',e:'🏅',p:40000,g:3,as:'statue',set:'bungeo',c:'sp'},
+ /* ⭐ 11/19 별 상점 가구 (코인으로는 못 사요 · stp = 별 값) */
+ {k:'st_rug',n:'밤하늘 러그',e:'🌙',p:30000,g:0,flat:1,c:'star',stp:20},{k:'st_lamp',n:'별 조명',e:'🌟',p:40000,g:0,glow:1,c:'star',stp:25},{k:'st_sofa',n:'별빛 소파',e:'⭐',p:80000,g:0,rot:1,seat:1,c:'star',stp:40}];
 const SETS=[{k:'cafe',n:'☕ 카페 세트'},{k:'spring',n:'🌸 봄 소풍 세트'},{k:'winter',n:'❄️ 겨울 세트'},{k:'bungeo',n:'🐟 붕어빵 세트'},{k:'xmas',n:'🎄 크리스마스 세트 (12월 한정)'},{k:'cloud',n:'☁️ 구름 세트',b:3000},{k:'dessert',n:'🍰 디저트 세트',b:2000},{k:'sea',n:'🏖️ 바다 세트',b:2000},{k:'xmas2',n:'🧣 따뜻한 겨울 세트 (12월 한정)',b:2000},{k:'royal',n:'🏰 왕궁 세트',b:2500}]; /* b = 세트 보너스(없으면 SET_BONUS 400) — 비싼 구름 세트는 3,000 */
 const SET_BONUS=400;
 const FK={};FUR.forEach(f=>FK[f.k]=f);
@@ -213,7 +215,7 @@ const STK={};
 /* AI 그림 가구 (img/fu): 소품(emo) + 아래 목록. w = 칸 너비 대비 그림 너비, fr = 그림이 오른쪽 아래를 봄, b = 뒷모습 그림(_b) 있음.
    방향 d: 0 왼쪽 아래 보기(앞) · 1 오른쪽 아래(앞 뒤집기) · 2 왼쪽 위(뒤 뒤집기) · 3 오른쪽 위(뒤) — 뒷모습이 없으면 앞 그림을 써요. 러그·피크닉 매트는 바닥이라 코드 그림 */
 /* by = 뒷모습 그림이 (안 뒤집었을 때) 왼쪽 위를 보고 길이가 y 방향 (그림마다 달라서 눈으로 확인해 적었어요) */
-const FIMG={s_ring:{w:.62},s_coral:{w:.55},s_drift:{w:.72},s_shell:{w:.66,b:1},s_light:{w:.42},s_lounge:{w:.8,b:1},s_umb:{w:.8},s_boat:{w:.9,b:1},s_whale:{w:.9},r_stool:{w:.62},r_chair:{w:.66,b:1},r_candle:{w:.42},r_table:{w:.62},r_sofa:{w:.86,b:1},r_armor:{w:.5},r_coach:{w:.78,b:1},r_castle:{w:.9},v_log:{w:.6},v_pine:{w:.5},v_knit:{w:.68,b:1},v_cane:{w:.42},v_cocoa:{w:.75},v_snowsofa:{w:.82,b:1},v_globe:{w:.75},bean_p:{w:.74},bean_m:{w:.74},bean_l:{w:.74},mar_p:{w:.86},mar_k:{w:.86},lea_p:{w:.7,fr:1,b:1},lea_n:{w:.7,fr:1,b:1},cld_p:{w:.9,b:1,rb:-16},cld_s:{w:.9,b:1,rb:-16},d_donut:{w:.58},d_candy:{w:.52},d_cookie:{w:.72},d_mac_p:{w:.66,b:1},d_mac_m:{w:.66,b:1,fy:1},d_lolli:{w:.42},d_sofa:{w:.8,b:1,fy:1},d_cake:{w:.78},d_choco:{w:.95},c_white:{w:.72,b:1},c_pink:{w:.74,b:1},c_sky:{w:.7,b:1},c_night:{w:.72,b:1},c_pouf:{w:.6,b:1},c_table:{w:.95},c_tea:{w:.9,b:1},p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
+const FIMG={s_ring:{w:.62},s_coral:{w:.55},s_drift:{w:.72},s_shell:{w:.66,b:1},s_light:{w:.42},s_lounge:{w:.8,b:1},s_umb:{w:.8},s_boat:{w:.9,b:1},s_whale:{w:.9},r_stool:{w:.62},r_chair:{w:.66,b:1},r_candle:{w:.42},r_table:{w:.62},r_sofa:{w:.86,b:1},r_armor:{w:.5},r_coach:{w:.78,b:1},st_rug:{w:1},st_lamp:{w:.5},st_sofa:{w:.78,b:1},r_castle:{w:.9},v_log:{w:.6},v_pine:{w:.5},v_knit:{w:.68,b:1},v_cane:{w:.42},v_cocoa:{w:.75},v_snowsofa:{w:.82,b:1},v_globe:{w:.75},bean_p:{w:.74},bean_m:{w:.74},bean_l:{w:.74},mar_p:{w:.86},mar_k:{w:.86},lea_p:{w:.7,fr:1,b:1},lea_n:{w:.7,fr:1,b:1},cld_p:{w:.9,b:1,rb:-16},cld_s:{w:.9,b:1,rb:-16},d_donut:{w:.58},d_candy:{w:.52},d_cookie:{w:.72},d_mac_p:{w:.66,b:1},d_mac_m:{w:.66,b:1,fy:1},d_lolli:{w:.42},d_sofa:{w:.8,b:1,fy:1},d_cake:{w:.78},d_choco:{w:.95},c_white:{w:.72,b:1},c_pink:{w:.74,b:1},c_sky:{w:.7,b:1},c_night:{w:.72,b:1},c_pouf:{w:.6,b:1},c_table:{w:.95},c_tea:{w:.9,b:1},p_swan:{w:.66},chair:{w:.62,b:1},sofa:{w:.7,b:1},shelf:{w:.98},piano:{w:.9,b:1,by:1},bench:{w:.6},throne:{w:.72,b:1},cchair:{w:.58,fr:1,b:1},cboard:{w:.7},skbench:{w:.72,b:1},knit:{w:.7,b:1,by:1},
  stool:{w:.5},wchair:{w:.52,fr:1,b:1},ptable:{w:1.15,r:7},rattan:{w:.66,fr:1,b:1},barstool:{w:.4},beanbag:{w:.74},bartable:{w:.52},marble:{w:.86},leather:{w:.7,fr:1,b:1},cloud:{w:.9,b:1,rb:-16},gtable:{w:.82},
  table:{w:.9},plant:{w:.6},bear:{w:.72},stand:{w:.62},lamp:{w:.5},tree:{w:.68},tank:{w:.82},ctable:{w:.78},pond:{w:1.05},fire:{w:.9,r:12},bcushion:{w:.82},bcart:{w:.95},bflag:{w:.55},bstatue:{w:.62}};
 const FUI={};function ld(src){let im=FUI[src];if(!im){im=new Image();im.decoding='async';im.src=src;FUI[src]=im}return im.complete&&im.naturalWidth?im:null}
@@ -436,9 +438,10 @@ const clipDo=(q,fn)=>{cx.save();cx.beginPath();cx.moveTo(q[0].x,q[0].y);for(cons
 function wallMotif(id,P,L,H,t){const f=MOT[WP[id]];if(f)f(P,L,H,t)}
 const FLR=[['#cfc9bd','#c4beb2',0],['#f6f0e4','#d2a46a',1],['#d8a86c','#c99a5e',2],['#9ed27a','#8cc46a',3],['#bdb7aa','#a8a296',4],['#c8283c','#b01e30',5],['#9ad0ff','#c8a8ff',6],['#fff','#fff',7],['#d9a066','#c98d55',8],['#cfeaff','#bfe0fb',9],['#e2b47c','#d6a66e',10],['#fff','#fff',11],['#fff3d6','#f6cf6a',12],
  /* 🎨 11/13 추가: 13~16 = 새 무늬 */
- ['#fff8d8','#ffe7a0',1],['#eefaf3','#bfe8d0',1],['#f3ecfb','#dccbf2',1],['#f1e6d2','#e6d6bc',8],['#d6ebff','#c8e2ff',13],['#fdebf1','#f6d6e1',14],['#7a4a2e','#6a3e25',15],['#fbf7f0','#f1e9da',16]];
+ ['#fff8d8','#ffe7a0',1],['#eefaf3','#bfe8d0',1],['#f3ecfb','#dccbf2',1],['#f1e6d2','#e6d6bc',8],['#d6ebff','#c8e2ff',13],['#fdebf1','#f6d6e1',14],['#7a4a2e','#6a3e25',15],['#fbf7f0','#f1e9da',16],
+ /* ⭐ 11/19 별 200개: 은하수 바닥 (반짝이 무늬 6) */ ['#2a2660','#3a2f7a',6]];
 const PAS=['#ffd6e0','#cdf0dc','#fff1b8','#d4e9ff'];
-const AWC=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0']];
+const AWC=[['#e8584a','#fff6ec'],['#4a8ae8','#fff6ec'],['#4ab86a','#fff6ec'],['#ff8ab0','#fff0f6'],['#ffcf3a','#fff6ec'],['rb'],['#2a3a7a','#ffd23a'],['#ffb0c8','#fff0f6'],['#d4a020','#fff3c0'],['#6a4ac8','#e8dcff']];
 const RB=['#ff5a5a','#ff9a3a','#ffd93a','#6ccf5a','#4aa8ff','#a85aff'];
 /* 먼 동네 (하늘이 비어 보이지 않게): 언덕 + 건물 실루엣, 밤엔 창문 불빛 */
 function skyline(look,t){const Lc=iso(0,N),hz=OY+(Lc.y-OY)*.2,nt=look.night;
