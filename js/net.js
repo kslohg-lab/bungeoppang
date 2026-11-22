@@ -23,14 +23,15 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
     /* 저장 (11/8): 🛡️ 점수는 지난 저장 뒤 지난 시간만큼만 올려 보내요(규칙과 같은 계산, 조금 덜) · 📈 이번 주 성장 칸(gw<주>) 같이
        → 저장할 때마다 내 가게 문서를 한 번 읽어요. 돌려주는 값 = 실제로 올린 점수 */
     async save(d){const uid=await login();N.uid=uid;const r=doc(db,'shops',uid),o=await getDoc(r),wk=Math.floor((day()+3)/7);
-     const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});
-     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc;body.wp=0;body.gwp=0;body.hi=body.sc}
+     const body=Object.assign({},d,{ts:serverTimestamp(),w:wk});if(!Number.isInteger(body.rs))delete body.rs;
+     if(!o.exists()){body.sc=Math.min(body.sc,60000);body.lk=0;body.s0=body.sc;body.wp=0;body.gwp=0;body.hi=body.sc;if(Number.isInteger(body.rs))body.rs0=body.rs}
      else{const x=o.data(),t0=x.ts&&x.ts.toMillis?x.ts.toMillis():Date.now(),el=Math.max(0,(Date.now()-t0)/1000-120);
       /* 🏔️ 11/14 주 시작 점수 = 지금까지 최고 점수 (떼었다 다시 놓기로 성장 부풀리기 막기) */const hi0=Number.isInteger(x.hi)?x.hi:(x.sc|0),s0=x.w===wk&&Number.isInteger(x.s0)?x.s0:hi0;
       /* 🛡️ 11/18 한도 = 옛 한도(지난 저장 뒤 시간) 또는 이번 주 한도(주 시작 점수 + 월요일 0시부터 1초에 2.2점 + 15만) 중 큰 쪽 (규칙은 2.4점) */
       const ws=((wk*7-3)*86400000-32400000),wel=Math.max(0,(Date.now()-ws)/1000-120);
       body.sc=Math.min(body.sc,Math.max((x.sc|0)+Math.min(150000,Math.floor(el*2.2)),s0+Math.floor(wel*2.2)+148000));body.lk=x.lk|0;N.myLk=x.lk|0;body.hi=Math.max(hi0,body.sc);body.s0=s0;
       /* 🏆 11/14 지난 주 성장 옮기기 (규칙이 그대로 옮기는지 확인해요) */if(x.w===wk){body.wp=x.wp|0;body.gwp=x.gwp|0}else{body.wp=x.w|0;body.gwp=x.gw|0}}
+     /* 📊 11/22 실제 꾸미기 점수(rs, 한도·300만 자르기 전)와 그 주 시작 때 값(rs0) — 순위엔 아직 안 써요, 숫자 보기용 */if(o.exists()){if(Number.isInteger(body.rs)){const x=o.data();body.rs0=x.w===wk&&Number.isInteger(x.rs0)?x.rs0:Number.isInteger(x.rs)?x.rs:body.rs}else delete body.rs0}
      /* 11/8 5.6.7: 주마다 칸 이름을 바꾸던 gw<주> → gw 한 칸 + w(주 번호) (규칙의 string()이 거절을 일으켜서) */body.gw=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */
      const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc';
