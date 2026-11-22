@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.19.1';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.20.0';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -222,7 +222,7 @@ $('lbt0').onclick=()=>openLb(0);$('lbt1').onclick=()=>openLb(1);$('lbr').onclick
 if(!window.ART_IMG.cook){const im=new Image();im.src='img/cook1.webp?v=2';window.ART_IMG.cook=im}
 function share(o){au();const wk=save.week.id===wid()?save.week:{stage:0,net:0},url=location.origin+'/';
  const st=o&&o.stage!=null?o.stage:wk.stage,net=o&&o.net!=null?o.net:wk.net;
- const curl=()=>url+'?c='+encodeURIComponent(save.nick||'')+'&s='+st+'&w='+wid()+(lastRank?'&r='+encodeURIComponent(lastRank):'');
+ const curl=()=>url+'?c='+encodeURIComponent(save.nick||'')+'&s='+st+'&w='+wid()+(lastRank?'&r='+encodeURIComponent(lastRank):'')+(window.LB&&LB.uid?'&i='+encodeURIComponent(LB.uid):'');
  const txt=st?'🔥 붕어빵 챌린지 이번 주 '+st+'단계'+(lastRank?' ('+lastRank+')':'')+'까지 갔어요! 내 기록 넘어 봐 😎':'🔥 붕어빵 챌린지 같이 해요! 이번 주 누가 제일 멀리 가는지 겨뤄요 🏆';
  if(!st){if(navigator.share){navigator.share({title:'붕어빵 챌린지',text:txt,url}).catch(()=>{});return}SHARE.copy(txt+'\n'+url).then(()=>toast('복사했어요! 카톡에 붙여넣기 하세요'));return}
  const go=()=>{const u=curl(),cv=SHARE.challenge({nick:save.nick||'붕어빵',stage:st,net,rank:lastRank,wk:wid(),url});SHARE.send(cv,txt.replace('단계(','단계 ('),u,'붕어빵 챌린지')};
@@ -260,6 +260,7 @@ function draw(){A.use(s,run,ui);const lc=B.L(run);A.drawPlay({street:true,sub:s.
 
 /* ---------- 도전장 (자랑 링크로 들어온 사람) ---------- */
 const rivalOK=()=>save.rival&&save.rival.w===wid()&&save.rival.n;
+/* 🎁 11/22 친구 초대: 처음 온 사람(챌린지·가게 기록 없음)만 초대한 사람을 기억 → 가게를 만들면 이어져요 */{try{const iu=(new URLSearchParams(location.search).get('i')||'').slice(0,128);let shop=null;try{shop=JSON.parse(localStorage.getItem('bpShopPubV1')||'null')}catch(e){}if(/^[A-Za-z0-9]{10,128}$/.test(iu)&&!(save.runs|0)&&!save.nick&&!(shop&&shop.name)&&!localStorage.getItem('bpInv'))localStorage.setItem('bpInv',JSON.stringify({u:iu,t:Date.now()}))}catch(e){}}
 let inv=null;{const q=new URLSearchParams(location.search),c=(q.get('c')||'').slice(0,12),sN=parseInt(q.get('s'),10),w=parseInt(q.get('w'),10);
  if(c&&sN>0&&sN<=R.maxStage){inv={n:c,s:sN,r:(q.get('r')||'').slice(0,12),w}}if(q.has('c')){try{history.replaceState(null,'',location.pathname)}catch(e){}}}
 function showInvite(){if(!inv)return false;const same=inv.w===wid();if(same&&!BADW.bad(inv.n)&&inv.n!==save.nick){save.rival={n:inv.n,s:inv.s,w:inv.w};store()}

@@ -216,6 +216,21 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
+    // 🎁 친구 초대(11/22): 초대받은 사람이 3일 접속하면 invites/{내 uid} = {by 초대한 사람, t, d} 한 번만 만들어요
+    //    초대한 사람은 by == 나 인 문서만 목록으로 읽어 보상을 받아요 (한 사람 최대 10명, 앱에서 셈)
+    match /invites/{uid} {
+      allow get: if request.auth != null && (mine(uid) || resource.data.by == request.auth.uid);
+      allow list: if request.auth != null && resource.data.by == request.auth.uid;
+      allow create: if mine(uid)
+        && request.resource.data.keys().hasOnly(['by', 't', 'd'])
+        && request.resource.data.by is string && request.resource.data.by.size() >= 10 && request.resource.data.by.size() <= 128
+        && request.resource.data.by != uid
+        && request.resource.data.t == request.time
+        && request.resource.data.d == dayNow()
+        && exists(/databases/$(database)/documents/shops/$(uid));
+      allow delete: if mine(uid);   // 계정 지우기
+    }
+
     // 🚚 옮기기 완료 표시: 받는 쪽이 남기면 보낸 쪽이 자기 기록을 잠가요 ({번호}_{보낸 사람})
     match /xfer_done/{id} {
       allow get: if true;

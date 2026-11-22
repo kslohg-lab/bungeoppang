@@ -53,7 +53,7 @@ async function backend(){
   async wipe(){const u=auth.currentUser,uid=u.uid;if(NFA())await reauthenticateWithCredential(u,await ncred());else await reauthenticateWithPopup(u,prov());
    const del=async p=>{try{await deleteDoc(p)}catch(e){}};
    for(const sub of ['notes','likes']){try{const q=await getDocs(collection(db,'shops',uid,sub));for(const d of q.docs)await del(d.ref)}catch(e){}}
-   await del(doc(db,'shops',uid));await del(doc(db,'saves',uid));
+   await del(doc(db,'shops',uid));await del(doc(db,'saves',uid));await del(doc(db,'invites',uid));
    for(const w of [wk(),wk()-1]){await del(doc(db,'weeks',String(w),'scores',uid));await del(doc(db,'weeks',String(w),'proofs',uid))}
    await deleteUser(u);try{await signInAnonymously(auth)}catch(e){}}
  }}

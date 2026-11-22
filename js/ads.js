@@ -3,7 +3,9 @@
    - 하루 MAX번 (한국 날짜 기준), 끝까지 보면 true
    - 광고 단위 ID: 지금은 구글 시험용. AdMob에서 '보상형' 광고 단위를 만들면 UNIT을 바꿔요. */
 window.ADS=(()=>{
-const UNIT='ca-app-pub-3940256099942544/5224354917';  // 🧪 구글 시험용 보상형
+/* 📺 11/22: 진짜 AdMob 앱 ID로 만든 앱(브라우저 이름표 BPAdsReal/1, app/prep.py가 붙임)에서만 진짜 단위 · 그 밖(옛 앱·시험 앱)은 구글 시험용 */
+const REAL=/BPAdsReal\/1/.test(navigator.userAgent||'');
+const UNIT=REAL?'ca-app-pub-7653552254203129/6386244597':'ca-app-pub-3940256099942544/5224354917';
 const MAX=3,KEY='bpAds';
 const C=window.Capacitor,P=C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform()&&C.Plugins&&C.Plugins.AdMob||null;
 const dk=()=>Math.floor((Date.now()+9*3600e3)/864e5);

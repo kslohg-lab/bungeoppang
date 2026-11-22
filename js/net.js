@@ -50,6 +50,9 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
       getDocs(query(col,where('sc','>=',big),orderBy('sc','asc'),limit(10))),getDocs(query(col,orderBy('sc','desc'),limit(10)))]).catch(full);
      const seen=new Set(me?[me]:[]),o=[],add=(ds,top)=>{for(const x of ds){const v=x.data(),k=String(v.n||'').trim()+'|'+String(v.nk||'').trim();if(H(x.id))continue;if(x.id===uid||seen.has(k)){if(top){const f=o.find(r=>r.u===x.id);if(f)f.top=1}continue}seen.add(k);o.push({u:x.id,n:v.n,nk:v.nk,g:v.g|0,sc:v.sc|0,room:v.room|0,eq:v.eq||{},rt:v.rt|0,top:top?1:0})}};
      add(d.docs,1);add(a.docs);add(b.docs);add(c.docs);return o},
+    /* 🎁 11/22 친구 초대: 초대받은 쪽이 3일째에 한 번 남김 · 초대한 쪽은 나를 고른 문서 목록 */
+    async invDone(by){const me=await login();N.uid=me;if(!by||by===me)return false;const r=doc(db,'invites',me),o=await getDoc(r);if(o.exists())return true;await setDoc(r,{by,t:serverTimestamp(),d:day()});return true},
+    async invList(){const me=await login();N.uid=me;const q=await getDocs(query(collection(db,'invites'),where('by','==',me),limit(20))).catch(full);return q.docs.map(x=>x.id)},
     async get(uid){const s=await getDoc(doc(db,'shops',uid)).catch(full);return s.exists()?s.data():null},
     async liked(uid){const me=await login();N.uid=me;const s=await getDoc(doc(db,'shops',uid,'likes',me));return s.exists()&&s.data().d===day()},
     async like(uid){const me=await login();N.uid=me;if(me===uid)return false;const b=writeBatch(db);
