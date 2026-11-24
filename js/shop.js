@@ -408,7 +408,7 @@ function finishDay(){const res=B.dayResult(s,run),gd=gdone(),lv=run.day;const gl
  const dn=[];for(const an of Object.keys(save.dex)){const lv=save.dexS[an]||0;if(lv<DXT.length&&save.dex[an]>=DXT[lv]){save.dexS[an]=lv+1;save.stars++;dn.push(an+' 단골 달성! ⭐+1')}}
  if(!save.dexAll&&Object.keys(save.dex).length>=R.an.length){save.dexAll=1;save.stars+=5;dn.push('📖 도감 완성! ⭐+5')}
  BIZ.rtHelp(save,Date.now(),res.perf,res.served);const grp=BIZ.evHelp(save,res.served,Date.now());lastHelp='bread';save.lr={full:res.full|0,lost:res.lost,idle:res.idle,net:res.net};const nd=s.dxNew||[];store();
- const g1=grade();let h=resTop(gain-bonus,res.net,tax,hm)+'<div class="chips"><span class="chip">🐾 '+res.served+'명</span><span class="chip'+(res.lost?' red':'')+'">😡 '+res.lost+'</span><span class="chip">✨ '+res.perf+'</span><span class="chip">👍 '+(res.good|0)+'</span><span class="chip'+(res.burnt?' red':'')+'">😵 '+res.burnt+'</span><span class="chip">🔥 '+res.bc+'</span></div>'+zhChip(zh);
+ const g1=grade();let h=exCheck(res)+resTop(gain-bonus,res.net,tax,hm)+'<div class="chips"><span class="chip">🐾 '+res.served+'명</span><span class="chip'+(res.lost?' red':'')+'">😡 '+res.lost+'</span><span class="chip">✨ '+res.perf+'</span><span class="chip">👍 '+(res.good|0)+'</span><span class="chip'+(res.burnt?' red':'')+'">😵 '+res.burnt+'</span><span class="chip">🔥 '+res.bc+'</span></div>'+zhChip(zh);
  h+='<div class="gl3">'+gl.map((x,i)=>'<div class="'+(gd.done[i]?'ok':'')+(x.ok&&!x.was?' new':'')+'"><b>'+(gd.done[i]?'✅':gShort(x.g).e)+'</b>'+gShort(x.g).t+(x.ok&&!x.was?'<br>⭐+1':'')+'</div>').join('')+'</div>'+(bonus?'<div class="chips"><span class="chip ok">🎁 오늘 목표 3개 달성! +'+fmt(bonus)+'🪙</span></div>':'');
  h+=grpTxt(grp);
  if(nd.length)h+='<div class="sum">📖 새 손님 도감 등록! '+nd.join(' ')+'</div>';if(dn.length)h+='<div class="sum">'+dn.join('<br>')+'</div>';
@@ -706,13 +706,13 @@ function mgKey(){const M=mgr();if(!save.name||!M.k)return null;const k='mg_'+M.k
 const mgB=mode=>{const o=mgOf();if(!o)return 0;const L=Math.min(3,mgr().lv|0);return o.m==='all'?MGRB2[L]:o.m===mode?MGRB[L]:0};
 function mgCount(srv,pf,cup){const M=mgr();if(!M.k)return;const p=M.p,dk=dayKey();p.play=(p.play|0)+1;p.srv=(p.srv|0)+(srv|0);p.pf=(p.pf|0)+(pf|0);p.cup=(p.cup|0)+(cup|0);if(p.dk!==dk){p.dk=dk;p.dn=(p.dn|0)+1}}
 const MGRN={play:'🤝 함께 장사',srv:'🙋 함께 손님 대접',pf:'✨ 함께 완벽하게 굽기',cup:'☕ 함께 카페 음료',dn:'📅 함께 일한 날'};
-const MGR_=[{n:'수습생',e:'🐣'},{n:'정식 직원',e:'🧑‍🍳'},{n:'매니저',e:'📋'},{n:'점장 후보',e:'🎓'}];
+const MGR_=[{n:'수습생',e:'🐣'},{n:'정식 직원',e:'🧑‍🍳'},{n:'매니저',e:'📋'},{n:'점장 후보',e:'🎓'},{n:'2호점 점장',e:'🏪'}];
 const mgMis=lv=>lv===0?[['play',3],['srv',80],['pf',30]]:lv===1?[['play',8],['srv',250],BIZ.cafeOn(save)?['cup',40]:['pf',80],['dn',3]]:lv===2?[['play',15],['srv',500],['dn',7]]:null;
 const mgRw=lv=>lv===0?{t:'🪙 '+fmt(Math.max(10000,r1k((save.avg|0)*1.5))),f:()=>{save.coins+=Math.max(10000,r1k((save.avg|0)*1.5))}}:lv===1?{t:'🎫 강화권 3장',f:()=>{save.tix=(save.tix|0)+3}}:{t:'🏅 메달 10개',f:()=>{if(window.MEDAL)MEDAL.add(10)}};
 const mgDone=()=>{const m=mgMis(mgr().lv);return m?m.filter(([k,n])=>(mgr().p[k]|0)>=n).length:0};
 const mbar=(a,b,col)=>'<div style="height:12px;border-radius:6px;background:rgba(0,0,0,.12);overflow:hidden;margin:3px 0 2px"><div style="height:100%;width:'+Math.max(3,Math.min(100,a/b*100))+'%;background:'+col+';border-radius:6px"></div></div>';
 function mgLine(){if(!save.name)return'';const M=mgr(),o=mgOf();if(!o)return'<div class="evl" id="mgl" style="background:#ffe08a">🐣 <b>수습생이 왔어요! 함께 일할 친구를 골라요 ›</b></div>';
- const st=MGR_[M.lv],m=mgMis(M.lv);if(!m)return'<div class="evl" id="mgl" style="background:#efe6ff">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · 🏪 2호점 준비 중 ›</div>';
+ const st=MGR_[M.lv],m=mgMis(M.lv);if(!m){if(M.lv>=4){const b=b2Tick();return'<div class="evl" id="mgl" style="background:'+(b.acc>=b.rate?'#ffe08a':'#efe6ff')+'">🏪 2호점 '+o.e+' '+o.n+' 점장 · 🪙 <b>'+fmt(Math.floor(b.acc))+'</b> 모였어요 ›</div>'}return'<div class="evl" id="mgl" style="background:#ffe08a">'+o.e+' 🎓 '+o.n+' · <b>점장 시험</b>을 볼 수 있어요 ›</div>'}
  const d=mgDone(),all=d>=m.length;return'<div class="evl" id="mgl" style="background:'+(all?'#ffe08a':'#fff0e0')+'">'+o.e+' '+st.e+' '+st.n+' '+o.n+' · '+(all?'<b>🎉 승급할 수 있어요! ›</b>':'승급 미션 '+d+'/'+m.length+' ›')+'</div>'}
 /* 🐣 가게 화면 왼쪽 '수습생' 버튼: 안 골랐거나 승급할 수 있으면 노랗게 통통 */
 /* 👥 11/14 가게 인기 배수: 등급(노점 0.8 → 전설 2.0) × 꾸미기 점수(최대 +20%) */
@@ -742,21 +742,47 @@ function tipTake(i,all){const n=save.tipN|0;if(!n)return;const per=Math.floor(sa
  store();snd('coins');toast(msg);renderHome()}
 function tipHit(x,y){if(F2V||!tipLeft())return false;for(let k=0;k<save.tipN;k++){const r=tipPos()[k];if(!r||tipGot(k))continue;const p=IS.iso(r.x,r.y);if(Math.hypot(x-p.x,y-(p.y-20))<36){tipTake(k,false);return true}}return false}
 function mgBtn(){const b=$('nmg');if(!b)return;if(!save.name||(save.days|0)<1){b.style.display='none';return}const M=mgr(),o=mgOf(),m=o&&mgMis(M.lv),all=m&&mgDone()>=m.length;
- b.textContent=!o?'🐣 수습생 고르기':all?o.e+' 🎉 승급!':o.e+' '+o.n+(m?' '+mgDone()+'/'+m.length:'');b.className=!o||all?'go':'';b.onclick=()=>{snd('tap');mgCard()}}
+ const L=M.lv|0,b2=L>=4?b2Tick():null;b.textContent=!o?'🐣 수습생 고르기':all?o.e+' 🎉 승급!':L>=4?'🏪 2호점 🪙'+fmtK(b2.acc):L===3?o.e+' 🎓 점장 시험':o.e+' '+o.n+(m?' '+mgDone()+'/'+m.length:'');b.className=!o||all||(L===3&&exFree())||(b2&&b2.acc>=b2.rate)?'go':'';b.onclick=()=>{snd('tap');mgCard()}}
 function mgPick(){let h='<div class="sum" style="text-align:center"><small>함께 장사하며 키울 수습생을 1명 골라요<br>잘 키우면 언젠가 🏪 <b>2호점 점장</b>이 돼요 · 다음 수습생은 그때 골라요</small></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
  MGK.forEach(o=>{h+='<button class="mgp" data-k="'+o.k+'" style="height:auto;padding:8px 4px;border-radius:16px;background:#fff8ec;display:block;width:100%"><img src="img/mg_'+o.k+'0.webp" alt="" style="height:96px;display:block;margin:0 auto 2px"><b style="font-size:16px">'+o.e+' '+o.n+'</b><br><small style="font-weight:400">'+o.a+' · 특기 '+o.sp+'<br>'+o.d+'</small></button>'});
  h+='</div><div class="sum"><small>💡 특기 보너스는 작아요 (다 커도 3~5%) · 마음에 드는 친구를 골라요</small></div>';
  bzShow('🐣','수습생 고르기',h,'다음에 고를게요',()=>bzHide());
  document.querySelectorAll('.mgp').forEach(b=>b.onclick=()=>{const o=MGK.find(x=>x.k===b.dataset.k),M=mgr();M.k=o.k;M.lv=0;M.p={};let g='';if(!M.w&&(save.served|0)>0){M.w=1;save.tix=(save.tix|0)+3;g=' · 🎁 선배 사장님 선물 🎫 강화권 3장!'}store();snd('win');if(window.JUICE)JUICE.confetti(50);toast(o.e+' '+o.n+'와(과) 함께 일해요!'+g);bzHide();renderHome();setTimeout(mgCard,500)})}
-function mgCard(){const M=mgr(),o=mgOf();if(!o){mgPick();return}const L=M.lv,st=MGR_[L],nx=MGR_[L+1],m=mgMis(L);
+function mgCard(){const M=mgr(),o=mgOf();if(!o){mgPick();return}if((M.lv|0)>=4){b2Card();return}const L=M.lv,st=MGR_[L],nx=MGR_[L+1],m=mgMis(L);
  let h='<div style="text-align:center"><img src="img/mg_'+o.k+Math.min(3,L)+'.webp" alt="" style="height:130px"></div><div class="sum" style="text-align:center"><b>'+st.e+' '+st.n+' '+o.n+'</b> <small>('+o.a+' · 특기 '+o.sp+')</small><br><small>장사할 때마다 '+o.n+'이(가) 함께 일해요 · 함께 한 장사만 미션에 쳐요</small></div>';
  if(m){h+='<div class="sum"><b>'+nx.e+' '+nx.n+'(으)로 승급하려면</b>';m.forEach(([k,n])=>{const v=Math.min(n,M.p[k]|0);h+='<div style="margin-top:6px"><small>'+(v>=n?'✅ ':'')+MGRN[k]+' <b>'+fmt(v)+'</b> / '+fmt(n)+'</small>'+mbar(v,n,v>=n?'#7cc86a':'#ffb35a')+'</div>'});h+='<small>🎁 승급 선물: '+mgRw(L).t+'</small></div>'}
- else h+='<div class="sum"><small>🎓 점장 시험과 🏪 2호점 독립은 곧 열려요! 조금만 기다려 주세요</small></div>';
+ else h+=exHtml();
  {const b0=Math.round(mgB(o.m==='cafe'?'cafe':'shop')*100),bx=Math.round((o.m==='all'?MGRB2[3]:MGRB[3])*100),md=o.m==='cafe'?'☕ 카페 수익':o.m==='all'?'🏪 가게·☕ 카페 수익':'🏪 가게 수익';h+='<div class="sum"><small>⭐ 특기 보너스: '+md+' <b>+'+b0+'%</b> (다 크면 +'+bx+'%)</small></div>'}
  h+='<div class="sum"><small>'+MGR_.map((x,i)=>(i<=L?'<b>':'<span style="opacity:.45">')+x.e+' '+x.n+(i<=L?'</b>':'</span>')).join(' → ')+'</small></div>';
  const all=m&&mgDone()>=m.length;
+ if(L===3){const fr=exFree();bzShow(o.e,'점장 키우기',h,fr?'🎓 시험 보기 (오늘 무료)':'🎓 🏅3개로 다시 보기',exStart,'닫기',()=>bzHide());return}
  bzShow(o.e,'점장 키우기',h,all?'🎉 승급하기':'🙋 함께 장사하러 가기',all?mgUp:()=>{bzHide();$('h1').click()},'닫기',()=>bzHide())}
 function mgUp(){const M=mgr(),L=M.lv,m=mgMis(L);if(!m||mgDone()<m.length)return;const rw=mgRw(L);rw.f();M.lv=L+1;M.p={dk:M.p.dk};store();snd('win');if(window.JUICE)JUICE.confetti(80);toast('🎉 '+mgOf().n+'이(가) '+MGR_[L+1].e+' '+MGR_[L+1].n+'(으)로 승급! 선물 '+rw.t);bzHide();renderHome();setTimeout(mgCard,600)}
+/* 🎓🏪 11/24 점장 시험 + 2호점 (사용자 승인 표): 시험 = 도와주기 한 판에서 손님 20명·놓침 2명 이하·PERFECT 12개
+   2호점 수입/시간 = 본점 자동 순이익 × (15% + 투자 1레벨마다 2%, 3칸×10 = 최대 75%) · 최대 12시간 쌓임
+   투자 비용 = 지금까지 가장 높았던 본점 순이익/시간 × [2,3,4,5,7,9,12,15,19,24]시간 (알바를 잠깐 내보내 싸게 사기 막기) */
+const EXQ={sv:20,lo:2,pf:12},B2H=[2,3,4,5,7,9,12,15,19,24],B2K=[{k:'in',e:'🛋️',n:'인테리어',d:'2호점을 예쁘게 꾸며요'},{k:'st',e:'👩‍🍳',n:'직원',d:'일손을 늘려요'},{k:'pr',e:'📣',n:'홍보',d:'손님을 불러요'}];
+let exOn=false;
+const fmtK=v=>v>=1e8?(Math.floor(v/1e7)/10)+'억':v>=1e4?Math.floor(v/1e3)/10+'만':fmt(Math.floor(v));
+function exFree(){const e=save.mgEx||{};return e.d!==dayKey()}
+function exHtml(){const e=save.mgEx||{},last=e.r;return'<div class="sum"><b>🎓 점장 시험</b><br><small>도와주기 한 판에서 아래 3개를 모두 넘기면 합격! 합격하면 '+(mgOf()?mgOf().n:'')+'가 <b>🏪 2호점 점장</b>이 되어 알아서 돈을 벌어 와요</small>'+
+ '<div class="chips"><span class="chip">🐾 손님 '+EXQ.sv+'명 이상</span><span class="chip">😡 놓침 '+EXQ.lo+'명 이하</span><span class="chip">✨ PERFECT '+EXQ.pf+'개 이상</span></div>'+
+ (last?'<small>지난 시험: 🐾'+last.sv+' · 😡'+last.lo+' · ✨'+last.pf+' — 아쉬워요!</small><br>':'')+'<small>'+(exFree()?'오늘은 <b>무료</b>로 볼 수 있어요':'오늘 무료 시험은 봤어요 · 🏅 메달 3개로 다시 볼 수 있어요 (내일 다시 무료)')+'</small></div>'}
+function exStart(){if(!exFree()){if(!(window.MEDAL&&MEDAL.spend(3))){toast('🏅 메달이 3개 필요해요 · 내일 다시 무료로 볼 수 있어요');return}}const e=save.mgEx||(save.mgEx={});e.d=dayKey();e.n=(e.n|0)+1;store();bzHide();exOn=true;toast('🎓 점장 시험 시작! 🐾'+EXQ.sv+' · 😡≤'+EXQ.lo+' · ✨'+EXQ.pf);startDay()}
+function exCheck(res){if(!exOn)return'';exOn=false;const M=mgr();if((M.lv|0)!==3)return'';const r={sv:res.served|0,lo:res.lost|0,pf:res.perf|0},ok=r.sv>=EXQ.sv&&r.lo<=EXQ.lo&&r.pf>=EXQ.pf;
+ const row=(t,v,n,good)=>'<span class="chip'+(good?' ok':' red')+'">'+t+' '+v+' / '+n+'</span>';const chips='<div class="chips">'+row('🐾',r.sv,EXQ.sv,r.sv>=EXQ.sv)+row('😡',r.lo,'≤'+EXQ.lo,r.lo<=EXQ.lo)+row('✨',r.pf,EXQ.pf,r.pf>=EXQ.pf)+'</div>';
+ if(!ok){(save.mgEx||(save.mgEx={})).r=r;store();return'<div class="sum" style="background:#ffe9e0"><b>🎓 점장 시험 — 아쉽게 불합격</b>'+chips+'<small>내일 다시 무료로 볼 수 있어요 (🏅3개면 지금 다시)</small></div>'}
+ M.lv=4;save.b2={t:Date.now(),acc:0,iv:[0,0,0]};save.rHi=Math.max(save.rHi|0,attHr());delete save.mgEx;store();setTimeout(()=>{if(window.JUICE)JUICE.confetti(120);snd('fanfare')},500);
+ return'<div class="sum" style="background:#ffe08a"><b>🎉 점장 시험 합격! '+(mgOf()?mgOf().e+' '+mgOf().n:'')+'가 🏪 2호점 점장이 됐어요</b>'+chips+'<small>이제 2호점이 알아서 돈을 벌어요 · 가게 화면 왼쪽 🏪 2호점에서 받아요</small></div>'}
+/* 2호점: 쌓기 (본점 시간당 순이익 × 비율, 12시간까지) */
+const b2P=()=>.15+.02*((save.b2&&save.b2.iv||[]).reduce((a,b)=>a+(b|0),0));
+function b2Tick(){const b=save.b2;if(!b)return{acc:0,rate:0};const hr=attHr();if(hr>(save.rHi|0))save.rHi=Math.round(hr);const rate=hr*b2P(),now=Date.now(),dt=Math.max(0,Math.min(12,(now-(b.t||now))/36e5));const a0=Math.max(0,+b.acc||0);b.acc=Math.min(a0+rate*dt,Math.max(a0,rate*12)); /* 수입이 잠깐 0이어도 모아 둔 돈은 안 줄어요 */b.t=now;return{acc:b.acc,rate}}
+const b2Cost=L=>Math.max(10000,r1k(Math.max(save.rHi|0,attHr())*B2H[L]));
+function b2Card(){const b=b2Tick(),o=mgOf(),iv=save.b2.iv,cap=b.rate*12;store();
+ let h='<div style="text-align:center"><img src="img/mg_'+(o?o.k:'al')+'3.webp" alt="" style="height:110px"></div><div class="sum" style="text-align:center"><b>🏪 2호점 · '+(o?o.e+' '+o.n:'')+' 점장</b><br><small>본점 시간당 순이익의 <b>'+Math.round(b2P()*100)+'%</b>를 벌어요 (지금 🪙'+fmt(Math.round(b.rate))+'/시간) · 최대 12시간 쌓여요</small>'+mbar(b.acc,cap||1,'#ffb35a')+'<b style="font-size:20px;color:#e8642a">🪙 '+fmt(Math.floor(b.acc))+'</b> <small>/ '+fmt(Math.round(cap))+'</small></div>';
+ h+='<div class="sum"><b>💼 2호점 투자</b> <small>1레벨마다 비율 +2% (최대 75%)</small>';B2K.forEach((k,i)=>{const L=iv[i]|0,mx=L>=10;h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div style="flex:1"><b>'+k.e+' '+k.n+' Lv'+L+'</b><br><small>'+k.d+'</small>'+mbar(L,10,'#7cc86a')+'</div><button class="b2i" data-i="'+i+'" style="height:44px;padding:0 10px;font-size:15px;'+(mx?'background:#e8e8e8':'')+'"'+(mx?' disabled':'')+'>'+(mx?'최고!':'🪙 '+fmtK(b2Cost(L)))+'</button></div>'});h+='</div>';
+ bzShow('🏪','2호점',h,b.acc>=1?'🪙 '+fmt(Math.floor(b.acc))+' 받기':'아직 모인 돈이 없어요',()=>{const t=b2Tick();const g=Math.floor(t.acc);if(g<1){toast('조금 뒤에 다시 와 주세요');return}save.b2.acc-=g;save.coins+=g;store();bizBtn();snd('coins');if(window.JUICE)JUICE.confetti(60);toast('🏪 2호점에서 🪙'+fmt(g)+' 받았어요');b2Card()},'닫기',()=>{bzHide();renderHome()});
+ document.querySelectorAll('.b2i').forEach(bt=>bt.onclick=()=>{const i=+bt.dataset.i,L=iv[i]|0;if(L>=10)return;const c=b2Cost(L);if(save.coins<c){snd('no');toast('🪙 '+fmt(c)+'이 필요해요');return}b2Tick();save.coins-=c;iv[i]=L+1;store();bizBtn();snd('buy');if(window.JUICE)JUICE.confetti(40);toast(B2K[i].e+' '+B2K[i].n+' Lv'+(L+1)+' · 2호점 비율 '+Math.round(b2P()*100)+'%');b2Card()})}
 /* 🏆 11/14 지난 주 꾸미기 성장 상위 30 보상: 월요일 뒤 처음 들어올 때 한 번 (2968주=11/16부터) */
 const DWR=r=>r===1?30:r<=3?20:r<=10?10:r<=30?5:0;
 function decoWkReward(){const W=Math.floor((Math.floor((Date.now()+32400000)/86400000)+3)/7)-1;if(W<2967||(save.dwR|0)>=W||!save.name)return;
