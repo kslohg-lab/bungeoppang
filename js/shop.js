@@ -626,7 +626,7 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
   dbtn('da2','✔ 완료','',()=>$('dx').click())}
  else{const sl=SLOTS.find(x=>x.k===tk);
   slOrd(sl).forEach(([it,id])=>{if(dMed?!it.m:it.m&&!save.own[sl.k].includes(id))return;const own=save.own[sl.k].includes(id),eqd=eqG(sl.k)===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
-   card(it.img?'<img src="'+it.img+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m+(sl.k==='skin'?' · '+skTxt(it):''):'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
+   card(it.img?'<img src="'+(it.img.indexOf('/')>=0?it.img:'img/bg_'+it.img+'.webp')+'" alt="" style="height:38px;display:block;margin:0 auto">':it.e,it.n,eqd?'사용 중':own?'가지고 있어요':lk?lk.replace('🔒 ',''):free?'⭐ 보상':it.m?'🏅'+it.m+(sl.k==='skin'?' · '+skTxt(it):''):'🪙'+fmt(it.p),(prev&&prev.k===sl.k&&prev.id===id?'on':eqd?'eq':'')+(lk?' lk':''),()=>{prev={k:sl.k,id};renderDeco()})});
   const id=prev&&prev.k===sl.k?prev.id:eqG(sl.k),it=sl.L[id],own=save.own[sl.k].includes(id),eqd=eqG(sl.k)===id,lk=own?null:lockOf(it),free=!it.p&&it.st&&!lk;
   if(eqd)dbtn('da1','✅ 사용 중','dis');
   else if(own)dbtn('da1','바꾸기','go',()=>{eqS(sl.k,id);prev=null;store();snd('tap');renderDeco()});
