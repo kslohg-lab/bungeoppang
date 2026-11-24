@@ -854,7 +854,7 @@ function visit(uid,from){vFrom=from||'home';/* 11/24: 돌아갈 곳 이름을 �
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
   $('vrp').style.display=uid===N.uid?'none':'block';if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast(busyMsg()||'불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
-function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+((vd.rt|0)>=10?' · ⭐'+((vd.rt|0)/10).toFixed(1):'')+'<br>✨ 꾸미기 '+fmt(vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
+function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+((vd.rt|0)>=10?' · ⭐'+((vd.rt|0)/10).toFixed(1):'')+'<br>✨ 꾸미기 '+fmt(Number.isInteger(vd.rs)?vd.rs:vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
 function leaveVisit(){vd=null;hPre=0;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='street'){openStreet()}else if(vFrom==='rk'){openRank()}else if(vFrom==='gb'){openNotes()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
 $('vmk1').onclick=()=>{vFrom='home';leaveVisit()};

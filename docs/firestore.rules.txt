@@ -54,11 +54,14 @@ service cloud.firestore {
 
     // 가게 순위·구경: 누구나 읽기, 내 가게만 쓰기(좋아요 수는 못 바꿈), 좋아요는 한 사람 한 번
     function okShop(d) {
-      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp', 'hi', 'rt', 'rs', 'rs0'])
+      return d.keys().hasOnly(['n', 'nk', 'g', 'sc', 'lk', 'room', 'eq', 'fur', 'ts', 'w', 's0', 'gw', 'wp', 'gwp', 'hi', 'rt', 'rs', 'rs0', 'rg', 'rgp'])
         // ⭐ 가게 평점(11/19): rt = 평점×10 (10~50)
         && (!('rt' in d) || (d.rt is int && d.rt >= 0 && d.rt <= 50))
         // 📊 실제 꾸미기 점수(11/22): rs = 자르기 전 점수, rs0 = 그 주 시작 때 rs (기록용, 순위엔 안 씀)
-        && (!('rs' in d) || (d.rs is int && d.rs >= 0)) && (!('rs0' in d) || (d.rs0 is int && d.rs0 >= 0))
+        && (!('rs' in d) || (d.rs is int && d.rs >= 0 && d.rs <= 2000000000)) && (!('rs0' in d) || (d.rs0 is int && d.rs0 >= 0 && d.rs0 <= 2000000000))
+        // 🏆 실제 이번 주 성장(11/24): rg = rs − rs0 (줄었으면 0), rgp = 지난 주 rg — 2970주(11/30)부터 순위에 써요
+        && (!('rg' in d) || (('rs' in d) && ('rs0' in d) && ((d.rs > d.rs0 && d.rg == d.rs - d.rs0) || (d.rs <= d.rs0 && d.rg == 0))))
+        && (!('rgp' in d) || (d.rgp is int && d.rgp >= 0))
         // 🏔️ 최고 점수(11/14): hi = 지금까지 가장 높았던 꾸미기 점수 (있으면 정수, sc 이상)
         && (!('hi' in d) || (d.hi is int && d.hi >= d.sc))
         // 🏆 지난 주 성장(11/14): wp = 지난 기록 주 번호, gwp = 그 주 성장 (있으면 둘 다 정수)
@@ -94,7 +97,15 @@ service cloud.firestore {
             && ((o.get('w', 0) == weekNow() && d.s0 == o.get('s0', -1)) || (o.get('w', 0) != weekNow() && d.s0 == o.get('hi', o.sc)))))
         // 🏆 지난 주 성장은 만들 수 없고 옮기기만: 같은 주면 그대로, 주가 바뀌면 지난 문서의 w·gw를 그대로 옮겨요
         && (!('wp' in d) || (o.get('w', 0) == weekNow() && d.wp == o.get('wp', 0) && d.gwp == o.get('gwp', 0))
-            || (o.get('w', 0) != weekNow() && d.wp == o.get('w', 0) && d.gwp == o.get('gw', 0)));
+            || (o.get('w', 0) != weekNow() && d.wp == o.get('w', 0) && d.gwp == o.get('gw', 0)))
+        // 🏆 11/24 실제 점수의 주 시작 값(rs0)은 만들 수 없어요: 같은 주면 그대로, 주가 바뀌면 지난 rs (처음이면 지금 rs)
+        && (!('rs0' in d)
+            || (o.get('w', 0) == weekNow() && ('rs0' in o) && d.rs0 == o.rs0)
+            || ((o.get('w', 0) != weekNow() || !('rs0' in o)) && (('rs' in o && d.rs0 == o.rs) || (!('rs' in o) && d.rs0 == d.rs))))
+        // 지난 주 실제 성장(rgp)도 옮기기만: 같은 주면 그대로, 주가 바뀌면 지난 rg
+        && (!('rgp' in d) || (o.get('w', 0) == weekNow() && d.rgp == o.get('rgp', -1))
+            || (o.get('w', 0) != weekNow() && (('rg' in o && d.rgp == o.rg)
+                || (!('rg' in o) && ('rs' in o) && ('rs0' in o) && ((o.rs > o.rs0 && d.rgp == o.rs - o.rs0) || (o.rs <= o.rs0 && d.rgp == 0))))));
     }
     function okNote(v, d) {
       return d.keys().hasOnly(['s', 'n', 'nk', 'd', 't'])

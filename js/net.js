@@ -18,6 +18,8 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
    const cache=new Map();
    /* 🙈 숨김 목록 · ⏳ 무료 한도(resource-exhausted)에 걸렸는지 기억 */
    const hid=async()=>{try{if(window.HIDE)await window.HIDE.load()}catch(e){}return u=>!!(window.HIDE&&window.HIDE.has(u))};
+   const RG=d=>Number.isInteger(d.rg)?d.rg:(Number.isInteger(d.rs)&&Number.isInteger(d.rs0)?Math.max(0,d.rs-d.rs0):null); /* 실제 성장: rg 없던 옛 저장도 rs·rs0로 계산 */
+   const RS_WK=2969; /* 🏆 11/24: 사용자 '지금 바로 반영' → 이번 주(11/23~)부터 실제 점수 순위 */
    const full=e=>{if(e&&e.code==='resource-exhausted')N.full=Date.now();throw e};
    const N={off:false,uid:null,
     /* 저장 (11/8): 🛡️ 점수는 지난 저장 뒤 지난 시간만큼만 올려 보내요(규칙과 같은 계산, 조금 덜) · 📈 이번 주 성장 칸(gw<주>) 같이
@@ -31,17 +33,23 @@ if(CFG&&CFG.apiKey&&CFG.projectId){window.NET={off:true,pending:true};
       const ws=((wk*7-3)*86400000-32400000),wel=Math.max(0,(Date.now()-ws)/1000-120);
       body.sc=Math.min(body.sc,Math.max((x.sc|0)+Math.min(150000,Math.floor(el*2.2)),s0+Math.floor(wel*2.2)+148000));body.lk=x.lk|0;N.myLk=x.lk|0;body.hi=Math.max(hi0,body.sc);body.s0=s0;
       /* 🏆 11/14 지난 주 성장 옮기기 (규칙이 그대로 옮기는지 확인해요) */if(x.w===wk){body.wp=x.wp|0;body.gwp=x.gwp|0}else{body.wp=x.w|0;body.gwp=x.gw|0}}
-     /* 📊 11/22 실제 꾸미기 점수(rs, 한도·300만 자르기 전)와 그 주 시작 때 값(rs0) — 순위엔 아직 안 써요, 숫자 보기용 */if(o.exists()){if(Number.isInteger(body.rs)){const x=o.data();body.rs0=x.w===wk&&Number.isInteger(x.rs0)?x.rs0:Number.isInteger(x.rs)?x.rs:body.rs}else delete body.rs0}
+     /* 📊 11/22 실제 꾸미기 점수(rs, 한도·300만 자르기 전)와 그 주 시작 때 값(rs0) — 순위엔 아직 안 써요, 숫자 보기용 */if(o.exists()){if(Number.isInteger(body.rs)){const x=o.data();body.rs0=x.w===wk&&Number.isInteger(x.rs0)?x.rs0:Number.isInteger(x.rs)?x.rs:body.rs;const gp=x.w===wk?x.rgp:RG(x);if(Number.isInteger(gp))body.rgp=gp;else delete body.rgp}else delete body.rs0}
+     /* 🏆 11/24 실제 이번 주 성장 rg = 실제 점수 − 주 시작 때 실제 점수 (줄었으면 0) · rgp = 지난 주 rg (2970주부터 순위에 써요) */if(Number.isInteger(body.rs)&&Number.isInteger(body.rs0))body.rg=Math.max(0,body.rs-body.rs0);else{delete body.rg;delete body.rgp}if(Number.isInteger(body.rs)&&body.rs>2000000000){body.rs=2000000000;if(body.rg!=null)body.rg=Math.max(0,body.rs-body.rs0)}
      /* 11/8 5.6.7: 주마다 칸 이름을 바꾸던 gw<주> → gw 한 칸 + w(주 번호) (규칙의 string()이 거절을 일으켜서) */body.gw=body.sc-body.s0;await setDoc(r,body);cache.clear();return body.sc},
     async top(by){const k='top:'+by,c=cache.get(k);if(c&&Date.now()-c.t<600000)return c.v; /* 10분 */
-     const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc';
-     const H=await hid();const snap=await getDocs(query(collection(db,'shops'),orderBy(f,'desc'),limit(by==='wk'?80:40))).catch(full);
+     const wk=Math.floor((day()+3)/7),f=by==='lk'?'lk':by==='wk'?'gw':'sc',REAL=wk>=RS_WK&&by!=='lk',col=collection(db,'shops');
+     /* 🏆 11/24 (2970주부터) 실제 점수로 순위: 이번 주 = rg(실제 성장), 전체 = rs(실제 점수). 실제 점수를 안 보내는 옛 앱은 gw·sc 그대로 */
+     const H=await hid();const qs=[getDocs(query(col,orderBy(f,'desc'),limit(by==='wk'?80:40)))];if(REAL)qs.push(getDocs(query(col,orderBy(by==='wk'?'rg':'rs','desc'),limit(by==='wk'?80:40))));
+     const sn=await Promise.all(qs).catch(full);const val=d=>by==='lk'?d.lk|0:by==='wk'?(REAL&&RG(d)!=null?RG(d):d.gw|0):(REAL&&Number.isInteger(d.rs)?d.rs:d.sc|0);
+     const um=new Map();for(const s of sn)for(const x of s.docs)if(!um.has(x.id))um.set(x.id,x);const snap={docs:[...um.values()].sort((a,b)=>val(b.data())-val(a.data()))};
      /* 같은 가게 이름 + 같은 사장님 닉네임(같은 사람이 여러 기기에서 만든 가게)은 위쪽 하나만 */
-     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&d.gw>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:d.sc,lk:d.lk|0,room:d.room,rt:d.rt|0,gw:d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
+     const seen=new Set(),v=[];for(const x of snap.docs){const d=x.data(),k=String(d.n||'').trim()+'|'+String(d.nk||'').trim();if(H(x.id)||seen.has(k))continue;seen.add(k);if(by==='wk'&&!(d.w===wk&&val(d)>0))continue;v.push({u:x.id,n:d.n,nk:d.nk,g:d.g,sc:by==='sc'?val(d):(REAL&&Number.isInteger(d.rs)?d.rs:d.sc),lk:d.lk|0,room:d.room,rt:d.rt|0,gw:by==='wk'?val(d):d[f]|0});if(v.length>=30)break}cache.set(k,{t:Date.now(),v});return v},
     /* 🏆 11/14 지난 주 꾸미기 성장 상위 30: 아직 이번 주에 저장 안 한 가게(w·gw) + 저장한 가게(wp·gwp) → 읽기 최대 160, 한 주에 한 번 */
     async lastWk(){const wk=Math.floor((day()+3)/7),W=wk-1,H=await hid(),col=collection(db,'shops');
-     const [a,b]=await Promise.all([getDocs(query(col,orderBy('gw','desc'),limit(80))),getDocs(query(col,orderBy('gwp','desc'),limit(80)))]).catch(full);
-     const m=new Map();for(const x of a.docs.concat(b.docs)){if(H(x.id)||m.has(x.id))continue;const d=x.data(),v=d.w===W?d.gw|0:d.wp===W?d.gwp|0:0;if(v>0)m.set(x.id,{u:x.id,n:d.n,nk:d.nk,v})}
+     const REAL=W>=RS_WK,qs=[getDocs(query(col,orderBy('gw','desc'),limit(80))),getDocs(query(col,orderBy('gwp','desc'),limit(80)))];if(REAL)qs.push(getDocs(query(col,orderBy('rg','desc'),limit(80))),getDocs(query(col,orderBy('rgp','desc'),limit(80))));
+     const sn=await Promise.all(qs).catch(full);const m=new Map();
+     /* 🏆 11/24 2970주부터 지난 주 성장도 실제 성장(rg·rgp), 실제 점수 없는 옛 앱은 gw·gwp */
+     for(const x of [].concat(...sn.map(s=>s.docs))){if(H(x.id)||m.has(x.id))continue;const d=x.data(),cur=d.w===W,pre=d.wp===W;let v=0;if(REAL&&cur&&RG(d)!=null)v=RG(d);else if(REAL&&pre&&Number.isInteger(d.rgp)&&Number.isInteger(d.rs))v=d.rgp;else v=cur?d.gw|0:pre?d.gwp|0:0;if(v>0)m.set(x.id,{u:x.id,n:d.n,nk:d.nk,v})}
      const seen=new Set(),rows=[];for(const r of [...m.values()].sort((p,q)=>q.v-p.v)){const k=String(r.n||'').trim()+'|'+String(r.nk||'').trim();if(seen.has(k))continue;seen.add(k);rows.push(r);if(rows.length>=30)break}
      return{W,rows}},
     /* 🐟 붕어빵 동네 후보: 비슷한 가게(위·아래 12씩) + 큰 가게(내 점수 3배 이상 8) + 상위권 8 → 최대 읽기 40, 하루 한 번 */

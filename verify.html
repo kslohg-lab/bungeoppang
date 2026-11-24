@@ -14,7 +14,7 @@ code{background:#f5e6c8;padding:1px 5px;border-radius:5px;font-size:12px}tr.hid{
 <h1>🛡️ 운영자 검사 도구</h1>
 <p class="ht">체크한 사람은 <b>숨김 목록</b>에 들어가요 → 챌린지 순위표 · 가게 순위 · 붕어빵 동네 · 등수 보상에서 빠져요.<br>
 아래 <b>📋 숨김 목록 복사</b> → 깃허브 <code>hidden.json</code> 파일을 열어 연필(편집) → 전부 지우고 붙여 넣기 → Commit 하면 10분 안에 적용돼요.</p>
-<div id="tabs"><button data-t="w0">🏆 이번 주</button><button data-t="w1">🏆 지난 주</button><button data-t="sc">🏪 꾸미기 순위</button><button data-t="lk">❤️ 인기 순위</button><button data-t="rp">🚩 신고</button><button data-t="hd">🙈 숨김 목록</button></div>
+<div id="tabs"><button data-t="w0">🏆 이번 주</button><button data-t="w1">🏆 지난 주</button><button data-t="sc">🏪 꾸미기 순위</button><button data-t="rg">📈 실제 성장(이번 주)</button><button data-t="rs">💎 실제 점수</button><button data-t="lk">❤️ 인기 순위</button><button data-t="rp">🚩 신고</button><button data-t="hd">🙈 숨김 목록</button></div>
 <p id="st"></p><table id="tb"></table>
 <div id="bar"><span id="cnt"></span> <button id="cp">📋 숨김 목록 복사</button><span id="cpm" class="ht" style="color:#ffe9a0"></span><textarea id="out" readonly></textarea></div>
 <script src="js/sim.js?v=17"></script>
@@ -63,6 +63,14 @@ else{
   for(const d of snap.docs){n++;const x=d.data();NM[d.id]=x.n;const odd=(x.room|0)<=5&&(x.sc|0)>200000;
    h+='<tr data-u="'+esc(d.id)+'"><td>'+box(d.id)+'</td><td>'+n+'</td><td>'+esc(x.n)+'<br><span class="ht">'+esc(x.nk||'')+'</span></td><td>'+fmt(x.sc)+(odd?' <span class="warn">⚠️ 작은 가게인데 점수가 커요</span>':'')+'</td><td>'+fmt(x.lk)+'</td><td>'+(x.room|0)+'×'+(x.room|0)+' · '+(x.g|0)+'등급</td></tr>'}
   $('tb').innerHTML=h;sync();$('st').textContent=(by==='sc'?'꾸미기 점수':'좋아요')+' 위쪽 '+n+'곳 · 이상하면 체크해요'}
+ /* 💎 11/24 실제 점수(rs)·이번 주 실제 성장(rg): 2970주부터 가게 순위가 이 값을 써요 → 이상한 값을 눈으로 걸러요 */
+ async function real(by){$('st').textContent='불러오는 중…';$('tb').innerHTML='';
+  const snap=await getDocs(query(collection(db,'shops'),orderBy(by,'desc'),limit(40)));let n=0,warn=0;const wk=Math.floor((Math.floor((Date.now()+9*3600e3)/864e5)+3)/7);
+  let h='<tr><th>숨김</th><th>#</th><th>가게 · 사장님</th><th>실제 점수</th><th>이번 주 성장</th><th>크기·등급</th><th>살펴볼 점</th></tr>';
+  for(const d of snap.docs){n++;const x=d.data();NM[d.id]=x.n;const rs=x.rs|0,rg=x.w===wk?(x.rg|0):0,room=x.room|0,w=[];
+   if(rg>8000000)w.push('한 주에 800만↑');if(room<=7&&rs>1500000)w.push('작은 가게('+room+'×'+room+')인데 점수가 커요');if(rs&&rs<(x.sc|0))w.push('실제 점수가 순위 점수보다 작아요');if((x.g|0)<4&&rs>3000000)w.push('등급이 낮은데 점수가 커요');
+   if(w.length)warn++;h+='<tr data-u="'+esc(d.id)+'"><td>'+box(d.id)+'</td><td>'+n+'</td><td>'+esc(x.n)+'<br><span class="ht">'+esc(x.nk||'')+'</span></td><td>'+fmt(rs)+'</td><td>'+fmt(rg)+'</td><td>'+room+'×'+room+' · '+(x.g|0)+'등급</td><td>'+(w.length?'<span class="warn">⚠️ '+w.join(' · ')+'</span>':'')+'</td></tr>'}
+  $('tb').innerHTML=h;sync();$('st').textContent=(by==='rg'?'이번 주 실제 성장':'실제 점수')+' 위쪽 '+n+'곳 · ⚠️ '+warn+'곳 — 이상하면 체크해서 숨김 목록에 넣어요'}
  /* 🚩 신고: 대상별로 모아 많이 신고된 순 */
  const RS=['🤬 이름','📈 점수','❓ 기타'];
  async function reports(){$('st').textContent='불러오는 중…';$('tb').innerHTML='';
@@ -78,7 +86,7 @@ else{
  async function hidden(){$('tb').innerHTML='';const L=[...H];await Promise.all(L.map(async u=>{if(NM[u])return;try{const s=await getDoc(doc(db,'shops',u));if(s.exists())NM[u]=s.data().n}catch(e){}}));
   $('tb').innerHTML=L.length?'<tr><th>숨김</th><th>이름</th><th>uid</th></tr>'+L.map(u=>'<tr data-u="'+esc(u)+'"><td>'+box(u)+'</td><td>'+esc(NM[u]||'(이름 모름)')+'</td><td><code>'+esc(u)+'</code></td></tr>').join(''):'<tr><td>숨긴 사람이 없어요</td></tr>';sync();
   $('st').textContent='체크를 풀면 숨김에서 빠져요 (복사해서 올려야 적용)'}
- const T={w0:()=>week(0),w1:()=>week(1),sc:()=>shops('sc'),lk:()=>shops('lk'),rp:reports,hd:hidden};
+ const T={w0:()=>week(0),w1:()=>week(1),sc:()=>shops('sc'),lk:()=>shops('lk'),rg:()=>real('rg'),rs:()=>real('rs'),rp:reports,hd:hidden};
  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));T[b.dataset.t]().catch(e=>{$('st').textContent='불러오지 못했어요: '+(e.code==='resource-exhausted'?'오늘 무료 한도를 다 썼어요 (오후 4~5시에 초기화)':esc(e.message||e))})});
  document.querySelector('#tabs button').click();sync()}
 </script></body></html>
