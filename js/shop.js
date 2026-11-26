@@ -775,13 +775,44 @@ function exCheck(res){if(!exOn)return'';exOn=false;const M=mgr();if((M.lv|0)!==3
  M.lv=4;save.b2={t:Date.now(),acc:0,iv:[0,0,0]};save.rHi=Math.max(save.rHi|0,attHr());delete save.mgEx;store();setTimeout(()=>{if(window.JUICE)JUICE.confetti(120);snd('fanfare')},500);
  return'<div class="sum" style="background:#ffe08a"><b>🎉 점장 시험 합격! '+(mgOf()?mgOf().e+' '+mgOf().n:'')+'가 🏪 2호점 점장이 됐어요</b>'+chips+'<small>이제 2호점이 알아서 돈을 벌어요 · 가게 화면 왼쪽 🏪 2호점에서 받아요</small></div>'}
 /* 2호점: 쌓기 (본점 시간당 순이익 × 비율, 12시간까지) */
-const b2P=()=>.15+.02*((save.b2&&save.b2.iv||[]).reduce((a,b)=>a+(b|0),0));
-function b2Tick(){const b=save.b2;if(!b)return{acc:0,rate:0};const hr=attHr();if(hr>(save.rHi|0))save.rHi=Math.round(hr);const rate=hr*b2P(),now=Date.now(),dt=Math.max(0,Math.min(12,(now-(b.t||now))/36e5));const a0=Math.max(0,+b.acc||0);b.acc=Math.min(a0+rate*dt,Math.max(a0,rate*12)); /* 수입이 잠깐 0이어도 모아 둔 돈은 안 줄어요 */b.t=now;return{acc:b.acc,rate}}
+const b2Lv=()=>(save.b2&&save.b2.iv||[]).reduce((a,b)=>a+(b|0),0),b2P=()=>.15+.02*b2Lv();
+/* 🏪📍 11/26 2호점 자리 (사용자 '추천안'): 권리금은 낼 때 한 번(옮기면 옛 권리금 절반 돌려받기), 효과는 2호점 수입에 곱해요 */
+const B2Z={alley:{k:0,m:0},school:{k:3e6,m:.05},station:{k:3e6,m:.05},night:{k:3e6,m:.05},park:{k:1e7,m:.08},mall:{k:5e7,m:.12},prime:{k:2e8,m:.2}};
+const b2Zm=()=>save.b2&&save.b2.l&&B2Z[save.b2.z]?1+B2Z[save.b2.z].m:1;
+const B2TH=[{n:'카페',e:'☕',s:['cafe'],w:19,f:8},{n:'봄 소풍',e:'🌸',s:['spring'],w:11,f:7},{n:'구름',e:'☁️',s:['cloud'],w:18,f:17},{n:'디저트',e:'🍰',s:['dessert'],w:21,f:18},{n:'바다',e:'🏖️',s:['sea'],w:1,f:9},{n:'왕궁',e:'👑',s:['royal'],w:22,f:20},{n:'겨울',e:'❄️',s:['winter','xmas2'],w:13,f:16},{n:'크리스마스',e:'🎄',s:['xmas'],w:13,f:5},{n:'붕어빵',e:'🐟',s:['bungeo'],w:14,f:12}];
+const b2Room=()=>Math.min(11,5+Math.floor(b2Lv()/5));
+const b2Name=()=>{const n=String((myD(null).n)||'붕어빵');return (n.length>8?n.slice(0,8):n)+' 2호점'};
+const b2Look=f=>{const d=myD(null);return{n:b2Name(),nk:String(d.nk||'').slice(0,12),g:d.g|0,room:b2Room(),sk:d.skin|0,aw:d.awn|0,sg:d.sign|0,r5:1,rt:Math.max(0,Math.min(50,Math.round(BIZ.rt(save).v*10))),tw:Math.floor(f/1000),z:SV.LID.get(f%1000).z,b:2,th:(save.b2.th|0)%B2TH.length,lv:b2Lv()}};
+/* 점장이 꾸민 2호점 안: 테마 세트 가구를 투자 레벨만큼, 주마다 배치가 바뀌어요 (서버엔 숫자만) */
+function b2Fur(row){const th=B2TH[(row.th|0)%B2TH.length]||B2TH[0],L=row.lv|0,N=Math.max(5,Math.min(11,row.room|0));let x=(uh(String(row.u)+'b2')^Math.floor(dayKey()/7))>>>0;const rnd=()=>{x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;return x/4294967296};
+ const pool=IS.FUR.filter(f=>th.s.includes(f.set)).sort((a,b)=>a.p-b.p),base=IS.FUR.filter(f=>['chair','table','stool','plant'].includes(f.k)),cut=Math.max(3,Math.ceil(pool.length*(.35+.65*L/30))),use=pool.slice(0,cut).concat(base);
+ const cells=[];for(let yy=2;yy<N;yy++)for(let xx=0;xx<N-1;xx++)cells.push([xx,yy]);for(let i=cells.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]]}
+ const n=Math.min(cells.length,6+L*1.4|0),out=[];for(let i=0;i<n;i++){const f=i<use.length&&i<pool.length?use[i]:use[Math.floor(rnd()*use.length)];out.push(f.k+','+cells[i][0]+','+cells[i][1]+','+(rnd()*4|0))}return out}
+function visitB(it){const r=it.row;visit(r.u,'street',{n:r.n,nk:r.nk,g:r.g,room:r.room,rt:r.rt,sc:0,lk:0,br:1,th:r.th|0,lv:r.lv|0,z:r.z,eq:{wall:(B2TH[(r.th|0)%B2TH.length]||B2TH[0]).w,floor:(B2TH[(r.th|0)%B2TH.length]||B2TH[0]).f,skin:r.sk,awn:r.aw,sign:r.sg,r5:1},fur:b2Fur(r)})}
+/* 2호점 자리 고르기: 동네 지도에서 빈 땅 톡 */
+let stPickB=false;
+function b2Move(h){if(!window.NET||NET.off||!NET.lotMoveB){toast('📶 인터넷이 연결되면 2호점을 낼 수 있어요');return}const b=save.b2;if(!b)return;const zk=h.zone||SV.LID.get(h.lot).z,Z=B2Z[zk]||B2Z.alley,zi=BIZ.ZK[zk],same=b.l&&b.z===zk,back=same?0:Math.floor((b.paid|0)/2),cost=same?0:Math.max(0,Z.k-back),f=stTown*1000+h.lot;
+ const go=()=>{if(save.coins<cost){toast('코인이 부족해요! (🪙 '+fmt(cost)+')');snd('no');return}toast('🏪 2호점 자리 잡는 중…');
+  NET.lotMoveB(f,b.l||null,b2Look(f)).then(()=>{b2Tick();save.coins-=cost;if(!same)b.paid=Z.k;b.l=f;b.z=zk;b.st=Date.now();b.h=JSON.stringify(b2Look(f));stPickB=false;lotPutB(f);store();bizBtn();snd('fanfare');if(window.JUICE)JUICE.confetti(80);toast('🏪 '+zi.e+' '+zi.n+'에 2호점을 열었어요!'+(Z.m?' 2호점 수입 +'+Math.round(Z.m*100)+'%':''));stBuild()})
+   .catch(e=>{console.warn('lotMoveB',e&&e.code||e);snd('no');toast('앗, 방금 다른 가게가 들어왔어요 · 지도를 새로 불러요');lotsLoad(stTown,true).then(()=>{if(scr==='street')stBuild()})})};
+ JUICE.ask('🏪 '+zi.e+' '+zi.n+'에 2호점을 낼까요?',(Z.m?'2호점 수입 +'+Math.round(Z.m*100)+'% · ':'수입 효과 없음 · ')+(same?'같은 상권이라 무료로 옮겨요':'🔑 권리금 '+fmt(Z.k)+(back?' − 옛 권리금 절반 '+fmt(back):'')+' → 🪙 '+fmt(cost)),'🏪 2호점 열기',go,'그만두기',()=>{})}
+const lotPutB=f=>{const me=meUid(),t=Math.floor(f/1000),K=LOT_K+'_'+t,c=lsJ(K),rows=((c&&c.rows)||[]).filter(x=>!(x.u===me&&x.b)&&x.l!==f);rows.push(Object.assign({l:f,u:me,t:Date.now()},b2Look(f)));lsJ(K,{d:dayKey(),rows});if(t===stTown)stLots=rows};
+/* 2호점 칸 지키기: 하루 한 번 모습 맞추기, 14일 비운 사이 뺏겼으면 자리 없음으로 (권리금은 돌려주지 않아요 — 본점과 같은 규칙) */
+let b2Busy=false;
+async function b2LotFix(){const b=save.b2;if(!b||!b.l||b2Busy||!window.NET||NET.off||!NET.lotMoveB)return;const me=meUid();if(!me)return;b2Busy=true;
+ try{const rows=await lotsLoad(Math.floor(b.l/1000),false),o=rows.find(x=>x.l===b.l);if(o&&o.u!==me){b.l=null;b.z=null;store();toast('🏪 오래 비운 사이 2호점 자리를 다른 가게가 가져갔어요 · 2호점 카드에서 다시 골라 주세요');return}
+  const lk=JSON.stringify(b2Look(b.l));if(!o||Date.now()-(b.st||0)>20*3600e3||b.h!==lk){await NET.lotSync(b.l,b2Look(b.l));b.st=Date.now();b.h=lk;lotPutB(b.l);store()}}catch(e){console.warn('b2LotFix',e&&e.code||e)}finally{b2Busy=false}}
+function b2Tick(){const b=save.b2;if(!b)return{acc:0,rate:0};const hr=attHr();if(hr>(save.rHi|0))save.rHi=Math.round(hr);const rate=hr*b2P()*b2Zm(),now=Date.now(),dt=Math.max(0,Math.min(12,(now-(b.t||now))/36e5));const a0=Math.max(0,+b.acc||0);b.acc=Math.min(a0+rate*dt,Math.max(a0,rate*12)); /* 수입이 잠깐 0이어도 모아 둔 돈은 안 줄어요 */b.t=now;return{acc:b.acc,rate}}
 const b2Cost=L=>Math.max(10000,r1k(Math.max(save.rHi|0,attHr())*B2H[L]));
 function b2Card(){const b=b2Tick(),o=mgOf(),iv=save.b2.iv,cap=b.rate*12;store();
  let h='<div style="text-align:center"><img src="img/mg_'+(o?o.k:'al')+'3.webp" alt="" style="height:110px"></div><div class="sum" style="text-align:center"><b>🏪 2호점 · '+(o?o.e+' '+o.n:'')+' 점장</b><br><small>본점 시간당 순이익의 <b>'+Math.round(b2P()*100)+'%</b>를 벌어요 (지금 🪙'+fmt(Math.round(b.rate))+'/시간) · 최대 12시간 쌓여요</small>'+mbar(b.acc,cap||1,'#ffb35a')+'<b style="font-size:20px;color:#e8642a">🪙 '+fmt(Math.floor(b.acc))+'</b> <small>/ '+fmt(Math.round(cap))+'</small></div>';
+ {const zi=save.b2.l?BIZ.ZK[save.b2.z]:null,Z=zi?B2Z[save.b2.z]:null,th=B2TH[(save.b2.th|0)%B2TH.length];
+  h+='<div class="sum"><b>📍 2호점 자리</b> '+(zi?'<span class="chip ok">'+zi.e+' '+zi.n+' · 마을 '+Math.floor(save.b2.l/1000)+(Z.m?' · 수입 +'+Math.round(Z.m*100)+'%':'')+'</span>':'<span class="chip red">아직 동네에 자리가 없어요</span>')+'<br><small>동네 지도의 빈 땅에 2호점을 내요. 골목은 무료, 학교·역·야시장 300만(+5%) · 공원 1,000만(+8%) · 상가 5,000만(+12%) · 1등지 2억(+20%)</small><br><button id="b2map" style="height:40px;margin-top:6px;font-size:15px;padding:0 14px">🗺️ '+(zi?'자리 옮기기':'동네에 2호점 내기')+'</button></div>';
+  h+='<div class="sum"><b>🎨 2호점 꾸밈 테마</b> <small>점장이 이 테마 가구로 알아서 꾸며요 (투자할수록 더 많이·더 좋게)</small><div class="chips">'+B2TH.map((t,i)=>'<span class="chip b2t'+(i===(save.b2.th|0)%B2TH.length?' ok':'')+'" data-i="'+i+'" style="cursor:pointer">'+t.e+' '+t.n+'</span>').join('')+'</div></div>'}
  h+='<div class="sum"><b>💼 2호점 투자</b> <small>1레벨마다 비율 +2% (최대 75%)</small>';B2K.forEach((k,i)=>{const L=iv[i]|0,mx=L>=10;h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div style="flex:1"><b>'+k.e+' '+k.n+' Lv'+L+'</b><br><small>'+k.d+'</small>'+mbar(L,10,'#7cc86a')+'</div><button class="b2i" data-i="'+i+'" style="height:44px;padding:0 10px;font-size:15px;'+(mx?'background:#e8e8e8':'')+'"'+(mx?' disabled':'')+'>'+(mx?'최고!':'🪙 '+fmtK(b2Cost(L)))+'</button></div>'});h+='</div>';
  bzShow('🏪','2호점',h,b.acc>=1?'🪙 '+fmt(Math.floor(b.acc))+' 받기':'아직 모인 돈이 없어요',()=>{const t=b2Tick();const g=Math.floor(t.acc);if(g<1){toast('조금 뒤에 다시 와 주세요');return}save.b2.acc-=g;save.coins+=g;store();bizBtn();snd('coins');if(window.JUICE)JUICE.confetti(60);toast('🏪 2호점에서 🪙'+fmt(g)+' 받았어요');b2Card()},'닫기',()=>{bzHide();renderHome()});
+ {const m=$('b2map');if(m)m.onclick=()=>{bzHide();stPickB=true;openStreet();setTimeout(()=>toast('🏪 2호점을 낼 빈 땅(점선 칸)을 눌러 주세요'),400)}}
+ document.querySelectorAll('.b2t').forEach(bt=>bt.onclick=()=>{save.b2.th=+bt.dataset.i;store();snd('tap');toast(B2TH[save.b2.th].e+' '+B2TH[save.b2.th].n+' 테마로 꾸밀게요');if(save.b2.l)b2LotFix();b2Card()});
  document.querySelectorAll('.b2i').forEach(bt=>bt.onclick=()=>{const i=+bt.dataset.i,L=iv[i]|0;if(L>=10)return;const c=b2Cost(L);if(save.coins<c){snd('no');toast('🪙 '+fmt(c)+'이 필요해요');return}b2Tick();save.coins-=c;iv[i]=L+1;store();bizBtn();snd('buy');if(window.JUICE)JUICE.confetti(40);toast(B2K[i].e+' '+B2K[i].n+' Lv'+(L+1)+' · 2호점 비율 '+Math.round(b2P()*100)+'%');b2Card()})}
 /* 🏆 11/14 지난 주 꾸미기 성장 상위 30 보상: 월요일 뒤 처음 들어올 때 한 번 (2968주=11/16부터) */
 const DWR=r=>r===1?30:r<=3?20:r<=10?10:r<=30?5:0;
@@ -868,19 +899,20 @@ function renderRank(){$('rk0').className=rkBy==='sc'?'on':'';$('rk1').className=
   const f=document.createElement('p');f.className='ht';f.style.textAlign='center';f.textContent=rows.length>=30?'위쪽 30곳만 보여요':rows.length+'곳';L.appendChild(f)}).catch(()=>{L.innerHTML='<p class="ht">'+(busyMsg()||'불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요.')+'</p>'})},()=>{L.innerHTML='<p class="ht">지금은 연결할 수 없어요.</p>'})}
 $('nb').onclick=()=>{au();syncShop();openRank('wk')};$('rk0').onclick=()=>openRank('sc');$('rk1').onclick=()=>openRank('lk');$('rk2').onclick=()=>openRank('wk');$('rkr').onclick=()=>{whenNet(N=>N.bust());renderRank()};$('rkx').onclick=()=>toHome();
 /* 구경 */
-let vd=null,vuid=null,vfur=[],vfur2=[],vF2=false,vFrom='home';
+let vd=null,vuid=null,vfur=[],vfur2=[],vF2=false,vFrom='home',vBr=false;
 function lookFrom(d){const eq=d.eq||{},g=k=>{const sl=SLOTS.find(x=>x.k===k),v=eq[k]|0;return sl&&sl.L[v]?v:0};const sk=g('sky'),wi=g('wall');
  return{xmas:window.XMAS&&XMAS(),g:d.g|0,n:Math.max(4,Math.min(11,d.room|0)),wall:{c:(WALL[wi]||WALL[0]).c,id:wi},floor:g('floor'),sky:skyCols(sk),bg:skyBg(sk),night:skyNt(sk),awn:g('awn'),sign:g('sign'),name:String(d.n||'').slice(0,12),top:g('top'),lit:g('lit'),sL:SIDE[g('sL')]||SIDE[0],sR:SIDE[g('sR')]||SIDE[0],mas:MAS[g('mas')]||MAS[0]}}
 /* 구경·처음 화면은 손님이 이미 와 있는 모습으로 (20초쯤 미리 돌려요) */
 let vPre=null,hPre=0,hPre2=0;
-function visit(uid,from){vFrom=from||'home';/* 11/24: 돌아갈 곳 이름을 버튼에 */$('vx').textContent={street:'← 동네로',rk:'← 순위로',gb:'← 방명록'}[vFrom]||'← 내 가게';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';$('vnt').className='';$('vnt').textContent='💌';
- whenNet(N=>{N.get(uid).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
+function visit(uid,from,pre){vFrom=from||'home';vBr=!!pre;/* 11/24: 돌아갈 곳 이름을 버튼에 */$('vx').textContent={street:'← 동네로',rk:'← 순위로',gb:'← 방명록'}[vFrom]||'← 내 가게';vd=null;vuid=uid;vfur=[];IS.reset();IS.resetPan();scr='visit';show('vs');$('vnm').textContent='불러오는 중…';$('vinfo').textContent='';$('vlk').className='';$('vlk').textContent='❤️ 좋아요';$('vnt').className='';$('vnt').textContent='💌';
+ whenNet(N=>{(pre?Promise.resolve(pre):N.get(uid)).then(d=>{if(scr!=='visit'||vuid!==uid)return;if(!d){toast('아직 가게를 꾸미지 않은 사람이에요');leaveVisit();return}
   vd=d;if(uid!==N.uid)twVisit(uid);{const c=COOKS[(d.eq&&d.eq.cook)|0]||COOKS[0];if(c.f){const im=new Image();im.src=c.f;window.ART_IMG.cook=im}else delete window.ART_IMG.cook}{const pf=x=>{const a=String(x).replace(/^2\|/,'').split(',');const v={k:a[0],x:+a[1],y:+a[2],d:(+a[3])|0},st=Math.max(0,Math.min(3,(+a[4])|0));if(st)v.s=st;return v},L=d.fur||[];vfur=L.filter(x=>!/^2\|/.test(String(x))).map(pf).filter(it=>IS.CK(it.k));vfur2=L.filter(x=>/^2\|/.test(String(x))).map(pf).filter(it=>IS.CK(it.k))}vF2=false;IS.fixWide(vfur,Math.max(4,Math.min(11,d.room|0)));IS.fixDoor(vfur,Math.max(4,Math.min(11,d.room|0)));{const f2=Math.min(11,(d.eq&&d.eq.f2)|0),rn=Math.max(4,Math.min(11,d.room|0)),cut=(L,n)=>L.filter(it=>!IS.cells(it).some(c=>c.x===n-2&&c.y===0));if(f2>=5){vfur=cut(vfur,rn);vfur2=cut(vfur2,f2)}}
   if(vFrom==='url'&&uid!==N.uid)toast('💌 '+((d.nk&&!BADW.bad(d.nk))?d.nk+'님이':'친구가')+' 가게 구경에 초대했어요!');
   $('vnm').innerHTML='';const a=document.createElement('span');a.textContent='🏪 '+(d.n||'');const b=document.createElement('small');b.textContent=(d.nk?'🙂 '+d.nk+' 님의 가게':'')+'';$('vnm').append(a,b);renderVisit();
   $('vmk').style.display=save.name?'none':'block';
-  $('vrp').style.display=uid===N.uid?'none':'block';if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast(busyMsg()||'불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
-function renderVisit(){if(!vd)return;$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+((vd.rt|0)>=10?' · ⭐'+((vd.rt|0)/10).toFixed(1):'')+'<br>✨ 꾸미기 '+fmt(Number.isInteger(vd.rs)?vd.rs:vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
+  /* 🏪 2호점 구경: 좋아요·스티커·신고는 본점에서만 */['vlk','vnt'].forEach(k=>$(k).style.display=vBr?'none':'');
+  $('vrp').style.display=uid===N.uid||vBr?'none':'block';if(uid===N.uid){$('vlk').className='done';$('vlk').textContent='🏠 내 가게';$('vnt').className='done'}else{N.liked(uid).then(l=>{if(l&&vuid===uid){$('vlk').className='done';$('vlk').textContent='❤️ 오늘 눌렀어요'}}).catch(()=>{});if(N.noteMine)N.noteMine(uid).then(k=>{if(k>=0&&vuid===uid){$('vnt').className='done';$('vnt').textContent=STK[k][0]}}).catch(()=>{})}}).catch(()=>{toast(busyMsg()||'불러오지 못했어요');leaveVisit()})},()=>{toast('지금은 연결할 수 없어요');leaveVisit()})}
+function renderVisit(){if(!vd)return;if(vd.br){const zi=BIZ.ZK[vd.z]||{e:'🏘️',n:'골목'},th=B2TH[(vd.th|0)%B2TH.length]||B2TH[0];$('vinfo').innerHTML='🏪 2호점 · '+zi.e+' '+zi.n+'<br>'+th.e+' '+th.n+' 테마 · 💼 투자 Lv'+(vd.lv|0);return}$('vinfo').innerHTML=(GR[vd.g]?GR[vd.g].e+' '+GR[vd.g].n:'')+' · 🏪Lv'+lvOf(vd.sc)+((vd.rt|0)>=10?' · ⭐'+((vd.rt|0)/10).toFixed(1):'')+'<br>✨ 꾸미기 '+fmt(Number.isInteger(vd.rs)?vd.rs:vd.sc|0)+' · ❤️ '+fmt(vd.lk|0)}
 function leaveVisit(){vd=null;hPre=0;IS.reset();IS.resetPan();applyCook();$('vmk').style.display='none';if(vFrom==='street'){openStreet()}else if(vFrom==='rk'){openRank()}else if(vFrom==='gb'){openNotes()}else if(!save.name){scr='home';renderHome();openName(true)}else toHome()}
 $('vx').onclick=leaveVisit;
 $('vmk1').onclick=()=>{vFrom='home';leaveVisit()};
@@ -966,7 +998,7 @@ const myLot=()=>save.zn&&save.zn.c&&save.zn.l>=1000?save.zn.l:null;
 const myTown=()=>{const l=myLot();return l?Math.floor(l/1000):(save.zn&&save.zn.tw)||1};
 const ALLEY_CAP=()=>SV.LOTS.filter(l=>l.z==='alley').length;
 const uh=u=>{let h=2166136261;for(const c of String(u))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
-function stBuild(){if(!stTown)stTown=myTown();const live=lotLive(),me=meUid(),others=live.filter(x=>x.u!==me),taken=new Set(others.map(x=>x.l%1000)),cu=new Set(others.map(x=>x.u)),home=stTown===myTown();
+function stBuild(){if(!stTown)stTown=myTown();const live=lotLive(),me=meUid(),others=live.filter(x=>x.u!==me||x.b),taken=new Set(others.map(x=>x.l%1000)),cu=new Set(others.filter(x=>!x.b).map(x=>x.u)),home=stTown===myTown();
  let meL=null;if(home){const ml=myLot();meL=ml!=null&&!taken.has(ml%1000)?ml%1000:SV.ALLEY.find(l=>!taken.has(l))}
  const free=SV.ALLEY.filter(l=>SV.LID.get(l).z==='alley'&&!taken.has(l)&&l!==meL);
  const rows=home?(stRows||[]).filter(r=>!(window.HIDE&&HIDE.has(r.u))&&!cu.has(r.u)):[],used=new Set(),take=arr=>{const o=[];for(const r of arr){if(used.has(r.u))continue;used.add(r.u);o.push(r)}return o};
@@ -974,7 +1006,7 @@ function stBuild(){if(!stTown)stTown=myTown();const live=lotLive(),me=meUid(),ot
  /* 11/18 칸 없는 이웃은 가게 번호(uid)로 정한 골목 칸에 (아래쪽 골목 48칸 안). 다른 사람이 칸을 잡거나 비워도 안 밀려요 */
  const pick=take(rows.slice().sort((a,b)=>uh(a.u)-uh(b.u))).slice(0,free.length),fs=new Set(free),AL=SV.ALLEY.filter(l=>SV.LID.get(l).z==='alley'),SL=AL.slice(0,48),used2=new Set();
  const place=r=>{for(const L of [SL,AL]){const n=L.length;let k=uh(r.u)%n;for(let j=0;j<n;j++){const l=L[(k+j)%n];if(fs.has(l)&&!used2.has(l)){used2.add(l);return l}}}return null};
- stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g,rt:x.rt|0},u:x.u,lid:x.l%1000})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)})).filter(x=>x.lid!=null)];
+ stList=[...(meL!=null?[{d:myD(null),me:true,u:'me',lid:meL}]:[]),...others.map(x=>({d:{r5:x.r5,room:x.room,skin:x.sk,awn:x.aw,sign:x.sg,n:x.n,nk:x.nk,g:x.g,rt:x.rt|0},u:x.u,lid:x.l%1000,br:x.b?1:0,row:x})),...pick.map(r=>({d:dD(r),u:r.u,lid:place(r)})).filter(x=>x.lid!=null)];
  /* 11/22: 경영 카드 '지도에서 고르기'로 열면 늦게 오는 불러오기 뒤에도 그 상권을 보여 줘요 */if(stZ)SV.centerZone(stZ);else if(meL!=null)SV.center(meL);else SV.centerZone('prime');stTitle()}
 function stTitle(){const e=$('stnm');if(!e)return;const h=stTown===myTown();e.innerHTML='<button id="twPv" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">◀</button>🐟 마을 '+stTown+(h?' 🏠':'')+'<button id="twNx" style="border:0;background:none;font:inherit;font-size:20px;padding:0 6px;pointer-events:auto">▶</button>';
  /* 11/22 VOC '폰에서 💌가 안 눌려요': 이 버튼 이름이 스티커 창(#stp)과 같아서, 동네를 연 뒤엔 💌·🚩가 스티커 창 대신 이 버튼을 열었어요 → 이름 바꿈 */$('twPv').onclick=e=>{e.stopPropagation();if(stTown<=1){snd('no');return}snd('tap');stGo(stTown-1)};
@@ -983,7 +1015,7 @@ function stGo(t){stTown=t;stLots=null;lotsLoad(t,false).then(()=>{if(scr==='stre
 /* 서버 칸 목록 읽기: 마을마다 하루 한 번(폰에 저장), force면 바로 다시 */
 function lotsLoad(t,force){const K=LOT_K+'_'+t,c=lsJ(K);if(!force&&c&&c.d===dayKey()&&Array.isArray(c.rows)){if(t===stTown||!stTown)stLots=c.rows;return Promise.resolve(c.rows)}
  return new Promise(res=>whenNet(N=>{if(!N.lots){res([]);return}N.lots(t).then(rows=>{lsJ(K,{d:dayKey(),rows});if(t===stTown)stLots=rows;res(rows)}).catch(e=>{console.warn('lots',e&&e.code||e);const r=(c&&c.rows)||[];if(t===stTown)stLots=r;res(r)})},()=>{const r=(c&&c.rows)||[];if(t===stTown)stLots=r;res(r)}))}
-const lotPut=f=>{const me=meUid(),t=Math.floor(f/1000),K=LOT_K+'_'+t,c=lsJ(K),rows=((c&&c.rows)||[]).filter(x=>x.u!==me&&x.l!==f);rows.push(Object.assign({l:f,u:me,t:Date.now()},lotDoc(f)));lsJ(K,{d:dayKey(),rows});if(t===stTown)stLots=rows;else if(stLots)stLots=stLots.filter(x=>x.u!==me)};
+const lotPut=f=>{const me=meUid(),t=Math.floor(f/1000),K=LOT_K+'_'+t,c=lsJ(K),rows=((c&&c.rows)||[]).filter(x=>!(x.u===me&&!x.b)&&x.l!==f);rows.push(Object.assign({l:f,u:me,t:Date.now()},lotDoc(f)));lsJ(K,{d:dayKey(),rows});if(t===stTown)stLots=rows;else if(stLots)stLots=stLots.filter(x=>x.u!==me)};
 /* 골목이 안 찬 마을 찾기: 1번부터 골목 칸 수를 세요(마을마다 읽기 1) */
 async function findTown(N){for(let t=1;t<200;t++){let c=0;try{c=await N.lotCount(t)}catch(e){const r=await lotsLoad(t,true);c=r.filter(x=>x.z==='alley').length}if(c<ALLEY_CAP())return t}return 1}
 /* 칸 지키기 (앱 켤 때·동네 열 때):
@@ -1009,7 +1041,7 @@ async function lotFix(){if(lotBusy||!window.NET||NET.off||!NET.lotMove||!save.na
   const f=t*1000+want;await N.lotMove(f,zn.c&&zn.l!=null?zn.l:null,lotDoc(f));
   save.zn=Object.assign({},save.zn,{k:SV.LID.get(want).z==='alley'&&z.k==='alley'?'alley':z.k,l:f,c:1,tw:t,st:Date.now(),h:JSON.stringify(lotLook())});lotPut(f);store();if(scr==='street'){stTown=t;stBuild()}}
  catch(e){console.warn('lotFix',e&&e.code||e)}finally{lotBusy=false}}
-addEventListener('net-ready',()=>{lotFix()});
+addEventListener('net-ready',()=>{lotFix();setTimeout(b2LotFix,4000)});
 function stUI(){const tw=twNow(),lr=lkRecv();$('stinfo').innerHTML=stLoad?'이웃 가게를 불러오는 중…':stMsg||('🐾 이웃 구경 <b>'+Math.min(3,tw.v.length)+'/3</b>'+(tw.st?' ✅':'')+' · 🐟 황금 붕어빵 '+(tw.g?'찾음 ✅':'<b>어딘가 숨어 있어요!</b>')+'<br><small>💌 = 방명록 남긴 이웃 · ❤️ 오늘 받은 좋아요 '+lr+(lr?' (손님 +'+(Math.round(lkBuf()*1000)/10)+'%)':'')+'</small>');const b=$('str');b.textContent='🔄 새로고침';b.className=stLoad?'dis':''}
 function loadStreet(){const c=lsJ(ST_KEY);if(c&&c.d===dayKey()&&Array.isArray(c.rows)&&c.rows.length){stRows=c.rows;stMsg='';stBuild();stUI();return}
  const tries=lsJ(ST_KEY+'T')||{};if(tries.d===dayKey()&&(tries.n|0)>=3){stRows=stRows||(c&&c.rows)||[];stMsg=stRows.length?'':'아직 이웃 가게가 없어요';stBuild();stUI();return}
@@ -1028,9 +1060,9 @@ function stMove(h){snd('tap');if(!window.NET||NET.off||!NET.lotMove){toast('📶
  if(c.same){JUICE.ask(z.e+(stTown!==myTown()?' 마을 '+stTown+'(으)로 옮길까요?':' 여기로 옮길까요?'),'같은 '+z.n+'이라 무료예요','🚚 옮기기',go,'그만두기',done);return}
  JUICE.ask((stTown!==myTown()?'마을 '+stTown+' ':'')+z.e+' '+z.n+'(으)로 이사할까요?',z.d+' · 📍 자리값 '+Math.round(z.r*100)+'% — 🚚 이사비 '+fmt(c.fee)+' · 🔑 권리금 '+fmt(c.key)+(c.back?' · ↩️ 옛 권리금 절반 −'+fmt(c.back):'')+' → 합계 🪙 '+fmt(c.total),'🚚 이사하기',go,'그만두기',done)}
 function stTap(x,y){const h=SV.hit(stHits,x,y);if(!h)return;if(h.gold){goldGet();return}
- if(h.lot!=null){stMove(h);return}
- if(h.zone){snd('tap');const z=BIZ.ZK[h.zone],mz=BIZ.zoneOf(save);bzShow(z.e,z.n,'<p class="ht" style="text-align:center;margin-top:0">'+z.d+'</p><div class="chips"><span class="chip">📍 자리값 '+Math.round(z.r*100)+'%</span><span class="chip">🔑 권리금 '+fmt(z.key)+'</span></div>'+((mz===z?'<p class="ht" style="text-align:center">✅ 내 가게가 여기 있어요</p>':'')+'<p class="ht" style="text-align:center">🟫 이 구역의 빈 땅(점선 칸)을 누르면 이사할 수 있어요</p>'),mz===z?'좋아요':'📍 가게 자리 보기',mz===z?null:()=>{openUp('home',1);const L=$('shl');L.scrollTop=L.scrollHeight},mz===z?null:'닫기',null);return}const it=stList[h.i];snd('tap');if(it.me){toHome();return}visit(it.u,'street')}
-$('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');toHome()};$('str').onclick=()=>{if(stLoad)return;snd('tap');const t=lsJ(LOT_K+'R')||{};if(t.d===dayKey()&&(t.n|0)>=5){toast('🔄 오늘은 새로고침을 다 썼어요 · 내일 다시');return}lsJ(LOT_K+'R',{d:dayKey(),n:(t.d===dayKey()?t.n|0:0)+1});toast('🔄 동네를 새로 불러요');lotsLoad(stTown,true).then(()=>{if(scr==='street')stBuild()});if(!stRows||!stRows.length)loadStreet()};
+ if(h.lot!=null){if(stPickB){b2Move(h);return}stMove(h);return}
+ if(h.zone){snd('tap');const z=BIZ.ZK[h.zone],mz=BIZ.zoneOf(save);bzShow(z.e,z.n,'<p class="ht" style="text-align:center;margin-top:0">'+z.d+'</p><div class="chips"><span class="chip">📍 자리값 '+Math.round(z.r*100)+'%</span><span class="chip">🔑 권리금 '+fmt(z.key)+'</span></div>'+((mz===z?'<p class="ht" style="text-align:center">✅ 내 가게가 여기 있어요</p>':'')+'<p class="ht" style="text-align:center">🟫 이 구역의 빈 땅(점선 칸)을 누르면 이사할 수 있어요</p>'),mz===z?'좋아요':'📍 가게 자리 보기',mz===z?null:()=>{openUp('home',1);const L=$('shl');L.scrollTop=L.scrollHeight},mz===z?null:'닫기',null);return}const it=stList[h.i];snd('tap');if(it.br){visitB(it);return}if(it.me){toHome();return}visit(it.u,'street')}
+$('nst').onclick=()=>{au();openStreet()};$('stx').onclick=()=>{snd('tap');stPickB=false;toHome()};$('str').onclick=()=>{if(stLoad)return;snd('tap');const t=lsJ(LOT_K+'R')||{};if(t.d===dayKey()&&(t.n|0)>=5){toast('🔄 오늘은 새로고침을 다 썼어요 · 내일 다시');return}lsJ(LOT_K+'R',{d:dayKey(),n:(t.d===dayKey()?t.n|0:0)+1});toast('🔄 동네를 새로 불러요');lotsLoad(stTown,true).then(()=>{if(scr==='street')stBuild()});if(!stRows||!stRows.length)loadStreet()};
 function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
  if(window.__gal){window.__gal(t);requestAnimationFrame(loop);return}
  if(scr==='game'&&s){if(!paused){acc+=dt;let n=0;while(acc>=B.DT&&n++<4){B.step(s,run,B.DT);acc-=B.DT;drain();if(s.done)break}

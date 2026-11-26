@@ -160,7 +160,9 @@ service cloud.firestore {
     //  한 사람 한 칸: 새 칸을 잡을 때 내 lotOf가 그 칸을 가리키고, 예전 칸은 같은 묶음에서 지워져야 해요
     //  14일 동안 안 들어온 주인의 칸은 빈 칸으로 보고 다른 사람이 잡을 수 있어요
     function okLot(d) {
-      return d.keys().hasOnly(['u', 'tw', 'z', 'n', 'nk', 'g', 'room', 'sk', 'aw', 'sg', 'r5', 'rt', 't'])
+      return d.keys().hasOnly(['u', 'tw', 'z', 'n', 'nk', 'g', 'room', 'sk', 'aw', 'sg', 'r5', 'rt', 't', 'b', 'th', 'lv'])
+        // 🏪 11/26 2호점 칸: b = 2, th = 꾸밈 테마 번호, lv = 투자 레벨 합
+        && (!('b' in d) || d.b == 2) && (!('th' in d) || (d.th is int && d.th >= 0 && d.th <= 20)) && (!('lv' in d) || (d.lv is int && d.lv >= 0 && d.lv <= 30))
         && (!('rt' in d) || (d.rt is int && d.rt >= 0 && d.rt <= 50))
         && d.u == request.auth.uid
         && d.tw is int && d.tw >= 1 && d.tw <= 999
@@ -182,13 +184,37 @@ service cloud.firestore {
             || !existsAfter(/databases/$(database)/documents/lots/$(get(myPtr()).data.l))
             || getAfter(/databases/$(database)/documents/lots/$(get(myPtr()).data.l)).data.u != request.auth.uid);
     }
+    function bPtr() {
+      return /databases/$(database)/documents/lotB/$(request.auth.uid);
+    }
+    // 2호점 칸도 한 사람 한 칸: lotB가 새 칸을 가리키고, 예전 2호점 칸은 같은 묶음에서 지워져야 해요
+    function lotPtrB(lid) {
+      return getAfter(bPtr()).data.l == lid
+        && (!exists(bPtr())
+            || get(bPtr()).data.l == lid
+            || !existsAfter(/databases/$(database)/documents/lots/$(get(bPtr()).data.l))
+            || getAfter(/databases/$(database)/documents/lots/$(get(bPtr()).data.l)).data.u != request.auth.uid);
+    }
+    function lotPtrAny(lid) {
+      return ('b' in request.resource.data) ? lotPtrB(lid) : lotPtr(lid);
+    }
     match /lots/{lid} {
       allow read: if true;
-      allow create: if request.auth != null && lid.matches('[0-9]{4,6}') && okLot(request.resource.data) && lotPtr(lid);
+      allow create: if request.auth != null && lid.matches('[0-9]{4,6}') && okLot(request.resource.data) && lotPtrAny(lid);
       allow update: if request.auth != null && okLot(request.resource.data)
         && (resource.data.u == request.auth.uid
-            || (resource.data.t < request.time - duration.value(14, 'd') && lotPtr(lid)));
+            || (resource.data.t < request.time - duration.value(14, 'd') && lotPtrAny(lid)));
       allow delete: if request.auth != null && resource.data.u == request.auth.uid;
+    }
+    match /lotB/{uid} {
+      allow read: if true;
+      allow create, update: if mine(uid)
+        && request.resource.data.keys().hasOnly(['l', 't'])
+        && request.resource.data.l is string && request.resource.data.l.matches('[0-9]{4,6}')
+        && request.resource.data.t == request.time
+        && getAfter(/databases/$(database)/documents/lots/$(request.resource.data.l)).data.u == uid
+        && getAfter(/databases/$(database)/documents/lots/$(request.resource.data.l)).data.get('b', 0) == 2;
+      allow delete: if mine(uid);
     }
     match /lotOf/{uid} {
       allow read: if true;
