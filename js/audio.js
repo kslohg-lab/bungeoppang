@@ -8,7 +8,7 @@ let cfg={mu:1,fx:1};try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&type
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(e){}};
 let AC=null,MG=null,FG=null,NB=null;
 function ctx(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=cfg.mu?1:0;MG.connect(AC.destination);FG=AC.createGain();FG.gain.value=.9;FG.connect(AC.destination)}catch(e){AC=null}}
- if(AC&&AC.state==='suspended'&&!document.hidden){try{AC.resume()}catch(e){}}return AC}
+ if(AC&&AC.state!=='running'&&AC.state!=='closed'&&!document.hidden)/* 아이폰은 전화·시리 뒤 'interrupted' 상태가 있어요 */{try{AC.resume()}catch(e){}}return AC}
 /* 하얀 소음 (치익·쭈욱·휙 소리 재료) */
 function noise(){if(NB)return NB;const a=ctx();if(!a)return null;NB=a.createBuffer(1,a.sampleRate*1,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return NB}
 /* ---------- 효과음 재료 ---------- */
