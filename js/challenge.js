@@ -1,6 +1,6 @@
 /* ===== 화면·저장·조작 (규칙은 위의 BP2에서만 계산) ===== */
 (()=>{
-const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.23.0';
+const B=BP2,R=B.R,W=450,H=800,$=id=>document.getElementById(id),cv=$('cv'),cx=cv.getContext('2d'),fmt=B.fmt,KEY='bungeoppang2Pub1',VER='6.23.1';
 let save={};try{save=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 save=Object.assign({nick:'',sub:{id:0,stage:0,net:0},snd:true,runs:0,clears:0,best:{stage:0,net:0},week:{id:0,stage:0,net:0},free:{stage:0,net:0},run:null},save);
 /* 규칙이 바뀌기 전에 하던 판은 이어서 할 수 없어요 (순위표 검증이 맞지 않아서) */
@@ -350,7 +350,7 @@ function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
  requestAnimationFrame(loop)}
 function fit(){const b=document.body,bh=window.visualViewport?Math.min(b.clientHeight,Math.round(visualViewport.height)):b.clientHeight,sc=Math.min(b.clientWidth/W,bh/H);$('box').style.transform='translate('+(b.clientWidth-W*sc)/2+'px,'+(bh-H*sc)/2+'px) scale('+sc+')'}
 try{visualViewport.addEventListener('resize',()=>fit())}catch(e){}
-addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));
+/* 11/26 아이폰 홈 화면 앱: 켜자마자는 화면 크기를 잘못 알려 줄 때가 있어서 조금씩 뒤에 다시 맞춰요 */[150,600,1500,3000].forEach(t=>setTimeout(fit,t));addEventListener('pageshow',()=>{fit();setTimeout(fit,400)});addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()});
 addEventListener('pagehide',pauseGame);
 window.__bp2={save,B,get run(){return run},get s(){return s},get tut(){return tut},tgt:()=>tut&&!tut.done?TS[tut.i].p():null,startRun,startDay,tap,drain,finishDay,get scr(){return scr}};

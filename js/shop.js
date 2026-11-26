@@ -1082,6 +1082,7 @@ function hmLay(){const p=document.querySelector('#hm .pn');if(!p||scr!=='home'||
 let hmFlbY=424,hmZfY=424;
 function fit(){const b=document.body,w=b.clientWidth,h=window.visualViewport?Math.min(b.clientHeight,Math.round(visualViewport.height)):b.clientHeight,ex=scr==='home'?Math.min(170,h*W/w-H):0;EXT=ex>6?Math.round(ex):0;const BH=H+EXT,sc=Math.min(w/W,h/BH),bx=$('box');
  bx.style.height=BH+'px';bx.style.transform='translate('+(w-W*sc)/2+'px,'+(h-BH*sc)/2+'px) scale('+sc+')';fitScr=scr;boxBg();hmLay()}
+/* 11/26 아이폰 홈 화면 앱: 켜자마자는 화면 크기를 잘못 알려 줄 때가 있어서 조금씩 뒤에 다시 맞춰요 */[150,600,1500,3000].forEach(t=>setTimeout(fit,t));addEventListener('pageshow',()=>{fit();setTimeout(fit,400)});
 addEventListener('resize',fit);try{new ResizeObserver(()=>fit()).observe(document.body)}catch(e){}try{visualViewport.addEventListener('resize',()=>fit())}catch(e){}addEventListener('orientationchange',()=>setTimeout(fit,200));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){bizTick(false);store()}else bizTick(true);if(document.hidden)pauseGame();if(0){if(document.hidden)AC.suspend();else AC.resume()}});
 addEventListener('pagehide',()=>{bizTick(false);store();pauseGame()});
