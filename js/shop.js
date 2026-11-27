@@ -78,7 +78,10 @@ const charmBonus=()=>Math.min(BIZ.charmCap(save),charm()*.0023); /* 11/10 매력
 /* 11/10 알바 값 내림 → 예전 값으로 산 차액 계산(한 번만) */try{BIZ.ec2(save)}catch(e){}
 if(!Array.isArray(save.fur2))save.fur2=[];else save.fur2=save.fur2.filter(f=>f&&!f.pend);save.f2=BIZ.f2Of(save);
 /* 🏅 메달 스킨 효과 (쓰고 있는 스킨만): a = 손님 +%, h = 도와주기 수익 +% · 가게에만, 챌린지엔 없음 */
-const skBuf=()=>{const it=SKIN[save.eq.skin|0]||{};return{a:(it.a|0)/100,h:(it.h|0)/100}};
+/* 11/27 사용자 '스킨 효과는 누적으로, 비싼 만큼': 쓰는 스킨 100% + 가진 다른 스킨 30%씩, 합은 👥15% · 🙋20%까지 */
+const SKCAP={a:15,h:20},SKO=.3;
+const skSum=()=>{const eq=save.eq.skin|0,own=(save.own&&save.own.skin)||[];let a=0,h=0;SKIN.forEach((it,i)=>{if(!(it.a||it.h))return;const w=i===eq?1:own.includes(i)?SKO:0;a+=(it.a|0)*w;h+=(it.h|0)*w});return{a:Math.min(SKCAP.a,Math.round(a*10)/10),h:Math.min(SKCAP.h,Math.round(h*10)/10),ra:a,rh:h}};
+const skBuf=()=>{const t=skSum();return{a:t.a/100,h:t.h/100}};
 const skTxt=it=>(it.a?'👥+'+it.a+'%':'')+(it.a&&it.h?' ':'')+(it.h?'🙋+'+it.h+'%':'');
 const nm=()=>save.name||'붕어빵';
 /* 사장님 그림: 0=기본(코드 그림), 1=곰, 2=얼룩곰 */
@@ -337,10 +340,43 @@ function attCard(){if(!attCan())return false;const g=attNext(),A=att(),nm2=nextM
  bzShow('📅','🔥 연속 출석 '+g.s+'일째!','<div style="text-align:center">'+(g.broke?'<p class="ht" style="margin:0 0 6px;color:#c03030">연속이 끊겨서 1일부터 다시 시작해요 (전에 '+g.old+'일)</p>':g.prot?'<p class="ht" style="margin:0 0 6px;color:#2a7ac0">🛡️ 어제 빠졌지만 이번 주 보호로 이어졌어요!</p>':'')+dots+
   '<p style="margin:8px 0 0;font-size:19px">오늘 선물: <b style="color:#e8642a">'+attTxt(g)+'</b></p>'+(g.ms?'<p class="ht" style="margin:4px 0 0">'+g.ms.t+' 포함!</p>':'')+
   (nm2?'<p class="ht" style="margin:6px 0 0">🎁 '+nm2.k+'일째: '+nm2.m.t+(nm2.m.m?' · 🏅'+nm2.m.m:'')+(nm2.m.x?' · 🎫'+nm2.m.x:'')+'</p>':'')+'<p class="ht" style="margin:4px 0 0">🛡️ 한 주에 한 번은 하루 빠져도 이어져요'+(A.pw===wkOf(dayKey())&&!g.prot?' (이번 주 사용함)':'')+'</p></div>',
-  '🎁 받기',()=>{const r=attClaim();if(!r)return;snd('fanfare');if(window.JUICE)JUICE.confetti(r.ms?140:90);toast('🎁 '+attTxt(r)+' 받았어요! · 🔥 연속 '+r.s+'일');renderHome();bizBtn()});return true}
+  '🎁 받기',()=>{const r=attClaim();if(!r)return;snd('fanfare');if(window.JUICE)JUICE.confetti(r.ms?140:90);toast('🎁 '+attTxt(r)+' 받았어요! · 🔥 연속 '+r.s+'일');renderHome();bizBtn();popNext()});return true}
 const attLine=()=>{if(!save.name)return'';const A=att(),done=A.last>=dayKey(),s=done?A.s:attNext().s,nm2=nextMs(done?A.s:s-1);return'<div class="evl" id="atl" style="background:#e8f4ff">📅 🔥 연속 '+(done?A.s:Math.max(0,s-1))+'일'+(done?(nm2?' · 🎁 '+nm2.k+'일째 '+nm2.m.t:''):' · <b>오늘 도장 찍기 ›</b>')+'</div>'};
-let attShown=false;function attAuto(n){if(attShown||!save.name||n>40)return;setTimeout(()=>{if(attShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
- if(scr!=='home'||busy){attAuto(n+1);return}attShown=true;attCard()},n?1500:900)}
+let attShown=false;function attAuto(n){if(!n)try{cbInit()}catch(e){}if(attShown||!save.name||n>40)return;setTimeout(()=>{if(attShown)return;const busy=[...document.querySelectorAll('.ov')].some(o=>o.id!=='hm'&&getComputedStyle(o).display!=='none');
+ if(scr!=='home'||busy){attAuto(n+1);return}attShown=true;popAny()},n?1500:900)}
+/* ---------- 🎄 크리스마스 달력 (12/1~12/25, 11/27 사용자 '다 해') ----------
+   12월 1~25일, 그날 들어오면 그날 칸 하나를 열어요(지난 칸은 못 열어요 → 매일 올 이유).
+   코인은 '내 가게 n시간 수입'(출석과 같은 방식, 최소·최대 있음) · 5일마다 12월 한정 가구 · 25일 큰 선물.
+   폰 시계를 되돌려도 이미 연 칸은 다시 못 열어요(칸마다 한 번). 한 번에 받는 코인 최대 100만(클라우드 백업 규칙 안쪽) */
+const ADV=d=>d===25?{c:3,cap:1e6,m:20,x:3,f:'v_snowsofa',t:'🎅 크리스마스 큰 선물'}:d===24?{c:2,cap:6e5,t:'🌟 이브 선물'}:d%5===0?{f:{5:'v_knit',10:'v_cane',15:'v_cocoa',20:'x_giftmt'}[d]}:[3,8,13,18,23].includes(d)?{m:3}:[7,14,21].includes(d)?{x:1}:{c:1,cap:3e5};
+const advDay=()=>{const k=kdate();return k.getUTCMonth()===11&&k.getUTCDate()<=25?k.getUTCDate():0};
+const adv=()=>{const y=kdate().getUTCFullYear();if(!save.adv||save.adv.y!==y)save.adv={y,o:0};return save.adv};
+const advGot=d=>((adv().o|0)>>(d-1))&1;
+const advCan=()=>!!save.name&&advDay()>0&&!advGot(advDay());
+const advCoin=r=>r.c?Math.max(3000*r.c,Math.min(r.cap,r1k(attHr()*r.c))):0;
+const advTxt=r=>{const a=[];if(r.c)a.push('🪙 '+fmt(advCoin(r)));if(r.m)a.push('🏅 '+r.m);if(r.x)a.push('🎫 강화권 '+r.x);if(r.f){const f=IS.CK(r.f);if(f)a.push(f.e+' '+f.n)}return a.join(' · ')};
+const advIco=r=>r.f?(IS.CK(r.f)||{e:'🎁'}).e:r.m?'🏅':r.x?'🎫':'🪙';
+function advClaim(){if(!advCan())return null;const d=advDay(),r=ADV(d),A=adv();A.o=(A.o|0)|(1<<(d-1));const c=advCoin(r);save.coins+=c;
+ if(r.m&&window.MEDAL&&MEDAL.add)MEDAL.add(r.m);if(r.x)save.tix=(save.tix|0)+r.x;if(r.f&&IS.CK(r.f))save.inv[r.f]=(save.inv[r.f]|0)+1;store();return{d,r,c}}
+const advN=()=>{let n=0;for(let i=1;i<=25;i++)if(advGot(i))n++;return n};
+function advCard(){const d=advDay();if(!save.name||!d)return false;const can=advCan(),r=ADV(d);
+ const cells=Array.from({length:25},(_,j)=>{const k=j+1,got=advGot(k),cur=k===d,miss=k<d&&!got,R=ADV(k);return'<span style="display:inline-block;width:44px;height:46px;line-height:1.15;padding-top:4px;border-radius:10px;margin:2px;font-size:17px;vertical-align:top;'+(cur&&can?'background:#ffd76a;box-shadow:0 0 0 3px #e8642a':got?'background:#d8f5dc':miss?'background:#e8e2da;opacity:.55':k===25?'background:#ffe0e0':'background:#f1e6d4')+'">'+(got?'✅':cur&&can?'🎁':miss?'·':advIco(R))+'<br><small style="font-size:10px">'+k+'일</small></span>'}).join('');
+ bzShow('🎄','크리스마스 달력 '+advN()+'/25',(can?'':'<p class="ht" style="text-align:center;margin:0 0 6px">오늘 칸은 열었어요 · 내일 또 와요!</p>')+'<div style="text-align:center">'+cells+
+  (can?'<p style="margin:8px 0 0;font-size:18px">'+d+'일 선물: <b style="color:#e8642a">'+advTxt(r)+'</b></p>':'')+(d<25?'<p class="ht" style="margin:6px 0 0">🎅 25일: '+advTxt(ADV(25))+'</p>':'')+'<p class="ht" style="margin:4px 0 0">하루에 그날 칸 하나만 열려요 · 가구는 꾸미기 › 📦 내 가구에 들어가요</p></div>',
+  can?'🎁 '+d+'일 칸 열기':'닫기',()=>{if(!can)return;const g=advClaim();if(!g)return;snd('fanfare');if(window.JUICE)JUICE.confetti(g.d===25?180:90);toast('🎄 '+g.d+'일 선물: '+advTxt(g.r)+' 받았어요!');renderHome();bizBtn();popNext()});return can}
+const advLine=()=>{const d=advDay();if(!save.name||!d)return'';return'<div class="evl" id="avl" style="background:#ffe8e8">🎄 크리스마스 달력 '+advN()+'/25'+(advCan()?' · <b>오늘 칸 열기 ›</b>':' · 내일 또 열려요')+'</div>'};
+/* ---------- 🎁 돌아온 선물: 3일 넘게 못 왔다가 오면 (14일에 한 번) ----------
+   마지막으로 온 날(save.seen, 없으면 마지막 출석일)과 오늘 차이. 폰 시계를 되돌려도 seen은 줄지 않아요 */
+const CBR=g=>g>=7?{h:5,mn:2e4,x:2,m:5}:{h:3,mn:1e4,x:1,m:0};
+const cbCoin=g=>{const r=CBR(g);return Math.max(r.mn,Math.min(1e6,r1k(attHr()*r.h)))};
+function cbInit(){if(!save.name)return;const d=dayKey(),prev=save.seen!=null?save.seen|0:(att().last|0);if(prev>0&&d-prev>=3&&d>=(save.cbD|0)+14&&!save.cbP)save.cbP={g:d-prev,d};if((save.seen|0)<d){save.seen=d;store()}}
+const cbCan=()=>!!(save.cbP&&save.cbP.d===dayKey());
+function cbCard(){if(!cbCan())return false;const g=save.cbP.g,r=CBR(g),c=cbCoin(g),txt='🪙 '+fmt(c)+' · 🎫 강화권 '+r.x+(r.m?' · 🏅 '+r.m:'');
+ bzShow('🎁','다시 와 줘서 고마워요!','<div style="text-align:center"><p style="margin:0 0 6px;font-size:17px">'+g+'일 만이에요! 직원들이 기다렸어요 🐟</p><p style="margin:6px 0 0;font-size:19px">돌아온 선물: <b style="color:#e8642a">'+txt+'</b></p><p class="ht" style="margin:6px 0 0">'+(g>=7?'일주일 넘게 쉬었으니 더 크게 준비했어요':'7일 넘게 쉬다 오면 더 큰 선물이에요')+'</p></div>',
+  '🎁 받기',()=>{if(!cbCan())return;save.coins+=c;save.tix=(save.tix|0)+r.x;if(r.m&&window.MEDAL&&MEDAL.add)MEDAL.add(r.m);save.cbD=dayKey();delete save.cbP;store();snd('fanfare');if(window.JUICE)JUICE.confetti(120);toast('🎁 '+txt+' 받았어요!');renderHome();bizBtn();popNext()});return true}
+/* 홈에 들어올 때 선물 창 차례: 돌아온 선물 → 크리스마스 달력 → 출석 */
+const popAny=()=>cbCard()||(advCan()&&advCard())||attCard();
+const popNext=()=>setTimeout(()=>{if(scr==='home'&&$('bz').style.display!=='block')popAny()},700);
 /* ---------- 📅 오늘의 사건 ---------- */
 const grpTxt=g=>!g?'':g.ok?'<div class="sum" style="background:#d8f5dc"><b>🚌 단체 주문 완료!</b> +'+fmt(g.rw)+'🪙 · ⭐ 평점 +0.2</div>':'<div class="sum">🚌 단체 주문 '+g.got+' / '+g.need+'명 · '+hm(Math.max(0,(save.ev.until-Date.now())/3600e3))+' 남았어요</div>';
 const EVT={group:['🚌','단체 주문이 들어왔어요!',c=>'근처 회사에서 붕어빵 단체 주문! <b>3시간 안에</b> 🙋 도와주기(붕어빵·음료)로 <b>손님 '+BIZ.GRP_NEED+'명</b>을 대접하면 <b>+'+fmt(c.grp)+'🪙</b> · ⭐ +0.2<br><small>못 하면 평점 −0.3</small>','🚌 받을게요!','다음에요'],
@@ -370,7 +406,7 @@ function invCheck(force,then){const R=save.ivR||[];if(!save.name||R.length>=IVMA
   if(got){save.coins+=c;if(window.MEDAL&&MEDAL.add)MEDAL.add(5*got);store();bizBtn();snd('fanfare');if(window.JUICE)JUICE.confetti(120);toast('💌 초대한 친구 '+got+'명이 가게를 열었어요! 🪙'+fmt(c)+' · 🏅'+(5*got)+' ('+R2.length+'/'+IVMAX+')')}store();then&&then()}).catch(()=>{then&&then()}),()=>{ivAt=0;then&&then()})}
 window.addEventListener('net-ready',()=>{if(save.name){ivAt=0;invTick()}});
 function renderHome(){setTimeout(hmLay,0);unlockUI();starDot();noteBadge();noteCheck();if(save.name){dayTick();invTick();const ne=BIZ.evNew(save,Date.now());if(ne){/* 🌧️ 사건은 오늘 날씨가 비·눈일 때만 (맑은 날엔 다른 사건) */if(ne.k==='rain'&&!/🌧/.test(todayWx().wea.e||''))ne.k=['influ','fest','rival'][ne.dk%3];store()}}const lv=shopLv();goals=goalsFor(dayKey(),lv);const w=todayWx(),gd=gdone();
- $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+mgLine()+(save.name&&att().n?attLine():'');{const ml=$('mgl');if(ml)ml.onclick=()=>{snd('tap');mgCard()}}mgBtn();{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
+ $('hg').innerHTML='<div class="ghd"><b>📋 오늘 목표 <small style="font-weight:400;opacity:.7">⭐</small></b><span>'+w.wea.e+(w.ev?' '+R.ev[w.ev].e+' '+R.ev[w.ev].n:' '+w.wea.n)+'</span></div><div class="gl3">'+goals.map((g,i)=>{const q=gShort(g);return'<div class="'+(gd.done[i]?'ok':'')+'"><b>'+(gd.done[i]?'✅':q.e)+'</b>'+q.t+'</div>'}).join('')+'</div>'+evLine()+mgLine()+advLine()+(save.name&&att().n?attLine():'');{const ml=$('mgl');if(ml)ml.onclick=()=>{snd('tap');mgCard()}}mgBtn();{const el=$('evl');if(el)el.onclick=()=>{snd('tap');evCard()}}{const vl=$('avl');if(vl)vl.onclick=()=>{snd('tap');advCard()}}{const al=$('atl');if(al)al.onclick=()=>{snd('tap');if(!attCard())toast('📅 오늘 선물은 받았어요 · 내일 또 와요!')}}
  {const h=hbNow(),left=Math.max(0,HB1-h.n);$('h1').innerHTML='🙋 도와주기<small style="display:block;font-size:12px;opacity:.75;margin-top:-2px">'+(left?'🎁 보너스 '+left+'/'+HB1+'판':h.n<HB2?'오늘은 50% (내일 100%)':'오늘은 20% (내일 100%)')+'</small>'}bizBtn()}
 function toHome(){scr='home';s=null;paused=false;prev=null;tipMake();if(tipLeft()&&!save.tipH){save.tipH=1;store();setTimeout(()=>{if(scr==='home')toast('🧹 손님들이 팁·접시를 남겼어요! 가게 바닥에서 톡톡 눌러 모아요')},900)}renderHome();show('hm');attAuto(0);evAuto(0);setTimeout(()=>{if(scr!=='home'||$('bz').style.display==='block')return;if(save.name&&(save.days|0)>=1&&!mgr().k&&!save.mgAsk){save.mgAsk=1;store();mgPick();return}decoWkReward()},2500)}
 /* 오늘의 사건 카드: 다른 창(자리 비운 동안·새 소식·선물 등)이 다 닫힌 뒤 한 번 자동으로 */
@@ -635,7 +671,7 @@ function renderDeco(){$('da3').style.display='none';thFix();const tabs=DT(),tk=d
   else if(free)dbtn('da1','받기 🎁','go',()=>{save.own[sl.k].push(id);eqS(sl.k,id);prev=null;store();snd('win');renderDeco()});
   else dbtn('da1','사기 🪙'+fmt(it.p),save.coins>=it.p?'go':'dis',()=>{if(save.coins<it.p){toast('코인이 부족해요!');snd('no');return}save.coins-=it.p;save.own[sl.k].push(id);eqS(sl.k,id);prev=null;store();snd('buy');if(window.JUICE)JUICE.confetti(60);toast(it.n+' 설치 완료!');renderDeco()});
   dbtn('da2',prev?'↩ 되돌리기':'✔ 완료','',()=>{if(prev){prev=null;renderDeco()}else $('dx').click()});
-  msg=it.m&&(it.a||it.h)?(prev&&!eqd?'미리 보는 중 · ':'')+'효과: '+(it.a?'손님 +'+it.a+'%':'')+(it.a&&it.h?' · ':'')+(it.h?'도와주기 수익 +'+it.h+'%':''):prev&&!eqd?'미리 보는 중 · '+(it.m?'🏅 메달 전용':'매력 +'+charmOf(it)):sl.n+' 고르기'}
+  msg=it.m&&(it.a||it.h)?(prev&&!eqd?'미리 보는 중 · ':'')+'효과: '+(it.a?'손님 +'+it.a+'%':'')+(it.a&&it.h?' · ':'')+(it.h?'도와주기 수익 +'+it.h+'%':'')+' (쓰면 100% · 갖고만 있어도 30%) · 지금 합계 '+(t=>'👥+'+t.a+'% 🙋+'+t.h+'%')(skSum())+' / 최대 👥'+SKCAP.a+'% 🙋'+SKCAP.h+'%':prev&&!eqd?'미리 보는 중 · '+(it.m?'🏅 메달 전용':'매력 +'+charmOf(it)):sl.n+' 고르기'}
  $('dmsg').textContent=msg;L.scrollLeft=sl0}
 /* 가게 바닥을 톡: 가구 고르기 / 놓기 */
 function decoTap(x,y){if(dtabK()!=='fur'||y>H-DPH||y<56)return;const n=RMN(),{gx,gy}=IS.toTile(x,y);
