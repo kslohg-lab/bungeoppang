@@ -23,7 +23,7 @@ service cloud.firestore {
         && d.w == weekNow()
         && d.n is string && d.n.size() >= 1 && d.n.size() <= 10 && clean(d.n)
         && d.st is int && d.st >= 1 && d.st <= 60
-        && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 800000 * d.st
+        && d.net is int && d.net >= 400 * d.st * d.st && d.net <= 2000000 * d.st   // 11/28: 50단계 5천만 기록이 막혀서 80만→200만×단계 (50단계 최대 1억). 진짜인지는 proofs 재생(verify.html)으로 확인
         && d.sc == d.st * 1000000000 + d.net
         && d.v is int
         && d.ts == request.time
